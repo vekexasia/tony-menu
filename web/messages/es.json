@@ -422,6 +422,8 @@
     "settings.saveAll": "Save changes",
     "settings.savingAll": "Saving...",
     "entries.preview.cardTitle": "Vista previa — lista",
-    "entries.preview.expandedTitle": "Vista previa — detalle"
+    "entries.preview.expandedTitle": "Vista previa — detalle",
+    "entries.preview.title": "Vista previa",
+    "entries.preview.subtitle": "Cómo lo ven los clientes en el móvil"
   }
 }

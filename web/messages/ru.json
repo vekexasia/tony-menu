@@ -422,6 +422,8 @@
     "settings.saveAll": "Save changes",
     "settings.savingAll": "Saving...",
     "entries.preview.cardTitle": "Превью — в списке",
-    "entries.preview.expandedTitle": "Превью — детально"
+    "entries.preview.expandedTitle": "Превью — детально",
+    "entries.preview.title": "Превью",
+    "entries.preview.subtitle": "Как клиент увидит это на телефоне"
   }
 }

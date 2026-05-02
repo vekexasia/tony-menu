@@ -422,6 +422,8 @@
     "settings.saveAll": "Save changes",
     "settings.savingAll": "Saving...",
     "entries.preview.cardTitle": "Vorschau — Listenansicht",
-    "entries.preview.expandedTitle": "Vorschau — Detailansicht"
+    "entries.preview.expandedTitle": "Vorschau — Detailansicht",
+    "entries.preview.title": "Vorschau",
+    "entries.preview.subtitle": "So sehen Gäste es auf dem Smartphone"
   }
 }

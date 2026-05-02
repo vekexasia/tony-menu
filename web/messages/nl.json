@@ -422,6 +422,8 @@
     "settings.saveAll": "Save changes",
     "settings.savingAll": "Saving...",
     "entries.preview.cardTitle": "Voorbeeld — lijstweergave",
-    "entries.preview.expandedTitle": "Voorbeeld — detailweergave"
+    "entries.preview.expandedTitle": "Voorbeeld — detailweergave",
+    "entries.preview.title": "Voorbeeld",
+    "entries.preview.subtitle": "Zoals klanten het op hun telefoon zien"
   }
 }

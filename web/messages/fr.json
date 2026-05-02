@@ -422,6 +422,8 @@
     "settings.saveAll": "Save changes",
     "settings.savingAll": "Saving...",
     "entries.preview.cardTitle": "Aperçu — vue liste",
-    "entries.preview.expandedTitle": "Aperçu — vue détail"
+    "entries.preview.expandedTitle": "Aperçu — vue détail",
+    "entries.preview.title": "Aperçu",
+    "entries.preview.subtitle": "Vu côté client, sur le téléphone"
   }
 }
