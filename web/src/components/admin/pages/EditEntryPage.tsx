@@ -408,7 +408,7 @@ export default function EditEntryPage() {
   const allMenus = restaurantData?.menus ?? [];
 
   return (
-    <div className="p-4 space-y-4" style={{ flex: 1, minWidth: 0, overflowY: "auto", overflowX: "hidden" }}>
+    <div className="p-4 space-y-4" style={{ flex: 1, minWidth: 0, overflowY: "auto", overflowX: "hidden", position: "relative" }}>
       {/* Header */}
       <div className="flex items-center gap-3 min-w-0">
         <Link href={backHref} className="p-2 hover:bg-gray-100 rounded-lg shrink-0">
