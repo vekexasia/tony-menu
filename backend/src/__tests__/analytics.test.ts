@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { testRequest } from './helpers';
-import { createTestDb, makeDbEnv, seedSettings, seedMenu, seedCategory, seedEntry, signTestJwt, installJwksMock } from './helpers/db';
+import { createTestDb, makeDbEnv, seedSettings, seedMenu, seedCategory, seedEntry, seedMembership, signTestJwt, installJwksMock } from './helpers/db';
 
 beforeAll(() => installJwksMock());
 
@@ -10,6 +10,8 @@ type AnalyticsBody = {
   period: string;
   viewedItems: Array<{ entryId: string; viewCount: number }>;
   dailyTotals: unknown[];
+  menuBreakdown: Array<{ menuId: string; menuCode: string; menuTitle: string; viewCount: number }>;
+  hourlyTotals: Array<{ hour: number; viewCount: number }>;
 };
 
 async function adminEnv() {
@@ -84,5 +86,34 @@ describe('GET /admin/analytics', () => {
     const body = await res.json() as AnalyticsBody;
     expect(body.dailyTotals).toBeDefined();
     expect(body.dailyTotals).toHaveLength(7);
+  });
+
+  it('returns hourlyTotals with 24 buckets', async () => {
+    const { db, env, headers } = await adminEnv();
+    const now = Date.now();
+    insertView(db, 'entry-1', 'sess-h1', now);
+    const res = await testRequest('/admin/analytics?period=24h', { headers, env });
+    expect(res.status).toBe(200);
+    const body = await res.json() as AnalyticsBody;
+    expect(body.hourlyTotals).toHaveLength(24);
+    expect(body.hourlyTotals.every((h) => h.hour >= 0 && h.hour <= 23)).toBe(true);
+    const total = body.hourlyTotals.reduce((s, h) => s + h.viewCount, 0);
+    expect(total).toBeGreaterThanOrEqual(1);
+  });
+
+  it('returns menuBreakdown grouped by menu', async () => {
+    const { db, env, headers } = await adminEnv();
+    seedMembership(db, 'menu-1', 'entry-1');
+    seedMembership(db, 'menu-1', 'entry-2');
+    const now = Date.now();
+    insertView(db, 'entry-1', 'sess-m1', now);
+    insertView(db, 'entry-1', 'sess-m2', now);
+    insertView(db, 'entry-2', 'sess-m3', now);
+    const res = await testRequest('/admin/analytics?period=24h', { headers, env });
+    expect(res.status).toBe(200);
+    const body = await res.json() as AnalyticsBody;
+    expect(body.menuBreakdown).toHaveLength(1);
+    expect(body.menuBreakdown[0].menuId).toBe('menu-1');
+    expect(body.menuBreakdown[0].viewCount).toBe(3);
   });
 });

@@ -57,10 +57,27 @@ export const DailyTotalSchema = z.object({
 });
 export type DailyTotal = z.infer<typeof DailyTotalSchema>;
 
+export const MenuViewBreakdownSchema = z.object({
+  menuId: z.string(),
+  menuCode: z.string(),
+  menuTitle: z.string(),
+  icon: z.string().optional(),
+  viewCount: z.number(),
+});
+export type MenuViewBreakdown = z.infer<typeof MenuViewBreakdownSchema>;
+
+export const HourlyTotalSchema = z.object({
+  hour: z.number(),
+  viewCount: z.number(),
+});
+export type HourlyTotal = z.infer<typeof HourlyTotalSchema>;
+
 export const AnalyticsResponseSchema = z.object({
   period: z.string(),
   viewedItems: z.array(ViewedItemRankedSchema),
   dailyTotals: z.array(DailyTotalSchema).optional(),
+  menuBreakdown: z.array(MenuViewBreakdownSchema).optional(),
+  hourlyTotals: z.array(HourlyTotalSchema).optional(),
 });
 export type AnalyticsResponse = z.infer<typeof AnalyticsResponseSchema>;
 

@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { getAnalytics, type AnalyticsResponse, type ViewedItemRanked } from "@/lib/api";
+import { getAnalytics, type AnalyticsResponse, type ViewedItemRanked, type MenuViewBreakdown } from "@/lib/api";
 import { useTranslations } from "@/lib/i18n";
+import { MenuIcon, type MenuIconKind } from "@/components/menu/MenuIcon";
 
 type Period = "24h" | "7d" | "30d" | "all";
 
@@ -85,6 +86,80 @@ function ViewedItemThumbnail({ item }: { item: ViewedItemRanked }) {
         sizes="48px"
         unoptimized
       />
+    </div>
+  );
+}
+
+function MenuBreakdown({ items }: { items: MenuViewBreakdown[] }) {
+  const t = useTranslations("admin");
+  if (items.length === 0) {
+    return <p className="text-sm text-gray-400">{t("analytics.noMenuData")}</p>;
+  }
+  const max = Math.max(...items.map((i) => i.viewCount), 1);
+  return (
+    <ul className="space-y-2">
+      {items.map((item) => (
+        <li key={item.menuId} className="flex items-center gap-2">
+          <MenuIcon kind={(item.icon ?? "utensils") as MenuIconKind} className="w-4 h-4 text-gray-500 flex-shrink-0" />
+          <span className="text-sm text-gray-700 w-24 truncate flex-shrink-0">{item.menuTitle}</span>
+          <div className="flex-1 bg-gray-100 rounded-full h-2 min-w-0">
+            <div
+              className="bg-[#cc9166] h-2 rounded-full"
+              style={{ width: `${(item.viewCount / max) * 100}%` }}
+            />
+          </div>
+          <span className="text-xs text-gray-500 flex-shrink-0">
+            {t("analytics.viewCount").replace("{count}", String(item.viewCount))}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function HourlyChart({ data }: { data: { hour: number; viewCount: number }[] }) {
+  const t = useTranslations("admin");
+  const hasData = data.some((d) => d.viewCount > 0);
+  if (!hasData) {
+    return <p className="text-sm text-gray-400">{t("analytics.noHourlyData")}</p>;
+  }
+  const max = Math.max(...data.map((d) => d.viewCount), 1);
+  const W = 100;
+  const H = 32;
+  const barWidth = W / 24;
+  return (
+    <div>
+      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="w-full h-12 block">
+        {data.map((d) => {
+          const h = (d.viewCount / max) * (H - 4);
+          const x = d.hour * barWidth + barWidth * 0.1;
+          const y = H - h;
+          return (
+            <rect
+              key={d.hour}
+              x={x}
+              y={y}
+              width={barWidth * 0.8}
+              height={Math.max(h, 0.5)}
+              fill="#cc9166"
+              rx={0.4}
+            >
+              <title>
+                {t("analytics.hourlyBarTooltip")
+                  .replace("{hour}", String(d.hour).padStart(2, "0"))
+                  .replace("{count}", String(d.viewCount))}
+              </title>
+            </rect>
+          );
+        })}
+      </svg>
+      <div className="flex justify-between text-[10px] text-gray-400 mt-1">
+        <span>0h</span>
+        <span>6h</span>
+        <span>12h</span>
+        <span>18h</span>
+        <span>23h</span>
+      </div>
     </div>
   );
 }
@@ -299,6 +374,28 @@ export default function AnalyticsPage() {
           </>
         )}
       </div>
+
+      {data?.menuBreakdown && data.menuBreakdown.length > 0 && (
+        <div
+          className="bg-white rounded-lg shadow p-4"
+          role="region"
+          aria-label={t("analytics.menuBreakdownAria")}
+        >
+          <p className="text-sm font-semibold text-gray-900 mb-3">{t("analytics.menuBreakdownTitle")}</p>
+          <MenuBreakdown items={data.menuBreakdown} />
+        </div>
+      )}
+
+      {data?.hourlyTotals && (
+        <div
+          className="bg-white rounded-lg shadow p-4"
+          role="region"
+          aria-label={t("analytics.hourlyAria")}
+        >
+          <p className="text-sm font-semibold text-gray-900 mb-3">{t("analytics.hourlyTitle")}</p>
+          <HourlyChart data={data.hourlyTotals} />
+        </div>
+      )}
 
     </div>
   );

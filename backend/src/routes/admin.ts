@@ -1,5 +1,5 @@
 import { Hono, type Context } from 'hono';
-import { eq, and, gte, lt, asc, desc, count, inArray } from 'drizzle-orm';
+import { eq, and, gte, lt, asc, desc, count, inArray, sql } from 'drizzle-orm';
 import { requireAuth } from '../middleware/auth';
 import { attachDb, requireAdmin } from '../middleware/admin-guard';
 import * as schema from '../db/schema';
@@ -766,10 +766,48 @@ admin.get('/analytics', ...base, async (c) => {
     }
   }
 
+  const menuBreakdownRaw = await db
+    .select({
+      menuId: schema.menus.id,
+      menuCode: schema.menus.code,
+      menuTitle: schema.menus.title,
+      icon: schema.menus.icon,
+      viewCount: count(schema.catalogViews.id),
+    })
+    .from(schema.catalogViews)
+    .innerJoin(schema.menuEntries, eq(schema.catalogViews.entryId, schema.menuEntries.id))
+    .innerJoin(schema.menuEntryMemberships, eq(schema.menuEntries.id, schema.menuEntryMemberships.entryId))
+    .innerJoin(schema.menus, eq(schema.menuEntryMemberships.menuId, schema.menus.id))
+    .where(gte(schema.catalogViews.viewedAt, currentStart))
+    .groupBy(schema.menus.id, schema.menus.code, schema.menus.title, schema.menus.icon)
+    .orderBy(desc(count(schema.catalogViews.id)));
+
+  const hourExpr = sql<number>`(${schema.catalogViews.viewedAt} / 3600000) % 24`;
+  const hourlyRaw = await db
+    .select({
+      hour: hourExpr,
+      viewCount: count(schema.catalogViews.id),
+    })
+    .from(schema.catalogViews)
+    .where(gte(schema.catalogViews.viewedAt, currentStart))
+    .groupBy(hourExpr)
+    .orderBy(asc(hourExpr));
+
+  const countByHour = new Map<number, number>();
+  for (const row of hourlyRaw) {
+    countByHour.set(row.hour, row.viewCount);
+  }
+  const hourlyTotals = Array.from({ length: 24 }, (_, h) => ({
+    hour: h,
+    viewCount: countByHour.get(h) ?? 0,
+  }));
+
   return c.json({
     period: periodParam,
     viewedItems,
     dailyTotals,
+    menuBreakdown: menuBreakdownRaw,
+    hourlyTotals,
   });
 });
 

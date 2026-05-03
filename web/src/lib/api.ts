@@ -23,12 +23,14 @@ import type {
   MeResponse,
   AnalyticsResponse,
   ViewedItemRanked,
+  MenuViewBreakdown,
+  HourlyTotal,
   TranslateResponse,
   CreatedEntryResponse,
   ImageUploadResponse,
 } from '@menu/schemas';
 
-export type { CatalogResponse, MeResponse, AnalyticsResponse, ViewedItemRanked };
+export type { CatalogResponse, MeResponse, AnalyticsResponse, ViewedItemRanked, MenuViewBreakdown, HourlyTotal };
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
 
