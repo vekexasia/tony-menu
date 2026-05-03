@@ -425,5 +425,6 @@
     "entries.preview.expandedTitle": "Preview — detail view",
     "entries.preview.title": "Preview",
     "entries.preview.subtitle": "How customers see it on their phone"
-  }
+  },
+  "outOfStock": "OUT OF STOCK"
 }

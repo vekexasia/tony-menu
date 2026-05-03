@@ -425,5 +425,6 @@
     "entries.preview.expandedTitle": "Anteprima — vista detajo",
     "entries.preview.title": "Anteprima",
     "entries.preview.subtitle": "Come lo vede el cliente sul tełefono"
-  }
+  },
+  "outOfStock": "FINIO"
 }

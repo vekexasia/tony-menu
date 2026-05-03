@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useParams, useSearchParams } from "next/navigation";
 import { useRestaurantStore, useCategories } from "@/stores/restaurantStore";
 import { MenuItemDetail } from "@/components/menu/MenuItemDetail";
+import { MenuItemListView } from "@/components/menu/views/MenuItemListView";
 import { RestaurantInfoModal } from "@/components/menu/RestaurantInfoModal";
 import { PromotionPopup } from "@/components/menu/PromotionPopup";
 import { ChatPanel } from "@/components/chat/ChatPanel";
@@ -208,11 +209,6 @@ export default function MenuPageClient() {
     field: "name" | "description" = "name"
   ): string => getLocalizedContentValue(item, field, locale);
 
-  const formatPrice = (price: number, priceUnit?: string): string => {
-    const formatted = `\u20AC ${price.toFixed(2).replace(".", ",")}`;
-    return priceUnit ? `${formatted}/${priceUnit}` : formatted;
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -328,43 +324,31 @@ export default function MenuPageClient() {
             <div className="space-y-3">
               {cat.entries.map((entry) => {
                 const entryWithDesc = entry as MenuEntryWithDetails;
+                const itemName = getDisplayText(entry);
+                const itemDescription = getLocalized({ description: entryWithDesc.description, i18n: entry.i18n }, "description") || entryWithDesc.description;
                 return (
-                  <div
-                    key={entry.id}
-                    data-locale-anchor={`entry:${entry.id}`}
-                    onClick={() => {
-                      setSelectedItem(entryWithDesc);
-                      const dedupeKey = viewDedupeKey(entry.id);
-                      if (!viewedThisSession.has(dedupeKey)) {
-                        recordView(entry.id)
-                          .then(() => { viewedThisSession.add(dedupeKey); })
-                          .catch(() => {});
-                      }
-                    }}
-                    className={`bg-white rounded-xl p-4 shadow-sm flex gap-4 cursor-pointer hover:shadow-md transition-all ${entryWithDesc.outOfStock ? "opacity-50" : ""}`}
-                  >
-                    <div className="flex-1">
-                      {(() => {
-                        const itemName = getDisplayText(entry);
-                        const itemDescription = getLocalized({ description: entryWithDesc.description, i18n: entry.i18n }, "description") || entryWithDesc.description;
-                        return (
-                          <>
-                            <h4 className="font-semibold text-gray-800">
-                              <span className="block">{itemName.primary}</span>
-                              {itemName.secondary && <span className="mt-0.5 block text-xs font-medium text-gray-500">{itemName.secondary}</span>}
-                            </h4>
-                            {itemDescription && <p className="text-sm text-gray-500 mt-1 line-clamp-2">{itemDescription}</p>}
-                          </>
-                        );
-                      })()}
-                      <p className="text-primary font-medium mt-2">{formatPrice(entry.price, entryWithDesc.priceUnit)}</p>
-                      {entryWithDesc.outOfStock && <span className="text-xs text-red-500 font-medium">ESAURITO</span>}
-                    </div>
-                    {entryWithDesc.image && (
-                      <div className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-gray-200">
-                        <Image src={entryWithDesc.image} alt={entry.name} fill className="object-cover" loading="lazy" sizes="80px" unoptimized />
-                      </div>
-                    )}
+                  <div key={entry.id} data-locale-anchor={`entry:${entry.id}`}>
+                    <MenuItemListView
+                      item={{
+                        name: itemName.primary,
+                        nameSecondary: itemName.secondary,
+                        description: itemDescription,
+                        price: entry.price,
+                        priceUnit: entryWithDesc.priceUnit,
+                        image: entryWithDesc.image,
+                        outOfStock: entryWithDesc.outOfStock,
+                      }}
+                      outOfStockLabel={t("outOfStock")}
+                      onClick={() => {
+                        setSelectedItem(entryWithDesc);
+                        const dedupeKey = viewDedupeKey(entry.id);
+                        if (!viewedThisSession.has(dedupeKey)) {
+                          recordView(entry.id)
+                            .then(() => { viewedThisSession.add(dedupeKey); })
+                            .catch(() => {});
+                        }
+                      }}
+                    />
                   </div>
                 );
               })}

@@ -10,7 +10,10 @@ import { useRestaurantStore, useCategories } from "@/stores/restaurantStore";
 import { TranslationTabs } from "@/components/admin/TranslationTabs";
 import { MenuItemListView, type MenuItemView } from "@/components/menu/views/MenuItemListView";
 import { MenuItemDetailView } from "@/components/menu/views/MenuItemDetailView";
-import { useTranslations } from "@/lib/i18n";
+import { useTranslations, getMessage } from "@/lib/i18n";
+
+const FRAME_W = 360;
+const BEZEL = 12;
 
 const ALLERGEN_IDS = [
   "Glutine",
@@ -434,9 +437,9 @@ export default function EditEntryPage() {
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row md:items-start gap-4">
+      <div className="adm-edit-grid max-w-[1140px]">
         {/* Form */}
-        <div className="flex-1 md:basis-3/5 md:max-w-[60%] space-y-4">
+        <div className="space-y-4 min-w-0 max-w-3xl">
           {/* Image */}
           {!isNewEntry && (
             <div>
@@ -801,7 +804,9 @@ export default function EditEntryPage() {
           </div>
         </div>
 
-        {/* Preview pane — phone frame, follows the active translation tab */}
+        {/* Preview pane — fixed to the right edge, follows the active translation tab.
+            Renders the public views at iPhone-native size (390px) and scales them
+            down via CSS transform so proportions match the customer view exactly. */}
         {(() => {
           const previewLocale = activeTranslationTab;
           const i18nForPreview = editingEntry.i18n?.[previewLocale];
@@ -824,7 +829,15 @@ export default function EditEntryPage() {
             containsFrozenIngredient: editingEntry.frozen,
           };
           return (
-            <aside className="hidden md:flex md:w-[260px] md:flex-shrink-0 flex-col items-center gap-2 md:sticky md:top-4 md:self-start">
+            <aside
+              className="hidden xl:flex xl:flex-col xl:items-center xl:gap-2"
+              style={{
+                position: "sticky",
+                top: 16,
+                width: FRAME_W,
+                alignSelf: "flex-start",
+              }}
+            >
               <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wide text-gray-500">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5">
                   <rect x="7" y="2" width="10" height="20" rx="2" />
@@ -835,32 +848,67 @@ export default function EditEntryPage() {
                   {previewLocale.toUpperCase()}
                 </span>
               </div>
-              <div className="w-full rounded-[24px] border-[5px] border-gray-900 bg-gray-900 shadow-xl overflow-hidden">
-                <div className="flex justify-center py-1">
-                  <span className="block w-10 h-0.5 rounded-full bg-gray-700" />
-                </div>
-                <div className="bg-gray-100 max-h-[65vh] overflow-y-auto">
-                  <div className="p-2 space-y-2">
-                    <div>
-                      <p className="text-[8px] font-bold uppercase tracking-wide text-gray-500 mb-1">
-                        {t("entries.preview.cardTitle")}
-                      </p>
-                      <div className="rounded-md overflow-hidden border border-gray-200 text-[12px]">
-                        <MenuItemListView item={view} />
-                      </div>
+              <div style={{ width: FRAME_W }}>
+                {/* Pixel 7 body — rounded-rect with a centered punch-hole front camera */}
+                <div
+                  className="relative bg-gray-900 shadow-2xl"
+                  style={{
+                    padding: BEZEL,
+                    borderRadius: 42,
+                  }}
+                >
+                  {/* Side buttons (right edge) */}
+                  <span
+                    aria-hidden
+                    className="absolute bg-gray-700 rounded-l"
+                    style={{ right: -2, top: 80, width: 3, height: 36 }}
+                  />
+                  <span
+                    aria-hidden
+                    className="absolute bg-gray-700 rounded-l"
+                    style={{ right: -2, top: 130, width: 3, height: 60 }}
+                  />
+                  {/* Screen */}
+                  <div
+                    className="relative bg-gray-100 overflow-hidden"
+                    style={{ borderRadius: 36 }}
+                  >
+                    {/* Punch-hole front camera */}
+                    <span
+                      aria-hidden
+                      className="absolute left-1/2 -translate-x-1/2 rounded-full bg-black"
+                      style={{ top: 12, width: 14, height: 14, zIndex: 5 }}
+                    />
+                    {/* Status bar */}
+                    <div
+                      className="flex items-center justify-between px-6 text-[11px] font-medium text-gray-700"
+                      style={{ height: 36 }}
+                    >
+                      <span>9:41</span>
+                      <span className="opacity-0">·</span>
                     </div>
-                    <div>
-                      <p className="text-[8px] font-bold uppercase tracking-wide text-gray-500 mb-1 mt-2">
-                        {t("entries.preview.expandedTitle")}
-                      </p>
-                      <div className="text-[12px]">
-                        <MenuItemDetailView item={view} />
+                    {/* Scrollable content area */}
+                    <div style={{ maxHeight: "calc(100vh - 240px)", overflowY: "auto" }}>
+                      <div className="p-3 space-y-3">
+                        <div>
+                          <p className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-2">
+                            {t("entries.preview.cardTitle")}
+                          </p>
+                          <MenuItemListView item={view} />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-2 mt-3">
+                            {t("entries.preview.expandedTitle")}
+                          </p>
+                          <MenuItemDetailView
+                            item={view}
+                            allergyWarning={getMessage(previewLocale, "allergyWarning")}
+                            frozenWarning={getMessage(previewLocale, "frozenProduct")}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-                <div className="flex justify-center py-1.5 bg-gray-900">
-                  <span className="block w-8 h-0.5 rounded-full bg-gray-600" />
                 </div>
               </div>
               <p className="text-[10px] text-gray-500 italic text-center">{t("entries.preview.subtitle")}</p>

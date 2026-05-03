@@ -425,5 +425,6 @@
     "entries.preview.expandedTitle": "Pré-visualização — detalhe",
     "entries.preview.title": "Pré-visualização",
     "entries.preview.subtitle": "Como o cliente vê no telemóvel"
-  }
+  },
+  "outOfStock": "ESGOTADO"
 }

@@ -425,5 +425,6 @@
     "entries.preview.expandedTitle": "Voorbeeld — detailweergave",
     "entries.preview.title": "Voorbeeld",
     "entries.preview.subtitle": "Zoals klanten het op hun telefoon zien"
-  }
+  },
+  "outOfStock": "UITVERKOCHT"
 }

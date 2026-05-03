@@ -425,5 +425,6 @@
     "entries.preview.expandedTitle": "Anteprima — vista dettaglio",
     "entries.preview.title": "Anteprima",
     "entries.preview.subtitle": "Come lo vede il cliente sul telefono"
-  }
+  },
+  "outOfStock": "ESAURITO"
 }

@@ -125,7 +125,7 @@ export function MenuItemDetailView({ item, hidePrice, allergyWarning, frozenWarn
           />
         )}
         {item.containsFrozenIngredient && frozenWarning && (
-          <p className="text-sm text-gray-500 italic">{frozenWarning}</p>
+          <p className="text-xs text-gray-500 italic">{frozenWarning}</p>
         )}
       </div>
     </div>

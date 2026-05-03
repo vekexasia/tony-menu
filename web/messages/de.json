@@ -425,5 +425,6 @@
     "entries.preview.expandedTitle": "Vorschau — Detailansicht",
     "entries.preview.title": "Vorschau",
     "entries.preview.subtitle": "So sehen Gäste es auf dem Smartphone"
-  }
+  },
+  "outOfStock": "AUSVERKAUFT"
 }

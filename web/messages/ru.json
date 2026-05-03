@@ -425,5 +425,6 @@
     "entries.preview.expandedTitle": "Превью — детально",
     "entries.preview.title": "Превью",
     "entries.preview.subtitle": "Как клиент увидит это на телефоне"
-  }
+  },
+  "outOfStock": "НЕТ В НАЛИЧИИ"
 }

@@ -197,7 +197,7 @@ export default function AdminContent({
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh", fontFamily: "system-ui, -apple-system, sans-serif", fontSize: 13, color: "#424242", background: "#FBFAF9" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden", fontFamily: "system-ui, -apple-system, sans-serif", fontSize: 13, color: "#424242", background: "#FBFAF9" }}>
       <header style={{ height: 52, background: "#1F1A14", display: "flex", alignItems: "center", padding: "0 18px", gap: 20, flexShrink: 0 }}>
         <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ width: 30, height: 30, borderRadius: 6, background: "#C47A4F", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10.5, fontWeight: 800, letterSpacing: 0.3, flexShrink: 0 }}>
@@ -248,7 +248,7 @@ export default function AdminContent({
         </div>
       </header>
 
-      <div style={{ flex: 1, display: "flex", minHeight: 0 }}>
+      <div style={{ flex: 1, display: "flex", minHeight: 0, overflow: "hidden" }}>
         <aside className="adm-sidebar" style={{ width: 230, background: "#fff", borderRight: "1px solid #E7E5E4", display: "flex", flexDirection: "column", padding: "14px 0", flexShrink: 0, overflowY: "auto" }}>
           {data?.headerImage && (
             <div style={{ margin: "0 10px 14px", borderRadius: 8, overflow: "hidden", position: "relative", height: 90, flexShrink: 0 }}>

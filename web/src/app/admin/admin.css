@@ -47,6 +47,21 @@
   }
 }
 
+/* Edit-entry grid: form (1fr) + Pixel-7 preview column (~380px).
+   Activates at 1280px so the form has real breathing room next to the
+   sidebar (~230px) AND the preview column. */
+.adm-edit-grid {
+  display: block;
+}
+@media (min-width: 1280px) {
+  .adm-edit-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    gap: 16px;
+    align-items: start;
+  }
+}
+
 /* Table rows hover */
 .adm-row:hover { background: #F4F2EE !important; }
 

@@ -425,5 +425,6 @@
     "entries.preview.expandedTitle": "Aperçu — vue détail",
     "entries.preview.title": "Aperçu",
     "entries.preview.subtitle": "Vu côté client, sur le téléphone"
-  }
+  },
+  "outOfStock": "ÉPUISÉ"
 }

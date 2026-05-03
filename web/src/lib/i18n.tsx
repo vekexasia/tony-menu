@@ -31,6 +31,14 @@ const messagesMap: Record<Locale, Messages> = {
   vec: vecMessages,
 };
 
+export function getMessage(locale: string, key: string): string {
+  const validLocale = (locales as readonly string[]).includes(locale)
+    ? (locale as Locale)
+    : defaultLocale;
+  const val = (messagesMap[validLocale] as Record<string, unknown>)[key];
+  return typeof val === "string" ? val : key;
+}
+
 type I18nContextType = {
   locale: Locale;
   messages: Messages;
