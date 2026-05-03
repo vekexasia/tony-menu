@@ -77,6 +77,7 @@
 .adm-pill-ok { background: var(--adm-ok-bg); color: var(--adm-ok); }
 .adm-pill-off { background: var(--adm-off-bg); color: var(--adm-off); }
 .adm-pill-accent { background: var(--adm-accent-light); color: var(--adm-accent-deep); }
+.adm-pill-draft { background: #FEF3C7; color: #92400E; }
 
 /* Reset body defaults for admin */
 .adm-root { height: 100vh; overflow: hidden; }

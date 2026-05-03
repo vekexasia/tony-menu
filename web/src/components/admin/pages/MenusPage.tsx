@@ -267,7 +267,7 @@ export default function MenusPage() {
                     <div className="font-semibold text-gray-900 flex items-center gap-2">
                       {menu.title}
                       {!menu.published && (
-                        <span className="text-[10px] font-bold uppercase tracking-wide bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">
+                        <span className="adm-pill-draft text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded">
                           {t("menus.draft")}
                         </span>
                       )}
@@ -284,7 +284,7 @@ export default function MenusPage() {
                   <button
                     onClick={(e) => { e.stopPropagation(); togglePublished(menu); }}
                     className={`px-2 py-1 text-xs rounded font-semibold ${
-                      menu.published ? "bg-green-100 text-green-700 hover:bg-green-200" : "bg-amber-100 text-amber-700 hover:bg-amber-200"
+                      menu.published ? "adm-pill-ok hover:opacity-80" : "adm-pill-draft hover:opacity-80"
                     }`}
                     title={menu.published ? t("menus.publishedTooltip") : t("menus.draftTooltip")}
                   >

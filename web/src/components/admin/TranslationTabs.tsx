@@ -207,7 +207,7 @@ export function TranslationTabs({
           type="button"
           onClick={() => translateBulkAcrossLocales(false)}
           disabled={bulkRunning}
-          className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          className="text-xs px-3 py-1.5 bg-primary text-white rounded-full hover:opacity-90 disabled:opacity-50 transition-colors"
         >
           {t("translationTabs.missing")}
         </button>
@@ -277,8 +277,8 @@ export function TranslationTabs({
                 className={`text-xs px-1 rounded-full leading-4 ${
                   complete
                     ? isActive
-                      ? "bg-green-200 text-green-800"
-                      : "bg-green-100 text-green-700"
+                      ? "adm-pill-ok opacity-90"
+                      : "adm-pill-ok"
                     : isActive
                     ? "bg-yellow-200 text-yellow-800"
                     : "bg-yellow-100 text-yellow-700"
@@ -308,7 +308,7 @@ export function TranslationTabs({
                 type="button"
                 onClick={() => translateAllFields(locale)}
                 disabled={isRunning}
-                className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 disabled:opacity-50 transition-colors"
+                className="flex items-center gap-1.5 text-xs px-3 py-1.5 adm-pill-accent rounded-lg hover:opacity-80 disabled:opacity-50 transition-colors"
               >
                 {isRunning ? t("translationTabs.translatingInProgress") : t("translationTabs.translateAllIn").replace("{label}", localeInfo.label)}
               </button>
@@ -330,7 +330,7 @@ export function TranslationTabs({
                       type="button"
                       onClick={() => translateField(locale, field)}
                       disabled={isFieldTranslating || !field.sourceValue.trim()}
-                      className="text-xs text-blue-600 hover:text-blue-800 disabled:opacity-40"
+                      className="text-xs disabled:opacity-40" style={{ color: 'var(--adm-accent)' }}
                       title={t("translationTabs.autoTranslate")}
                     >
                       {isFieldTranslating ? "⏳" : t("translationTabs.autoLabel")}

@@ -756,7 +756,7 @@ export default function EditEntryPage() {
                   type="button"
                   onClick={() => handleMoveEntryToCategory(selectedTargetCategory)}
                   disabled={!selectedTargetCategory || movingEntry}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium disabled:opacity-50 hover:bg-blue-700"
+                  className="px-4 py-2 bg-primary text-white rounded-lg font-medium disabled:opacity-50 hover:opacity-90"
                 >
                   {movingEntry ? t("entries.modal.moving") : t("entries.modal.moveButton")}
                 </button>

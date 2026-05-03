@@ -17,7 +17,7 @@ function MovementBadge({ status, delta }: { status: ViewedItemRanked['status']; 
     return <span className="text-xs text-[#cc9166] font-medium ml-1">{t("analytics.movement.new")}</span>;
   }
   if (status === 'up') {
-    return <span className="text-xs text-green-600 font-medium ml-1">&uarr;{delta}</span>;
+    return <span className="text-xs font-medium ml-1" style={{ color: 'var(--adm-ok)' }}>&uarr;{delta}</span>;
   }
   if (status === 'down') {
     return <span className="text-xs text-red-500 font-medium ml-1">&darr;{Math.abs(delta!)}</span>;

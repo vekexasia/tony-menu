@@ -486,7 +486,7 @@ export default function EntriesPage() {
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                <span className="adm-pill-accent inline-flex h-8 w-8 items-center justify-center rounded-full">
                   ✨
                 </span>
                 <div className="min-w-0">
@@ -501,7 +501,7 @@ export default function EntriesPage() {
             </div>
             <div className="flex items-center gap-2 shrink-0">
               {bulkProgress && bulkProgress.total > 0 && (
-                <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
+                <span className="adm-pill-accent rounded-full px-2.5 py-1 text-xs font-semibold">
                   {bulkProgress.done}/{bulkProgress.total}
                 </span>
               )}
@@ -509,7 +509,7 @@ export default function EntriesPage() {
                 type="button"
                 onClick={() => handleBulkTranslate(false)}
                 disabled={bulkTranslating}
-                className="px-3 py-2 text-xs font-semibold bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-3 py-2 text-xs font-semibold bg-primary text-white rounded-full hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {t("entries.bulk.missing")}
               </button>
@@ -655,7 +655,7 @@ export default function EntriesPage() {
                       <span className="text-xs text-red-500 font-medium">{t("entries.tag.outOfStock")}</span>
                     )}
                     {entry.frozen && !entry.outOfStock && (
-                      <span className="text-xs text-blue-500 font-medium">{t("entries.tag.frozen")}</span>
+                      <span className="text-xs font-medium" style={{ color: 'var(--adm-accent)' }}>{t("entries.tag.frozen")}</span>
                     )}
                   </div>
                   {missingLocales.length > 0 && (
