@@ -267,6 +267,8 @@ export async function resetDemoData(env: Env): Promise<void> {
     env.DB.prepare('DELETE FROM catalog_views'),
     env.DB.prepare('DELETE FROM chat_sessions'),
     env.DB.prepare('DELETE FROM audit_events'),
+    env.DB.prepare('DELETE FROM entry_labels'),
+    env.DB.prepare('DELETE FROM labels'),
     env.DB.prepare('DELETE FROM menu_entry_memberships'),
     env.DB.prepare('DELETE FROM menu_entries'),
     env.DB.prepare('DELETE FROM menu_categories'),
@@ -308,6 +310,31 @@ export async function resetDemoData(env: Env): Promise<void> {
   }
   for (const extra of extras) {
     statements.push(env.DB.prepare('INSERT INTO menu_extras (id, name, type, max, options, i18n, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').bind(extra.id, extra.name, extra.type, extra.max, JSON.stringify(extra.options), JSON.stringify(extra.i18n), now, now));
+  }
+
+  const demoLabels = [
+    {
+      id: 'demo-label-chef',
+      name: "Lo Chef consiglia",
+      color: 'red',
+      sortOrder: 0,
+      i18n: { en: { name: "Chef's pick" }, it: { name: 'Lo Chef consiglia' }, de: { name: 'Chef empfiehlt' }, fr: { name: 'Le Chef recommande' } },
+      entryIds: ['demo-entry-polpo', 'demo-entry-spaghetti', 'demo-entry-branzino', 'demo-entry-tagliata'],
+    },
+    {
+      id: 'demo-label-veg',
+      name: 'Vegetariano',
+      color: 'green',
+      sortOrder: 1,
+      i18n: { en: { name: 'Vegetarian' }, it: { name: 'Vegetariano' }, de: { name: 'Vegetarisch' }, fr: { name: 'Végétarien' } },
+      entryIds: ['demo-entry-bruschetta', 'demo-entry-carpaccio', 'demo-entry-burrata', 'demo-entry-ravioli', 'demo-entry-tiramisu'],
+    },
+  ];
+  for (const label of demoLabels) {
+    statements.push(env.DB.prepare('INSERT INTO labels (id, name, color, sort_order, i18n, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)').bind(label.id, label.name, label.color, label.sortOrder, JSON.stringify(label.i18n), now, now));
+    for (const entryId of label.entryIds) {
+      statements.push(env.DB.prepare('INSERT INTO entry_labels (entry_id, label_id) VALUES (?, ?)').bind(entryId, label.id));
+    }
   }
 
   await env.DB.batch(statements);

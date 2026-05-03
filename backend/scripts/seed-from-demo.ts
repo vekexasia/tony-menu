@@ -173,6 +173,17 @@ for db_path in targets:
             menu_id text NOT NULL, entry_id text NOT NULL,
             PRIMARY KEY (menu_id, entry_id))""")
 
+    if not table_exists(conn, 'labels'):
+        conn.execute("""CREATE TABLE labels (
+            id text PRIMARY KEY NOT NULL, name text NOT NULL,
+            color text DEFAULT 'primary' NOT NULL, sort_order integer DEFAULT 0 NOT NULL,
+            i18n text, created_at integer NOT NULL, updated_at integer NOT NULL)""")
+
+    if not table_exists(conn, 'entry_labels'):
+        conn.execute("""CREATE TABLE entry_labels (
+            entry_id text NOT NULL, label_id text NOT NULL,
+            PRIMARY KEY (entry_id, label_id))""")
+
     # settings
     features = restaurant['features']
     conn.execute("""UPDATE settings SET name=?,payoff=?,info=?,socials=?,opening_schedule=?,
@@ -229,6 +240,18 @@ for db_path in targets:
             VALUES (?,?,?,?,?,?,?,?)""", [
             x['id'],x['name'],x.get('type','zeroorone'),x.get('max',1),
             json.dumps(x.get('options')),json.dumps(x.get('i18n')),now,now])
+
+    conn.execute('DELETE FROM entry_labels')
+    conn.execute('DELETE FROM labels')
+    for lbl in (CATALOG.get('labels') or []):
+        conn.execute("""INSERT OR REPLACE INTO labels (id,name,color,sort_order,i18n,created_at,updated_at)
+            VALUES (?,?,?,?,?,?,?)""", [
+            lbl['id'], lbl['name'], lbl.get('color','primary'), lbl.get('sortOrder',0),
+            json.dumps(lbl.get('i18n')), now, now])
+    for cat in categories:
+        for e in cat['entries']:
+            for lid in (e.get('labelIds') or []):
+                conn.execute('INSERT OR IGNORE INTO entry_labels (entry_id,label_id) VALUES (?,?)', [e['id'], lid])
 
     conn.execute('PRAGMA foreign_keys=ON')
     conn.commit()
