@@ -17,7 +17,7 @@ start_pane() {
 }
 
 echo "Starting risto dev servers..."
-start_pane "backend"     "$ROOT/backend"                        "npx wrangler dev --port 8787"
+start_pane "backend"     "$ROOT/backend"                        "npx wrangler dev --port 8787 --persist-to .wrangler/state"
 start_pane "chat-worker" "$ROOT/web/workers/chat"         "npx wrangler dev --port 8788"
 start_pane "next-dev"    "$ROOT/web"                      "npm run dev"
 echo ""

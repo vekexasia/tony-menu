@@ -87,6 +87,7 @@ admin.put('/settings', ...base, async (c) => {
   const updates: Record<string, unknown> = { updatedAt: Date.now() };
   if (body.name !== undefined) updates.name = body.name;
   if (body.payoff !== undefined) updates.payoff = body.payoff;
+  if (body.theme !== undefined) updates.theme = body.theme;
   if (body.info !== undefined) updates.info = body.info;
   if (body.socials !== undefined) updates.socials = body.socials;
   if (body.promotionAlert !== undefined) updates.promotionAlert = body.promotionAlert;

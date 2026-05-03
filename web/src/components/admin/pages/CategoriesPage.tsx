@@ -336,7 +336,7 @@ export default function CategoriesPage() {
         {/* Page header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 18 }}>
           <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "#A15E35", textTransform: "uppercase", letterSpacing: 0.6, display: "flex", gap: 6, alignItems: "center", marginBottom: 4 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--adm-accent-deep)", textTransform: "uppercase", letterSpacing: 0.6, display: "flex", gap: 6, alignItems: "center", marginBottom: 4 }}>
               <span>{t("layout.nav.menu")}</span>
               <span style={{ opacity: 0.4 }}>›</span>
               <span style={{ color: "#888" }}>{t("categories.breadcrumb")}</span>
@@ -353,7 +353,7 @@ export default function CategoriesPage() {
           <div style={{ display: "flex", gap: 8 }}>
             <button
               onClick={openCreateModal}
-              style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#C47A4F", color: "#fff", border: "none", borderRadius: 6, padding: "8px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+              style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "var(--adm-accent)", color: "#fff", border: "none", borderRadius: 6, padding: "8px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
             >
               <i className="fa-solid fa-plus" style={{ fontSize: 11 }} /> {t("categories.newCategory")}
             </button>
@@ -497,7 +497,7 @@ export default function CategoriesPage() {
                       padding: "10px 14px",
                       borderBottom: "1px solid #F0EEEA",
                       cursor: "pointer",
-                      background: selected.has(category.id) ? "#F4E2D4" : undefined,
+                      background: selected.has(category.id) ? "var(--adm-accent-light)" : undefined,
                     }}
                   >
                     {/* Checkbox */}
@@ -626,7 +626,7 @@ export default function CategoriesPage() {
             <span style={{ fontSize: 12, color: "#888" }}>{t("categories.rail.translations")}</span>
           </div>
           <div style={{ height: 6, background: "#E7E5E4", borderRadius: 3, overflow: "hidden", marginBottom: 8 }}>
-            <div style={{ height: "100%", background: completeness >= 80 ? "#1F8E5A" : completeness >= 50 ? "#B8860B" : "#C47A4F", borderRadius: 3, width: `${completeness}%`, transition: "width .3s" }} />
+            <div style={{ height: "100%", background: completeness >= 80 ? "#1F8E5A" : completeness >= 50 ? "#B8860B" : "var(--adm-accent)", borderRadius: 3, width: `${completeness}%`, transition: "width .3s" }} />
           </div>
           {missingTranslations > 0 && (
             <div style={{ fontSize: 11, color: "#888" }}>
@@ -654,11 +654,11 @@ export default function CategoriesPage() {
 
         {/* Suggestion card */}
         {needsPhotos && missingTranslations > 0 && (
-          <div style={{ background: "#F4E2D4", border: "1px solid #E6CFB9", borderRadius: 8, padding: 14 }}>
+          <div style={{ background: "var(--adm-accent-light)", border: "1px solid #E6CFB9", borderRadius: 8, padding: 14 }}>
             <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
-              <i className="fa-solid fa-lightbulb" style={{ color: "#A15E35", marginTop: 2, fontSize: 14 }} />
+              <i className="fa-solid fa-lightbulb" style={{ color: "var(--adm-accent-deep)", marginTop: 2, fontSize: 14 }} />
               <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: "#A15E35" }}>{t("categories.rail.tip")}</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: "var(--adm-accent-deep)" }}>{t("categories.rail.tip")}</div>
                 <div style={{ fontSize: 11.5, color: "#6B4A2B", marginTop: 4, lineHeight: 1.45 }}>
                   {missingTranslations === 1
                     ? t("categories.rail.tipOne")
@@ -667,7 +667,7 @@ export default function CategoriesPage() {
                 </div>
                 <button
                   onClick={() => setActiveFilter("incomplete")}
-                  style={{ marginTop: 8, background: "transparent", border: "none", color: "#A15E35", fontSize: 11.5, fontWeight: 700, padding: 0, cursor: "pointer" }}
+                  style={{ marginTop: 8, background: "transparent", border: "none", color: "var(--adm-accent-deep)", fontSize: 11.5, fontWeight: 700, padding: 0, cursor: "pointer" }}
                 >
                   {t("categories.rail.filterIncomplete")}
                 </button>
@@ -715,7 +715,7 @@ export default function CategoriesPage() {
               >
                 <div>
                   <label style={{ display: "block", fontSize: 10.5, fontWeight: 700, color: "#666", textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 5 }}>
-                    {t("categories.modal.nameLabel")} <span style={{ color: "#C47A4F" }}>*</span>
+                    {t("categories.modal.nameLabel")} <span style={{ color: "var(--adm-accent)" }}>*</span>
                   </label>
                   <input
                     type="text"
@@ -744,7 +744,7 @@ export default function CategoriesPage() {
                 <button
                   onClick={handleSaveCategory}
                   disabled={saving || !editName.trim()}
-                  style={{ flex: 2, height: 40, border: "none", borderRadius: 7, background: "#C47A4F", color: "#fff", fontWeight: 600, fontSize: 13, cursor: saving ? "wait" : "pointer", fontFamily: "inherit", opacity: (saving || !editName.trim()) ? 0.6 : 1 }}
+                  style={{ flex: 2, height: 40, border: "none", borderRadius: 7, background: "var(--adm-accent)", color: "#fff", fontWeight: 600, fontSize: 13, cursor: saving ? "wait" : "pointer", fontFamily: "inherit", opacity: (saving || !editName.trim()) ? 0.6 : 1 }}
                 >
                   {saving ? t("common.saving") : editingCategory.id === "" ? t("categories.modal.creating") : t("categories.modal.savingChanges")}
                 </button>

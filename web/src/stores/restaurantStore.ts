@@ -217,6 +217,7 @@ function catalogToStore(catalog: CatalogResponse) {
       primaryColor: (r.theme as Record<string, string>).primaryColor,
       splashColor: (r.theme as Record<string, string>).splashColor,
       font: (r.theme as Record<string, string>).font,
+      palette: (r.theme as Record<string, string>).palette,
     } : undefined,
     info: r.info ? {
       phone: (r.info as Record<string, string>).phone,

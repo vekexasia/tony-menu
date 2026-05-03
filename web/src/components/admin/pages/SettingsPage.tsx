@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { updateRestaurantSettings, setMenuPublished, fetchRestaurantSettings } from "@/lib/api";
+import { PALETTES, type PaletteKey, DEFAULT_PALETTE, applyPalette } from "@/lib/palettes";
 import { uploadHeaderImage, uploadPromotionalImage, uploadLocaleFlag } from "@/lib/imageUpload";
 import { deleteLocaleFlag } from "@/lib/api";
 import { TranslationTabs } from "@/components/admin/TranslationTabs";
@@ -15,9 +16,9 @@ import { useTranslations } from "@/lib/i18n";
 // ── Design tokens (mirrors admin.css) ────────────────────────────
 const T = {
   dark: "#1F1A14",
-  accent: "#C47A4F",
-  accentDeep: "#A15E35",
-  accentLight: "#F4E2D4",
+  accent: "var(--adm-accent)",
+  accentDeep: "var(--adm-accent-deep)",
+  accentLight: "var(--adm-accent-light)",
   surface: "#FBFAF9",
   border: "#E7E5E4",
   ok: "#1F8E5A",
@@ -184,6 +185,8 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
   const [uploadingFlagFor, setUploadingFlagFor] = useState<string | null>(null);
   const flagInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
+  const [palette, setPalette] = useState<PaletteKey>(DEFAULT_PALETTE);
+
   const [uploadingHeader, setUploadingHeader] = useState(false);
   const [uploadingPromo, setUploadingPromo] = useState(false);
   const headerInputRef = useRef<HTMLInputElement>(null);
@@ -206,6 +209,7 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
     setFacebook(restaurantStoreData.socials?.facebook || "");
     setInstagram(restaurantStoreData.socials?.instagram || "");
     setWhatsapp(restaurantStoreData.socials?.whatsapp || "");
+    if (restaurantStoreData.theme?.palette) setPalette(restaurantStoreData.theme.palette as PaletteKey);
     if (restaurantStoreData.features?.primaryLocale) {
       setPrimaryLocaleDraft(restaurantStoreData.features.primaryLocale);
       setMenuNoticeTab((current) => current === "it" ? restaurantStoreData.features!.primaryLocale! : current);
@@ -271,6 +275,7 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
       const payload = {
         name,
         payoff,
+        theme: { palette },
         info: {
           phone,
           addressLine1,
@@ -480,6 +485,51 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
                   </button>
                 )}
                 <input ref={headerInputRef} type="file" accept="image/*" onChange={handleHeaderImageChange} style={{ display: "none" }} />
+              </Card>
+
+              {/* ── Palette ── */}
+              <Card title={t("settings.cards.palette")}>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+                  {(Object.entries(PALETTES) as [PaletteKey, (typeof PALETTES)[PaletteKey]][]).map(([key, p]) => {
+                    const active = palette === key;
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => {
+                          setPalette(key);
+                          applyPalette(key);
+                        }}
+                        title={p.label}
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          gap: 5,
+                          border: "none",
+                          background: "none",
+                          cursor: "pointer",
+                          padding: 0,
+                        }}
+                      >
+                        <span style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: "50%",
+                          background: p.primary,
+                          display: "block",
+                          boxShadow: active
+                            ? `0 0 0 2px #fff, 0 0 0 4px ${p.primary}`
+                            : "0 1px 3px rgba(0,0,0,.15)",
+                          transition: "box-shadow .15s",
+                        }} />
+                        <span style={{ fontSize: 10, color: active ? T.dark : T.off, fontWeight: active ? 700 : 400 }}>
+                          {p.label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               </Card>
 
               {/* ── Contatti e Indirizzo ── */}

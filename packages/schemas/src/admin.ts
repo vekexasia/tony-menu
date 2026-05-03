@@ -1,13 +1,14 @@
 import { z } from 'zod';
 import { I18nMapSchema } from './common.js';
 import { MenuIconSchema } from './catalog.js';
-import { RestaurantInfoSchema, RestaurantSocialsSchema, PromotionAlertSchema, OpeningScheduleSchema } from './restaurant.js';
+import { RestaurantInfoSchema, RestaurantSocialsSchema, PromotionAlertSchema, OpeningScheduleSchema, RestaurantThemeSchema } from './restaurant.js';
 
 // ── Restaurant Settings ─────────────────────────────────────────────
 
 export const UpdateSettingsBodySchema = z.object({
   name: z.string().optional(),
   payoff: z.string().optional(),
+  theme: RestaurantThemeSchema.optional(),
   info: RestaurantInfoSchema.optional(),
   socials: RestaurantSocialsSchema.optional(),
   promotionAlert: PromotionAlertSchema.optional(),

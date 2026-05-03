@@ -106,7 +106,7 @@ export default function HoursPage() {
 
       {/* Page header */}
       <div style={{ marginBottom: 20 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: "#A15E35", textTransform: "uppercase", letterSpacing: 0.6, display: "flex", gap: 6, alignItems: "center", marginBottom: 4 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: "var(--adm-accent-deep)", textTransform: "uppercase", letterSpacing: 0.6, display: "flex", gap: 6, alignItems: "center", marginBottom: 4 }}>
           <span>{t("hours.breadcrumbMenu")}</span>
           <span style={{ opacity: 0.4 }}>›</span>
           <span style={{ color: "#888" }}>{t("hours.breadcrumbHours")}</span>

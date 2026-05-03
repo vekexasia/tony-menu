@@ -91,14 +91,11 @@ export const ALLERGEN_NAMES: Record<Allergen, string> = {
  * Corresponds to _RestaurantTheme in Flutter.
  */
 export interface RestaurantTheme {
-  /** Splash/accent color (hex string, e.g., "#FF5733") */
   splashColor?: string;
-  /** Primary color (hex string) */
   primaryColor?: string;
-  /** Primary swatch color (hex string) */
   primarySwatchColor?: string;
-  /** Font family name */
   font?: string;
+  palette?: string;
 }
 
 // ============================================================================

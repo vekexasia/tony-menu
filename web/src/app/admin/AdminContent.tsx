@@ -164,7 +164,7 @@ export default function AdminContent({
   const firstCategoryId = categories[0]?.id;
   const entriesHref = firstCategoryId
     ? s("entries", `&category=${firstCategoryId}`)
-    : s("categories");
+    : s("entries");
 
   const gestioneItems: { href: string; icon: string; label: string; count?: number | string }[] = [
     { href: s("menus"), icon: "fa-book-open", label: t("layout.section.menus") },
@@ -200,7 +200,7 @@ export default function AdminContent({
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden", fontFamily: "system-ui, -apple-system, sans-serif", fontSize: 13, color: "#424242", background: "#FBFAF9" }}>
       <header style={{ height: 52, background: "#1F1A14", display: "flex", alignItems: "center", padding: "0 18px", gap: 20, flexShrink: 0 }}>
         <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 30, height: 30, borderRadius: 6, background: "#C47A4F", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10.5, fontWeight: 800, letterSpacing: 0.3, flexShrink: 0 }}>
+          <div style={{ width: 30, height: 30, borderRadius: 6, background: "var(--adm-accent)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10.5, fontWeight: 800, letterSpacing: 0.3, flexShrink: 0 }}>
             {brandInitials}
           </div>
           <div style={{ textAlign: "left" }}>
@@ -279,15 +279,15 @@ export default function AdminContent({
                   fontSize: 13,
                   textDecoration: "none",
                   fontWeight: isActive(item.href) ? 600 : 400,
-                  color: isActive(item.href) ? "#A15E35" : "#666",
-                  background: isActive(item.href) ? "#F4E2D4" : "transparent",
+                  color: isActive(item.href) ? "var(--adm-accent-deep)" : "#666",
+                  background: isActive(item.href) ? "var(--adm-accent-light)" : "transparent",
                   marginBottom: 1,
                 }}
               >
                 <i className={`fa-solid ${item.icon}`} style={{ width: 14, opacity: isActive(item.href) ? 1 : 0.7, fontSize: 12 }} />
                 <span style={{ flex: 1 }}>{item.label}</span>
                 {item.count != null && (
-                  <span style={{ fontSize: 10.5, color: isActive(item.href) ? "#A15E35" : "#BDB8B2", fontWeight: 600 }}>{item.count}</span>
+                  <span style={{ fontSize: 10.5, color: isActive(item.href) ? "var(--adm-accent-deep)" : "#BDB8B2", fontWeight: 600 }}>{item.count}</span>
                 )}
               </Link>
             ))}
@@ -308,8 +308,8 @@ export default function AdminContent({
                   fontSize: 13,
                   textDecoration: "none",
                   fontWeight: isActive(item.href) ? 600 : 400,
-                  color: isActive(item.href) ? "#A15E35" : "#666",
-                  background: isActive(item.href) ? "#F4E2D4" : "transparent",
+                  color: isActive(item.href) ? "var(--adm-accent-deep)" : "#666",
+                  background: isActive(item.href) ? "var(--adm-accent-light)" : "transparent",
                   marginBottom: 1,
                 }}
               >

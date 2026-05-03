@@ -12,6 +12,7 @@ export const RestaurantThemeSchema = z.object({
   primaryColor: z.string().optional(),
   primarySwatchColor: z.string().optional(),
   font: z.string().optional(),
+  palette: z.string().optional(),
 });
 export type RestaurantTheme = z.infer<typeof RestaurantThemeSchema>;
 
