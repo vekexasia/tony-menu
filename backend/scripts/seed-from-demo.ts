@@ -162,6 +162,8 @@ for db_path in targets:
         ('menus', 'icon', "text DEFAULT 'utensils' NOT NULL"),
         ('menu_entries', 'hidden', 'integer DEFAULT 0 NOT NULL'),
         ('settings', 'primary_locale', "text DEFAULT 'it' NOT NULL"),
+        ('menus', 'available_from', 'text'),
+        ('menus', 'available_to', 'text'),
     ]:
         if not col_exists(conn, tbl, col):
             conn.execute(f'ALTER TABLE {tbl} ADD COLUMN {col} {typedef}')
