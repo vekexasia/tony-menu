@@ -319,7 +319,7 @@ export async function resetDemoData(env: Env): Promise<void> {
       color: 'red',
       sortOrder: 0,
       i18n: { en: { name: "Chef's pick" }, it: { name: 'Lo Chef consiglia' }, de: { name: 'Chef empfiehlt' }, fr: { name: 'Le Chef recommande' } },
-      entryIds: ['demo-entry-polpo', 'demo-entry-spaghetti', 'demo-entry-branzino', 'demo-entry-tagliata'],
+      entryIds: ['demo-entry-polpo', 'demo-entry-tagliata'],
     },
     {
       id: 'demo-label-veg',
@@ -327,7 +327,7 @@ export async function resetDemoData(env: Env): Promise<void> {
       color: 'green',
       sortOrder: 1,
       i18n: { en: { name: 'Vegetarian' }, it: { name: 'Vegetariano' }, de: { name: 'Vegetarisch' }, fr: { name: 'Végétarien' } },
-      entryIds: ['demo-entry-bruschetta', 'demo-entry-carpaccio', 'demo-entry-burrata', 'demo-entry-ravioli', 'demo-entry-tiramisu'],
+      entryIds: ['demo-entry-carpaccio', 'demo-entry-ravioli'],
     },
   ];
   for (const label of demoLabels) {
