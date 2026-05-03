@@ -2,8 +2,10 @@
 # One regex per line. See https://github.com/vekexasia/git-shield#allowlist
 
 # ── CSS hex color literals ──
-# 6-digit hex color values in palette definitions and test fixtures.
-#[0-9a-fA-F]{6}
+# OPF extracts hex colors in two forms: '"#cc9166' (with leading quote) or
+# 'C47A4F' (bare uppercase digits when the model drops the # prefix).
+# Pattern: optional leading quote/hash, exactly 6 hex digits, optional trailing noise.
+(?i)^["#]*[0-9a-f]{6}["#,]*$
 
 # ── Public URLs that aren't PII ──
 ^https?://(www\.)?keepachangelog\.com(/.*)?$
