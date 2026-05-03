@@ -13,7 +13,7 @@ import {
 import { useRestaurantStore, useCategories } from "@/stores/restaurantStore";
 import { SortableList, DragHandle } from "@/components/admin/SortableList";
 import { TranslationTabs } from "@/components/admin/TranslationTabs";
-import { MenuIcon, MENU_ICON_KINDS, MENU_ICON_LABELS, type MenuIconKind } from "@/components/menu/MenuIcon";
+import { MenuIcon, MENU_ICON_KINDS, type MenuIconKind } from "@/components/menu/MenuIcon";
 import { useTranslations } from "@/lib/i18n";
 
 interface I18nData {
@@ -328,12 +328,12 @@ export default function MenusPage() {
                         className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-colors ${
                           selected ? "bg-primary/10 border-primary text-primary" : "bg-white border-gray-200 hover:bg-gray-50 text-gray-600"
                         }`}
-                        title={MENU_ICON_LABELS[kind]}
+                        title={t(`menus.icon.${kind}`)}
                       >
                         <div className="w-7 h-7">
                           <MenuIcon kind={kind} />
                         </div>
-                        <span className="text-[10px] font-medium uppercase tracking-wide">{MENU_ICON_LABELS[kind]}</span>
+                        <span className="text-[10px] font-medium uppercase tracking-wide">{t(`menus.icon.${kind}`)}</span>
                       </button>
                     );
                   })}
