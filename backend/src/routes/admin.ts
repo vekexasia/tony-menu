@@ -811,6 +811,95 @@ admin.get('/analytics', ...base, async (c) => {
   });
 });
 
+// ── Export ───────────────────────────────────────────────────────────
+
+admin.get('/export', ...base, async (c) => {
+  const db = c.get('db');
+
+  const [row] = await db.select().from(schema.settings).where(eq(schema.settings.id, 1));
+  const menus = await db.select().from(schema.menus).orderBy(asc(schema.menus.sortOrder));
+  const categories = await db.select().from(schema.menuCategories).orderBy(asc(schema.menuCategories.sortOrder));
+  const entries = await db.select().from(schema.menuEntries).orderBy(asc(schema.menuEntries.sortOrder));
+  const memberships = await db.select().from(schema.menuEntryMemberships);
+  const variants = await db.select().from(schema.menuVariants).orderBy(asc(schema.menuVariants.sortOrder));
+  const extras = await db.select().from(schema.menuExtras);
+
+  const date = new Date().toISOString().slice(0, 10);
+  c.header('Content-Disposition', `attachment; filename="menu-export-${date}.json"`);
+
+  return c.json({
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    settings: {
+      name: row?.name ?? null,
+      payoff: row?.payoff ?? null,
+      theme: row?.theme ?? null,
+      info: row?.info ?? null,
+      socials: row?.socials ?? null,
+      openingSchedule: row?.openingSchedule ?? null,
+      promotionAlert: row?.promotionAlert ?? null,
+      chatAgentPrompt: row?.chatAgentPrompt ?? null,
+      aiChatEnabled: row?.aiChatEnabled ?? false,
+      primaryLocale: row?.primaryLocale ?? 'it',
+      enabledLocales: row?.enabledLocales ?? null,
+      disabledLocales: row?.disabledLocales ?? [],
+      customLocales: row?.customLocales ?? [],
+      publicationState: row?.publicationState ?? 'draft',
+    },
+    menus: menus.map((m) => ({
+      id: m.id,
+      code: m.code,
+      title: m.title,
+      i18n: m.i18n,
+      published: m.published,
+      sortOrder: m.sortOrder,
+      icon: m.icon,
+    })),
+    categories: categories.map((cat) => ({
+      id: cat.id,
+      name: cat.name,
+      sortOrder: cat.sortOrder,
+      i18n: cat.i18n,
+    })),
+    entries: entries.map((e) => ({
+      id: e.id,
+      categoryId: e.categoryId,
+      name: e.name,
+      description: e.description,
+      priceCents: e.price,
+      priceUnit: e.priceUnit,
+      imageUrl: e.imageUrl,
+      outOfStock: e.outOfStock,
+      frozen: e.frozen,
+      sortOrder: e.sortOrder,
+      hidden: e.hidden,
+      allergens: e.allergens,
+      i18n: e.i18n,
+      metadata: e.metadata,
+    })),
+    memberships: memberships.map((m) => ({
+      menuId: m.menuId,
+      entryId: m.entryId,
+    })),
+    variants: variants.map((v) => ({
+      id: v.id,
+      name: v.name,
+      description: v.description,
+      sortOrder: v.sortOrder,
+      selections: v.selections,
+      i18n: v.i18n,
+    })),
+    extras: extras.map((ex) => ({
+      id: ex.id,
+      name: ex.name,
+      type: ex.type,
+      max: ex.max,
+      options: ex.options,
+      i18n: ex.i18n,
+    })),
+  });
+});
+
 // ── Translation ──────────────────────────────────────────────────────
 
 const LOCALE_DESCRIPTIONS: Record<string, string> = {

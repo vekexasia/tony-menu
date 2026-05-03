@@ -350,6 +350,23 @@ export function translateText(
   });
 }
 
+export async function downloadMenuExport(): Promise<void> {
+  const date = new Date().toISOString().slice(0, 10);
+  const resp = await fetch(`${API_BASE}/admin/export`, {
+    credentials: 'include',
+  });
+  if (!resp.ok) throw new ApiError(resp.status, resp.statusText);
+  const blob = await resp.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `menu-export-${date}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 export function recordView(entryId: string): Promise<void> {
   // Returns a promise that resolves on success and rejects on failure.
   // Callers are responsible for adding a .catch() if they want fire-and-forget behavior.

@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { updateRestaurantSettings, setMenuPublished, fetchRestaurantSettings } from "@/lib/api";
+import { updateRestaurantSettings, setMenuPublished, fetchRestaurantSettings, downloadMenuExport } from "@/lib/api";
 import { PALETTES, type PaletteKey, DEFAULT_PALETTE, applyPalette } from "@/lib/palettes";
 import { uploadHeaderImage, uploadPromotionalImage, uploadLocaleFlag } from "@/lib/imageUpload";
 import { deleteLocaleFlag } from "@/lib/api";
@@ -144,6 +144,7 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
 
   const [published, setPublished] = useState<boolean | null>(null);
   const [publishing, setPublishing] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const [name, setName] = useState("");
   const [payoff, setPayoff] = useState("");
@@ -962,6 +963,20 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
                     {publishing ? t("settings.publishing.working") : published ? t("settings.publishing.hideMenu") : t("settings.publishing.publishMenu")}
                   </button>
                 </div>
+              </Card>
+
+              <Card title={t("settings.cards.export")}>
+                <p style={{ fontSize: 12, color: T.muted, marginBottom: 12 }}>{t("settings.export.description")}</p>
+                <button
+                  onClick={async () => {
+                    setExporting(true);
+                    try { await downloadMenuExport(); } finally { setExporting(false); }
+                  }}
+                  disabled={exporting}
+                  style={{ padding: "7px 14px", borderRadius: 6, border: `1px solid ${T.border}`, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", background: "#fff", color: T.dark, opacity: exporting ? 0.5 : 1 }}
+                >
+                  {exporting ? t("settings.export.downloading") : t("settings.export.button")}
+                </button>
               </Card>
 
               </>}
