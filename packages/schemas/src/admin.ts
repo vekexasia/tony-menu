@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { I18nMapSchema } from './common.js';
-import { MenuIconSchema, HHMMSchema } from './catalog.js';
+import { MenuIconSchema, HHMMSchema, LabelColorSchema } from './catalog.js';
 import { RestaurantInfoSchema, RestaurantSocialsSchema, PromotionAlertSchema, OpeningScheduleSchema, RestaurantThemeSchema } from './restaurant.js';
 
 // ── Restaurant Settings ─────────────────────────────────────────────
@@ -55,6 +55,7 @@ export const CreateEntryBodySchema = z.object({
   priceUnit: z.string().optional(),
   i18n: I18nMapSchema.optional(),
   menuIds: z.array(z.string()).optional(),
+  labelIds: z.array(z.string()).optional(),
   hidden: z.boolean().optional(),
 });
 export type CreateEntryBody = z.infer<typeof CreateEntryBodySchema>;
@@ -69,6 +70,7 @@ export const UpdateEntryBodySchema = z.object({
   priceUnit: z.string().optional(),
   i18n: I18nMapSchema.optional(),
   menuIds: z.array(z.string()).optional(),
+  labelIds: z.array(z.string()).optional(),
   hidden: z.boolean().optional(),
 });
 export type UpdateEntryBody = z.infer<typeof UpdateEntryBodySchema>;
@@ -127,6 +129,22 @@ export const TranslateRequestBodySchema = z.object({
   field: z.enum(['name', 'desc', 'text']),
 });
 export type TranslateRequestBody = z.infer<typeof TranslateRequestBodySchema>;
+
+// ── Labels ──────────────────────────────────────────────────────────
+
+export const CreateLabelBodySchema = z.object({
+  name: z.string().trim().min(1).max(50),
+  color: LabelColorSchema.default('primary'),
+  i18n: I18nMapSchema.optional(),
+});
+export type CreateLabelBody = z.infer<typeof CreateLabelBodySchema>;
+
+export const UpdateLabelBodySchema = z.object({
+  name: z.string().trim().min(1).max(50).optional(),
+  color: LabelColorSchema.optional(),
+  i18n: I18nMapSchema.optional(),
+});
+export type UpdateLabelBody = z.infer<typeof UpdateLabelBodySchema>;
 
 // ── Catalog View ────────────────────────────────────────────────────
 

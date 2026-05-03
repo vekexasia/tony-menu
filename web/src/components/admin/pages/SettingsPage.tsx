@@ -3,8 +3,9 @@
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { updateRestaurantSettings, setMenuPublished, fetchRestaurantSettings, downloadMenuExport } from "@/lib/api";
+import { updateRestaurantSettings, setMenuPublished, fetchRestaurantSettings, downloadMenuExport, fetchLabels, createLabel, updateLabel, deleteLabel, type AdminLabel } from "@/lib/api";
 import { PALETTES, type PaletteKey, DEFAULT_PALETTE, applyPalette } from "@/lib/palettes";
+import { LABEL_COLOR_STYLES } from "@/lib/label-colors";
 import { uploadHeaderImage, uploadPromotionalImage, uploadLocaleFlag } from "@/lib/imageUpload";
 import { deleteLocaleFlag } from "@/lib/api";
 import { TranslationTabs } from "@/components/admin/TranslationTabs";
@@ -146,6 +147,16 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
   const [publishing, setPublishing] = useState(false);
   const [exporting, setExporting] = useState(false);
 
+  // ── Labels state ──────────────────────────────────────────────────
+  const [labelsList, setLabelsList] = useState<AdminLabel[]>([]);
+  const [labelsLoading, setLabelsLoading] = useState(false);
+  const [newLabelName, setNewLabelName] = useState("");
+  const [newLabelColor, setNewLabelColor] = useState<AdminLabel['color']>('primary');
+  const [creatingLabel, setCreatingLabel] = useState(false);
+  const [editingLabelId, setEditingLabelId] = useState<string | null>(null);
+  const [editingLabelName, setEditingLabelName] = useState("");
+  const [editingLabelColor, setEditingLabelColor] = useState<AdminLabel['color']>('primary');
+
   const [name, setName] = useState("");
   const [payoff, setPayoff] = useState("");
   const [headerImage, setHeaderImage] = useState("");
@@ -256,7 +267,17 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
       }
     }
 
+    async function loadLabels() {
+      setLabelsLoading(true);
+      try {
+        const res = await fetchLabels();
+        setLabelsList(res.labels);
+      } catch { /* non-blocking */ }
+      finally { setLabelsLoading(false); }
+    }
+
     loadPrivateSettings();
+    loadLabels();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -350,6 +371,36 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
       setUploadingPromo(false);
       if (promoInputRef.current) promoInputRef.current.value = "";
     }
+  };
+
+  const handleCreateLabel = async () => {
+    if (!newLabelName.trim()) return;
+    setCreatingLabel(true);
+    try {
+      const res = await createLabel({ name: newLabelName.trim(), color: newLabelColor });
+      const created: AdminLabel = { id: res.id, name: newLabelName.trim(), color: newLabelColor, sortOrder: labelsList.length, i18n: null };
+      setLabelsList((prev) => [...prev, created]);
+      setNewLabelName('');
+      setNewLabelColor('primary');
+    } catch { setError(t('labels.saveFailed')); }
+    finally { setCreatingLabel(false); }
+  };
+
+  const handleSaveLabel = async () => {
+    if (!editingLabelId || !editingLabelName.trim()) return;
+    try {
+      await updateLabel(editingLabelId, { name: editingLabelName.trim(), color: editingLabelColor });
+      setLabelsList((prev) => prev.map((l) => l.id === editingLabelId ? { ...l, name: editingLabelName.trim(), color: editingLabelColor } : l));
+      setEditingLabelId(null);
+    } catch { setError(t('labels.saveFailed')); }
+  };
+
+  const handleDeleteLabel = async (id: string) => {
+    if (!confirm(t('labels.deleteConfirm'))) return;
+    try {
+      await deleteLabel(id);
+      setLabelsList((prev) => prev.filter((l) => l.id !== id));
+    } catch { setError(t('labels.saveFailed')); }
   };
 
   const handlePublishToggle = async () => {
@@ -531,6 +582,123 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
                     );
                   })}
                 </div>
+              </Card>
+
+              {/* ── Etichette ── */}
+              <Card title={t("labels.title")}>
+                <p style={{ fontSize: 12, color: T.muted, marginBottom: 14 }}>{t("labels.subtitle")}</p>
+
+                {/* Create form */}
+                <div style={{ display: "flex", gap: 8, marginBottom: 14, alignItems: "center", flexWrap: "wrap" }}>
+                  <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                    {(Object.keys(LABEL_COLOR_STYLES) as Array<keyof typeof LABEL_COLOR_STYLES>).map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => setNewLabelColor(c)}
+                        title={c}
+                        style={{
+                          width: 22,
+                          height: 22,
+                          borderRadius: "50%",
+                          border: newLabelColor === c ? `2px solid ${T.dark}` : `2px solid transparent`,
+                          background: LABEL_COLOR_STYLES[c].background,
+                          cursor: "pointer",
+                          boxShadow: newLabelColor === c ? `0 0 0 1px ${T.dark}` : "none",
+                          padding: 0,
+                          outline: "none",
+                          flexShrink: 0,
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <input
+                    className="adm-input"
+                    style={{ ...inputStyle, flex: 1, minWidth: 120 }}
+                    value={newLabelName}
+                    onChange={(e) => setNewLabelName(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') void handleCreateLabel(); }}
+                    placeholder={t("labels.namePlaceholder")}
+                    maxLength={50}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => void handleCreateLabel()}
+                    disabled={creatingLabel || !newLabelName.trim()}
+                    style={{ padding: "0 14px", height: 36, background: T.accent, color: "#fff", border: "none", borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", flexShrink: 0, opacity: creatingLabel || !newLabelName.trim() ? 0.5 : 1 }}
+                  >
+                    {t("labels.newLabel")}
+                  </button>
+                </div>
+
+                {/* List */}
+                {labelsLoading ? (
+                  <p style={{ fontSize: 12, color: T.muted }}>{t("settings.loading")}</p>
+                ) : labelsList.length === 0 ? (
+                  <p style={{ fontSize: 12, color: T.muted }}>{t("labels.noLabels")}</p>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                    {labelsList.map((label) => {
+                      const isEditing = editingLabelId === label.id;
+                      if (isEditing) {
+                        return (
+                          <div key={label.id} style={{ display: "flex", gap: 8, alignItems: "center", padding: "6px 0", flexWrap: "wrap" }}>
+                            <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                              {(Object.keys(LABEL_COLOR_STYLES) as Array<keyof typeof LABEL_COLOR_STYLES>).map((c) => (
+                                <button
+                                  key={c}
+                                  type="button"
+                                  onClick={() => setEditingLabelColor(c)}
+                                  style={{
+                                    width: 22,
+                                    height: 22,
+                                    borderRadius: "50%",
+                                    border: editingLabelColor === c ? `2px solid ${T.dark}` : `2px solid transparent`,
+                                    background: LABEL_COLOR_STYLES[c].background,
+                                    cursor: "pointer",
+                                    boxShadow: editingLabelColor === c ? `0 0 0 1px ${T.dark}` : "none",
+                                    padding: 0,
+                                    outline: "none",
+                                    flexShrink: 0,
+                                  }}
+                                />
+                              ))}
+                            </div>
+                            <input
+                              className="adm-input"
+                              style={{ ...inputStyle, flex: 1, minWidth: 100 }}
+                              value={editingLabelName}
+                              onChange={(e) => setEditingLabelName(e.target.value)}
+                              onKeyDown={(e) => { if (e.key === 'Enter') void handleSaveLabel(); if (e.key === 'Escape') setEditingLabelId(null); }}
+                              maxLength={50}
+                              autoFocus
+                            />
+                            <button type="button" onClick={() => void handleSaveLabel()} disabled={!editingLabelName.trim()} style={{ padding: "0 10px", height: 32, background: T.accent, color: "#fff", border: "none", borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", opacity: !editingLabelName.trim() ? 0.5 : 1 }}>
+                              <i className="fa-solid fa-check" />
+                            </button>
+                            <button type="button" onClick={() => setEditingLabelId(null)} style={{ padding: "0 10px", height: 32, background: T.offBg, color: T.text, border: "none", borderRadius: 6, fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>
+                              <i className="fa-solid fa-xmark" />
+                            </button>
+                          </div>
+                        );
+                      }
+                      const cs = LABEL_COLOR_STYLES[label.color] ?? LABEL_COLOR_STYLES.primary;
+                      return (
+                        <div key={label.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 0" }}>
+                          <span style={{ fontSize: 12, fontWeight: 600, padding: "2px 10px", borderRadius: 12, background: cs.background, color: cs.color, flexShrink: 0 }}>
+                            {label.name}
+                          </span>
+                          <button type="button" onClick={() => { setEditingLabelId(label.id); setEditingLabelName(label.name); setEditingLabelColor(label.color); }} style={{ fontSize: 11, color: T.accentDeep, background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+                            <i className="fa-solid fa-pen" />
+                          </button>
+                          <button type="button" onClick={() => void handleDeleteLabel(label.id)} style={{ fontSize: 11, color: T.danger, background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+                            <i className="fa-solid fa-trash" />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </Card>
 
               {/* ── Contatti e Indirizzo ── */}

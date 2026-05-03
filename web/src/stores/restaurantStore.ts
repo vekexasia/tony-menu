@@ -5,6 +5,7 @@ import type {
   Variant,
   Extra,
   MenuInfo,
+  MenuLabel,
   MenuCategory,
   MenuEntry,
   Allergen,
@@ -147,6 +148,14 @@ function catalogToStore(catalog: CatalogResponse) {
     }))
     .sort((a, b) => a.sortOrder - b.sortOrder);
 
+  const labels: MenuLabel[] = (catalog.labels ?? []).map((l) => ({
+    id: l.id,
+    name: l.name,
+    color: l.color as MenuLabel['color'],
+    sortOrder: l.sortOrder,
+    i18n: l.i18n as Record<string, Record<string, string>> | null,
+  }));
+
   const categories: MenuCategory[] = [];
   for (const cat of catalog.categories) {
     const catPath = `menuEntries/${cat.id}`;
@@ -165,6 +174,7 @@ function catalogToStore(catalog: CatalogResponse) {
       containsFrozenIngredient: e.frozen,
       allergens: (e.allergens || []) as Allergen[],
       menuIds: e.menuIds,
+      labelIds: e.labelIds ?? [],
       hidden: e.hidden,
       overriddenVariantPaths: (e.metadata?.variantRefs as string[]) || [],
       overriddenExtraPaths: (e.metadata?.extraRefs as string[]) || [],
@@ -211,6 +221,7 @@ function catalogToStore(catalog: CatalogResponse) {
 
   const data: RestaurantData = {
     id: 'singleton',
+    labels,
     name: r.name,
     payoff: r.payoff || '',
     headerImage: (r.info as Record<string, unknown>)?.headerImage as string || '',
@@ -256,3 +267,6 @@ export const useRestaurantData = () => useRestaurantStore((state) => state.data)
 export const useRestaurantLoading = () => useRestaurantStore((state) => state.isLoading);
 export const useRestaurantError = () => useRestaurantStore((state) => state.error);
 export const useCategories = () => useRestaurantStore((state) => state.data?.categories ?? EMPTY_CATEGORIES);
+
+const EMPTY_LABELS: import('../lib/types').MenuLabel[] = [];
+export const useLabels = () => useRestaurantStore((state) => state.data?.labels ?? EMPTY_LABELS);

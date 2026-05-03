@@ -3,6 +3,19 @@ import { I18nMapSchema } from './common.js';
 import { RestaurantThemeSchema, RestaurantInfoSchema, RestaurantSocialsSchema, OpeningScheduleSchema } from './restaurant.js';
 import { VariantSelectionSchema, ExtraOptionSchema } from './menu.js';
 
+export const LABEL_COLORS = ['primary', 'green', 'amber', 'red', 'gray'] as const;
+export const LabelColorSchema = z.enum(LABEL_COLORS);
+export type LabelColor = z.infer<typeof LabelColorSchema>;
+
+export const CatalogLabelSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  color: LabelColorSchema,
+  sortOrder: z.number(),
+  i18n: I18nMapSchema.nullable(),
+});
+export type CatalogLabel = z.infer<typeof CatalogLabelSchema>;
+
 export const CatalogEntrySchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -15,6 +28,7 @@ export const CatalogEntrySchema = z.object({
   sortOrder: z.number(),
   hidden: z.boolean(),
   menuIds: z.array(z.string()),
+  labelIds: z.array(z.string()),
   allergens: z.array(z.string()).nullable(),
   i18n: I18nMapSchema.nullable(),
   metadata: z.record(z.string(), z.unknown()).nullable(),
@@ -115,6 +129,7 @@ export const CatalogResponseSchema = z.object({
   categories: z.array(CatalogCategorySchema),
   variants: z.array(CatalogVariantSchema),
   extras: z.array(CatalogExtraSchema),
+  labels: z.array(CatalogLabelSchema),
   generatedAt: z.string(),
 });
 export type CatalogResponse = z.infer<typeof CatalogResponseSchema>;

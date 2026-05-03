@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, useMemo } from "react";
 import { useTranslations } from "@/lib/i18n";
 import Image from "next/image";
 import { useParams, useSearchParams } from "next/navigation";
-import { useRestaurantStore, useCategories } from "@/stores/restaurantStore";
+import { useRestaurantStore, useCategories, useLabels } from "@/stores/restaurantStore";
 import { MenuItemDetail } from "@/components/menu/MenuItemDetail";
 import { MenuItemListView } from "@/components/menu/views/MenuItemListView";
 import { RestaurantInfoModal } from "@/components/menu/RestaurantInfoModal";
@@ -38,6 +38,7 @@ export default function MenuPageClient() {
   const hasChatWorker = Boolean(process.env.NEXT_PUBLIC_CHAT_WORKER_URL);
   const { data, isLoading, error, loadRestaurant } = useRestaurantStore();
   const categories = useCategories();
+  const allLabels = useLabels();
   const [showNotice, setShowNotice] = useState(true);
   const [showPromo, setShowPromo] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -345,6 +346,9 @@ export default function MenuPageClient() {
                         priceUnit: entryWithDesc.priceUnit,
                         image: entryWithDesc.image,
                         outOfStock: entryWithDesc.outOfStock,
+                        labels: entry.labelIds?.length
+                          ? allLabels.filter(l => entry.labelIds!.includes(l.id))
+                          : undefined,
                       }}
                       outOfStockLabel={t("outOfStock")}
                       onClick={() => {

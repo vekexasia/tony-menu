@@ -324,6 +324,15 @@ export async function buildCatalogFromDb(
     .select()
     .from(schema.menuEntryMemberships);
 
+  const labelsRows = await db
+    .select()
+    .from(schema.labels)
+    .orderBy(asc(schema.labels.sortOrder));
+
+  const entryLabelsRows = await db
+    .select()
+    .from(schema.entryLabels);
+
   const variants = await db
     .select()
     .from(schema.menuVariants)
@@ -338,6 +347,13 @@ export async function buildCatalogFromDb(
     const list = menuIdsByEntry.get(m.entryId) || [];
     list.push(m.menuId);
     menuIdsByEntry.set(m.entryId, list);
+  }
+
+  const labelIdsByEntry = new Map<string, string[]>();
+  for (const el of entryLabelsRows) {
+    const list = labelIdsByEntry.get(el.entryId) || [];
+    list.push(el.labelId);
+    labelIdsByEntry.set(el.entryId, list);
   }
 
   const entriesByCategory = new Map<string, typeof entries>();
@@ -393,6 +409,7 @@ export async function buildCatalogFromDb(
         sortOrder: e.sortOrder,
         hidden: e.hidden,
         menuIds: menuIdsByEntry.get(e.id) ?? [],
+        labelIds: labelIdsByEntry.get(e.id) ?? [],
         allergens: e.allergens,
         i18n: e.i18n,
         metadata: e.metadata,
@@ -413,6 +430,13 @@ export async function buildCatalogFromDb(
       max: ex.max,
       options: ex.options,
       i18n: ex.i18n,
+    })),
+    labels: labelsRows.map((l) => ({
+      id: l.id,
+      name: l.name,
+      color: l.color as import('@menu/schemas').LabelColor,
+      sortOrder: l.sortOrder,
+      i18n: l.i18n,
     })),
     generatedAt: new Date().toISOString(),
   } as CatalogResponse;

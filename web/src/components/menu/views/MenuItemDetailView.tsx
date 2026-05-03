@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import type { MenuItemView } from "./MenuItemListView";
+import { labelColorStyle } from "@/lib/label-colors";
 
 /**
  * Pure presentational component for the menu item detail (expanded) view.
@@ -99,6 +100,19 @@ export function MenuItemDetailView({ item, hidePrice, allergyWarning, frozenWarn
               </div>
             )}
           </>
+        )}
+        {item.labels && item.labels.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {item.labels.map((label) => (
+              <span
+                key={label.id}
+                className="text-xs font-semibold px-2 py-0.5 rounded-full"
+                style={labelColorStyle(label.color)}
+              >
+                {label.name}
+              </span>
+            ))}
+          </div>
         )}
         {item.allergens && item.allergens.length > 0 && (
           <div className="mb-4">

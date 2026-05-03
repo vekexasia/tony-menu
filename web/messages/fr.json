@@ -335,6 +335,15 @@
     "menus.scheduleBothRequired": "Définissez les deux heures ou laissez les deux vides.",
     "menus.scheduleOvernight": "Actif de {from} à {to} (après minuit)",
     "menus.scheduleSameDay": "Actif de {from} à {to}",
+    "labels.title": "Étiquettes",
+    "labels.subtitle": "Badges personnalisés sur les plats",
+    "labels.newLabel": "Nouvelle étiquette",
+    "labels.namePlaceholder": "Ex. Végétalien, Épicé...",
+    "labels.noLabels": "Aucune étiquette",
+    "labels.deleteConfirm": "Supprimer l'étiquette ? Elle sera retirée de tous les plats.",
+    "labels.colorLabel": "Couleur",
+    "entries.labelsSection": "Étiquettes",
+    "entries.labelsHint": "Créer des étiquettes dans les Paramètres",
     "analytics.period.24h": "24h",
     "analytics.period.7d": "7d",
     "analytics.period.30d": "30d",
@@ -457,7 +466,8 @@
     "entries.preview.cardTitle": "Aperçu — vue liste",
     "entries.preview.expandedTitle": "Aperçu — vue détail",
     "entries.preview.title": "Aperçu",
-    "entries.preview.subtitle": "Vu côté client, sur le téléphone"
+    "entries.preview.subtitle": "Vu côté client, sur le téléphone",
+    "labels.saveFailed": "Erreur lors de la sauvegarde du libellé"
   },
   "outOfStock": "ÉPUISÉ"
 }

@@ -335,6 +335,15 @@
     "menus.scheduleBothRequired": "Establece ambos horarios o deja ambos vacíos.",
     "menus.scheduleOvernight": "Activo de {from} a {to} (cruza la medianoche)",
     "menus.scheduleSameDay": "Activo de {from} a {to}",
+    "labels.title": "Etiquetas",
+    "labels.subtitle": "Insignias personalizadas en las entradas del menú",
+    "labels.newLabel": "Nueva etiqueta",
+    "labels.namePlaceholder": "Ej. Vegano, Picante...",
+    "labels.noLabels": "Sin etiquetas aún",
+    "labels.deleteConfirm": "¿Eliminar etiqueta? Se eliminará de todas las entradas.",
+    "labels.colorLabel": "Color",
+    "entries.labelsSection": "Etiquetas",
+    "entries.labelsHint": "Crea etiquetas en Configuración",
     "analytics.period.24h": "24h",
     "analytics.period.7d": "7d",
     "analytics.period.30d": "30d",
@@ -457,7 +466,8 @@
     "entries.preview.cardTitle": "Vista previa — lista",
     "entries.preview.expandedTitle": "Vista previa — detalle",
     "entries.preview.title": "Vista previa",
-    "entries.preview.subtitle": "Cómo lo ven los clientes en el móvil"
+    "entries.preview.subtitle": "Cómo lo ven los clientes en el móvil",
+    "labels.saveFailed": "Error al guardar la etiqueta"
   },
   "outOfStock": "AGOTADO"
 }

@@ -1,6 +1,8 @@
 "use client";
 
 import Image from "next/image";
+import type { MenuLabel } from "@/lib/types";
+import { labelColorStyle } from "@/lib/label-colors";
 
 /**
  * Pure presentational list-card view for a menu item.
@@ -29,6 +31,8 @@ export interface MenuItemView {
   outOfStock?: boolean;
   /** Item contains frozen ingredients. */
   containsFrozenIngredient?: boolean;
+  /** Resolved label objects for this entry. */
+  labels?: MenuLabel[];
 }
 
 function formatPrice(price: number, unit?: string | null): string {
@@ -62,6 +66,19 @@ export function MenuItemListView({ item, outOfStockLabel, onClick }: MenuItemLis
             </span>
           )}
         </h4>
+        {item.labels && item.labels.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-1">
+            {item.labels.map((label) => (
+              <span
+                key={label.id}
+                className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
+                style={labelColorStyle(label.color)}
+              >
+                {label.name}
+              </span>
+            ))}
+          </div>
+        )}
         {item.description && (
           <p className="text-sm text-gray-500 mt-1 line-clamp-2">{item.description}</p>
         )}

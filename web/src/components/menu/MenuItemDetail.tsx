@@ -6,7 +6,7 @@ import { useTranslations } from '@/lib/i18n';
 import { useState, useCallback } from 'react';
 import type { MenuEntry } from '@/lib/types';
 import { useBackButtonClose } from '@/hooks/useBackButtonClose';
-import { useRestaurantStore } from '@/stores/restaurantStore';
+import { useRestaurantStore, useLabels } from '@/stores/restaurantStore';
 import { getContentDisplayText, getLocalizedContentValue } from '@/lib/content-presentation';
 import { MenuItemDetailView } from './views/MenuItemDetailView';
 
@@ -21,6 +21,7 @@ interface MenuItemDetailProps {
 export function MenuItemDetail({ item, onClose, locale, hidePrice }: MenuItemDetailProps) {
   const t = useTranslations();
   const restaurantId = useRestaurantStore((state) => state.data?.id);
+  const allLabels = useLabels();
   const [isClosing, setIsClosing] = useState(false);
 
   const handleClose = useCallback(() => {
@@ -81,6 +82,9 @@ export function MenuItemDetail({ item, onClose, locale, hidePrice }: MenuItemDet
                 priceUnit: item.priceUnit,
                 image: item.image,
                 allergens: item.allergens,
+                labels: item.labelIds?.length
+                  ? allLabels.filter(l => item.labelIds!.includes(l.id))
+                  : undefined,
                 outOfStock: item.outOfStock,
                 containsFrozenIngredient: item.frozen,
               }}

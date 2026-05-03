@@ -335,6 +335,15 @@
     "menus.scheduleBothRequired": "Imposta entrambi gli orari oppure lascia entrambi vuoti.",
     "menus.scheduleOvernight": "Attivo dalle {from} alle {to} (passa la mezzanotte)",
     "menus.scheduleSameDay": "Attivo dalle {from} alle {to}",
+    "labels.title": "Etichette",
+    "labels.subtitle": "Badge personalizzati sulle voci del menu",
+    "labels.newLabel": "Nuova etichetta",
+    "labels.namePlaceholder": "Es. Vegano, Piccante...",
+    "labels.noLabels": "Nessuna etichetta ancora",
+    "labels.deleteConfirm": "Eliminare l'etichetta? Verrà rimossa da tutte le voci.",
+    "labels.colorLabel": "Colore",
+    "entries.labelsSection": "Etichette",
+    "entries.labelsHint": "Crea etichette nelle Impostazioni",
     "analytics.period.24h": "24h",
     "analytics.period.7d": "7gg",
     "analytics.period.30d": "30gg",
@@ -457,7 +466,8 @@
     "entries.preview.cardTitle": "Anteprima — vista lista",
     "entries.preview.expandedTitle": "Anteprima — vista dettaglio",
     "entries.preview.title": "Anteprima",
-    "entries.preview.subtitle": "Come lo vede il cliente sul telefono"
+    "entries.preview.subtitle": "Come lo vede il cliente sul telefono",
+    "labels.saveFailed": "Errore nel salvataggio dell'etichetta"
   },
   "outOfStock": "ESAURITO"
 }

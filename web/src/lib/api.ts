@@ -19,6 +19,8 @@ import type {
   UpdateEntryBody,
   CreateMenuBody,
   UpdateMenuBody,
+  CreateLabelBody,
+  UpdateLabelBody,
   CatalogResponse,
   MeResponse,
   AnalyticsResponse,
@@ -187,6 +189,51 @@ export function updateMenu(menuId: string, data: UpdateMenuBody) {
 export function deleteMenu(menuId: string) {
   return apiFetch(`/admin/menus/${menuId}`, {
     method: 'DELETE',
+    auth: true,
+  });
+}
+
+// ── Labels ────────────────────────────────────────────────────────────
+
+export interface AdminLabel {
+  id: string;
+  name: string;
+  color: 'primary' | 'green' | 'amber' | 'red' | 'gray';
+  sortOrder: number;
+  i18n: Record<string, Record<string, string>> | null;
+}
+
+export function fetchLabels() {
+  return apiFetch<{ labels: AdminLabel[] }>(`/admin/labels`, { auth: true });
+}
+
+export function createLabel(data: CreateLabelBody) {
+  return apiFetch<CreatedEntryResponse>(`/admin/labels`, {
+    method: 'POST',
+    body: data,
+    auth: true,
+  });
+}
+
+export function updateLabel(labelId: string, data: UpdateLabelBody) {
+  return apiFetch(`/admin/labels/${labelId}`, {
+    method: 'PATCH',
+    body: data,
+    auth: true,
+  });
+}
+
+export function deleteLabel(labelId: string) {
+  return apiFetch(`/admin/labels/${labelId}`, {
+    method: 'DELETE',
+    auth: true,
+  });
+}
+
+export function reorderLabels(items: { id: string; order: number }[]) {
+  return apiFetch(`/admin/labels/reorder`, {
+    method: 'PATCH',
+    body: { items },
     auth: true,
   });
 }

@@ -335,6 +335,15 @@
     "menus.scheduleBothRequired": "Beide Zeiten setzen oder beide leer lassen.",
     "menus.scheduleOvernight": "Aktiv von {from} bis {to} (über Mitternacht)",
     "menus.scheduleSameDay": "Aktiv von {from} bis {to}",
+    "labels.title": "Etiketten",
+    "labels.subtitle": "Eigene Abzeichen auf Menüeinträgen",
+    "labels.newLabel": "Neues Etikett",
+    "labels.namePlaceholder": "z.B. Vegan, Scharf...",
+    "labels.noLabels": "Noch keine Etiketten",
+    "labels.deleteConfirm": "Etikett löschen? Es wird von allen Einträgen entfernt.",
+    "labels.colorLabel": "Farbe",
+    "entries.labelsSection": "Etiketten",
+    "entries.labelsHint": "Etiketten in den Einstellungen erstellen",
     "analytics.period.24h": "24h",
     "analytics.period.7d": "7d",
     "analytics.period.30d": "30d",
@@ -457,7 +466,8 @@
     "entries.preview.cardTitle": "Vorschau — Listenansicht",
     "entries.preview.expandedTitle": "Vorschau — Detailansicht",
     "entries.preview.title": "Vorschau",
-    "entries.preview.subtitle": "So sehen Gäste es auf dem Smartphone"
+    "entries.preview.subtitle": "So sehen Gäste es auf dem Smartphone",
+    "labels.saveFailed": "Fehler beim Speichern des Labels"
   },
   "outOfStock": "AUSVERKAUFT"
 }

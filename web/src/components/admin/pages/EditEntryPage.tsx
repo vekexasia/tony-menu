@@ -6,7 +6,8 @@ import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
 import { uploadEntryImage, deleteEntryImage } from "@/lib/imageUpload";
 import { updateEntry, createEntry, deleteEntry, moveEntry } from "@/lib/api";
-import { useRestaurantStore, useCategories } from "@/stores/restaurantStore";
+import { useRestaurantStore, useCategories, useLabels } from "@/stores/restaurantStore";
+import { LABEL_COLOR_STYLES } from "@/lib/label-colors";
 import { TranslationTabs } from "@/components/admin/TranslationTabs";
 import { MenuItemListView, type MenuItemView } from "@/components/menu/views/MenuItemListView";
 import { MenuItemDetailView } from "@/components/menu/views/MenuItemDetailView";
@@ -52,6 +53,7 @@ interface MenuEntry {
   priceUnit?: string;
   i18n?: I18nData;
   menuIds: string[];
+  labelIds: string[];
   hidden: boolean;
 }
 
@@ -147,6 +149,7 @@ export default function EditEntryPage() {
   const isNewEntry = entryParam === "new";
 
   const allCategories = useCategories();
+  const allLabels = useLabels();
   const { loadRestaurant, categoriesCache, isLoading: storeLoading, data: restaurantData } = useRestaurantStore();
 
   const primaryLocale = restaurantData?.features?.primaryLocale ?? "it";
@@ -200,6 +203,7 @@ export default function EditEntryPage() {
         frozen: false,
         allergens: [],
         menuIds: defaultMenuIds,
+        labelIds: [],
         hidden: false,
       });
       setActiveTranslationTab(primaryLocale);
@@ -241,6 +245,7 @@ export default function EditEntryPage() {
       priceUnit: cached.priceUnit,
       i18n: (cached.i18n || {}) as I18nData,
       menuIds: cached.menuIds,
+      labelIds: (cached.labelIds || []) as string[],
       hidden: cached.hidden,
     });
     setActiveTranslationTab(primaryLocale);
@@ -335,6 +340,7 @@ export default function EditEntryPage() {
           priceUnit: editingEntry.priceUnit || undefined,
           i18n: sanitizeI18nData(editingEntry.i18n),
           menuIds: editingEntry.menuIds,
+          labelIds: editingEntry.labelIds,
           hidden: editingEntry.hidden,
         });
       } else {
@@ -348,6 +354,7 @@ export default function EditEntryPage() {
           priceUnit: editingEntry.priceUnit || undefined,
           i18n: sanitizeI18nData(editingEntry.i18n),
           menuIds: editingEntry.menuIds,
+          labelIds: editingEntry.labelIds,
           hidden: editingEntry.hidden,
         });
       }
@@ -692,6 +699,50 @@ export default function EditEntryPage() {
             </label>
           </div>
 
+          {/* Labels */}
+          {allLabels.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t("entries.labelsSection")}
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {allLabels.map((label) => {
+                  const selected = editingEntry.labelIds.includes(label.id);
+                  const cs = LABEL_COLOR_STYLES[label.color] ?? LABEL_COLOR_STYLES.primary;
+                  return (
+                    <button
+                      key={label.id}
+                      type="button"
+                      onClick={() => {
+                        const next = selected
+                          ? editingEntry.labelIds.filter((id) => id !== label.id)
+                          : [...editingEntry.labelIds, label.id];
+                        setEditingEntry({ ...editingEntry, labelIds: next });
+                      }}
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 600,
+                        padding: "4px 12px",
+                        borderRadius: 12,
+                        border: selected ? `2px solid ${cs.color}` : `2px solid transparent`,
+                        background: cs.background,
+                        color: cs.color,
+                        cursor: "pointer",
+                        opacity: selected ? 1 : 0.5,
+                        fontFamily: "inherit",
+                      }}
+                    >
+                      {label.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          {allLabels.length === 0 && (
+            <p className="text-xs text-gray-400 italic">{t("entries.labelsHint")}</p>
+          )}
+
           {/* Allergens */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -818,6 +869,9 @@ export default function EditEntryPage() {
             (previewLocale === primaryLocale
               ? editingEntry.desc
               : i18nForPreview?.desc?.toString().trim() || editingEntry.desc) ?? "";
+          const previewLabels = editingEntry.labelIds.length
+            ? allLabels.filter((l) => editingEntry.labelIds.includes(l.id))
+            : undefined;
           const view: MenuItemView = {
             name: previewName,
             description: previewDesc,
@@ -827,6 +881,7 @@ export default function EditEntryPage() {
             allergens: editingEntry.allergens,
             outOfStock: editingEntry.outOfStock,
             containsFrozenIngredient: editingEntry.frozen,
+            labels: previewLabels,
           };
           return (
             <aside

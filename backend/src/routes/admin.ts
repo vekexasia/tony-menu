@@ -21,6 +21,8 @@ import {
   TranslateRequestBodySchema,
   CreateMenuBodySchema,
   UpdateMenuBodySchema,
+  CreateLabelBodySchema,
+  UpdateLabelBodySchema,
 } from '@menu/schemas';
 import type { AppBindings } from '../types';
 import type { DbInstance } from '../db';
@@ -258,6 +260,71 @@ admin.delete('/menus/:menuId', ...base, async (c) => {
   return c.json({ ok: true });
 });
 
+// ── Labels ────────────────────────────────────────────────────────────
+
+admin.get('/labels', ...base, async (c) => {
+  const rows = await c.get('db')
+    .select()
+    .from(schema.labels)
+    .orderBy(asc(schema.labels.sortOrder), asc(schema.labels.createdAt));
+  return c.json({ labels: rows.map((r) => ({ id: r.id, name: r.name, color: r.color, sortOrder: r.sortOrder, i18n: r.i18n })) });
+});
+
+admin.post('/labels', ...base, async (c) => {
+  const body = await parseBody(c, CreateLabelBodySchema);
+  if (body instanceof Response) return body;
+  const db = c.get('db');
+  const [last] = await db
+    .select({ maxOrder: schema.labels.sortOrder })
+    .from(schema.labels)
+    .orderBy(desc(schema.labels.sortOrder))
+    .limit(1) as Array<{ maxOrder: number | null }>;
+  const id = crypto.randomUUID();
+  await db.insert(schema.labels).values({
+    id,
+    name: body.name,
+    color: body.color ?? 'primary',
+    sortOrder: (last?.maxOrder ?? -1) + 1,
+    i18n: body.i18n ?? null,
+  });
+  await refreshPublicCatalog(c);
+  return c.json({ ok: true, id }, 201);
+});
+
+// /labels/reorder must be before /labels/:labelId
+admin.patch('/labels/reorder', ...base, async (c) => {
+  const body = await parseBody(c, ReorderItemsBodySchema);
+  if (body instanceof Response) return body;
+  const db = c.get('db');
+  for (const item of body.items) {
+    await db.update(schema.labels).set({ sortOrder: item.order, updatedAt: Date.now() })
+      .where(eq(schema.labels.id, item.id));
+  }
+  await refreshPublicCatalog(c);
+  return c.json({ ok: true });
+});
+
+admin.patch('/labels/:labelId', ...base, async (c) => {
+  const labelId = c.req.param('labelId');
+  const body = await parseBody(c, UpdateLabelBodySchema);
+  if (body instanceof Response) return body;
+  const updates: Record<string, unknown> = { updatedAt: Date.now() };
+  if (body.name !== undefined) updates.name = body.name;
+  if (body.color !== undefined) updates.color = body.color;
+  if (body.i18n !== undefined) updates.i18n = body.i18n;
+  await c.get('db').update(schema.labels).set(updates).where(eq(schema.labels.id, labelId));
+  await refreshPublicCatalog(c);
+  return c.json({ ok: true });
+});
+
+admin.delete('/labels/:labelId', ...base, async (c) => {
+  const labelId = c.req.param('labelId');
+  // FK cascade on entry_labels removes assignments automatically.
+  await c.get('db').delete(schema.labels).where(eq(schema.labels.id, labelId));
+  await refreshPublicCatalog(c);
+  return c.json({ ok: true });
+});
+
 // ── Categories ───────────────────────────────────────────────────────
 
 admin.post('/categories', ...base, async (c) => {
@@ -386,6 +453,10 @@ admin.post('/categories/:categoryId/entries', ...base, async (c) => {
     await setEntryMemberships(db, id, body.menuIds);
   }
 
+  if (body.labelIds && body.labelIds.length > 0) {
+    await setEntryLabelAssignments(db, id, body.labelIds);
+  }
+
   await refreshPublicCatalog(c);
   return c.json({ ok: true, id }, 201);
 });
@@ -414,6 +485,9 @@ admin.put('/entries/:entryId', ...base, async (c) => {
 
   if (body.menuIds !== undefined) {
     await setEntryMemberships(db, entryId, body.menuIds);
+  }
+  if (body.labelIds !== undefined) {
+    await setEntryLabelAssignments(db, entryId, body.labelIds);
   }
 
   await refreshPublicCatalog(c);
@@ -990,6 +1064,13 @@ async function setEntryMemberships(db: DbInstance, entryId: string, menuIds: str
   await db
     .insert(schema.menuEntryMemberships)
     .values(unique.map((menuId) => ({ menuId, entryId })));
+}
+
+async function setEntryLabelAssignments(db: DbInstance, entryId: string, labelIds: string[]): Promise<void> {
+  const unique = Array.from(new Set(labelIds));
+  await db.delete(schema.entryLabels).where(eq(schema.entryLabels.entryId, entryId));
+  if (unique.length === 0) return;
+  await db.insert(schema.entryLabels).values(unique.map((labelId) => ({ entryId, labelId })));
 }
 
 async function uploadSettingsImage(

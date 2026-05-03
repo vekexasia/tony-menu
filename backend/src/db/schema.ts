@@ -213,6 +213,29 @@ export const catalogViews = sqliteTable(
   }),
 );
 
+// ── Labels ────────────────────────────────────────────────────────────────────
+
+export const labels = sqliteTable('labels', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  color: text('color').notNull().default('primary'),
+  sortOrder: integer('sort_order').notNull().default(0),
+  i18n: jsonColumn<Record<string, unknown> | null>('i18n'),
+  ...timestamps,
+});
+
+export const entryLabels = sqliteTable(
+  'entry_labels',
+  {
+    entryId: text('entry_id').notNull().references(() => menuEntries.id, { onDelete: 'cascade' }),
+    labelId: text('label_id').notNull().references(() => labels.id, { onDelete: 'cascade' }),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.entryId, table.labelId] }),
+    labelIdx: index('entry_labels_label_idx').on(table.labelId),
+  }),
+);
+
 // ── Chat Sessions ─────────────────────────────────────────────────────────────
 
 /**

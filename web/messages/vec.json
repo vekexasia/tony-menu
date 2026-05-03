@@ -335,6 +335,15 @@
     "menus.scheduleBothRequired": "Inposta duti do i orari o lassa duti do vodi.",
     "menus.scheduleOvernight": "Ativo da {from} a {to} (passa la mezzanote)",
     "menus.scheduleSameDay": "Ativo da {from} a {to}",
+    "labels.title": "Etichete",
+    "labels.subtitle": "Badge personalizài su le voci del menu",
+    "labels.newLabel": "Noeva eticheta",
+    "labels.namePlaceholder": "Es. Vegan, Picante...",
+    "labels.noLabels": "Gnanca etichete",
+    "labels.deleteConfirm": "Cançar l'eticheta? La sarà rimossa da tute e voci.",
+    "labels.colorLabel": "Color",
+    "entries.labelsSection": "Etichete",
+    "entries.labelsHint": "Crea etichete in le Impostazion",
     "analytics.period.24h": "24h",
     "analytics.period.7d": "7d",
     "analytics.period.30d": "30d",
@@ -457,7 +466,8 @@
     "entries.preview.cardTitle": "Anteprima — vista lista",
     "entries.preview.expandedTitle": "Anteprima — vista detajo",
     "entries.preview.title": "Anteprima",
-    "entries.preview.subtitle": "Come lo vede el cliente sul tełefono"
+    "entries.preview.subtitle": "Come lo vede el cliente sul tełefono",
+    "labels.saveFailed": "Erore nel salvar l'eticheta"
   },
   "outOfStock": "FINIO"
 }

@@ -335,6 +335,15 @@
     "menus.scheduleBothRequired": "Задайте оба времени или оставьте оба пустыми.",
     "menus.scheduleOvernight": "Активен с {from} до {to} (переходит полночь)",
     "menus.scheduleSameDay": "Активен с {from} до {to}",
+    "labels.title": "Метки",
+    "labels.subtitle": "Пользовательские значки на позициях меню",
+    "labels.newLabel": "Новая метка",
+    "labels.namePlaceholder": "Напр. Веган, Острое...",
+    "labels.noLabels": "Меток нет",
+    "labels.deleteConfirm": "Удалить метку? Она будет удалена со всех позиций.",
+    "labels.colorLabel": "Цвет",
+    "entries.labelsSection": "Метки",
+    "entries.labelsHint": "Создайте метки в Настройках",
     "analytics.period.24h": "24h",
     "analytics.period.7d": "7d",
     "analytics.period.30d": "30d",
@@ -457,7 +466,8 @@
     "entries.preview.cardTitle": "Превью — в списке",
     "entries.preview.expandedTitle": "Превью — детально",
     "entries.preview.title": "Превью",
-    "entries.preview.subtitle": "Как клиент увидит это на телефоне"
+    "entries.preview.subtitle": "Как клиент увидит это на телефоне",
+    "labels.saveFailed": "Ошибка при сохранении метки"
   },
   "outOfStock": "НЕТ В НАЛИЧИИ"
 }

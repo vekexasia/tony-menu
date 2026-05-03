@@ -305,6 +305,14 @@ export interface MenuInfo {
   availableTo?: string | null;
 }
 
+export interface MenuLabel {
+  id: string;
+  name: string;
+  color: 'primary' | 'green' | 'amber' | 'red' | 'gray';
+  sortOrder: number;
+  i18n?: Record<string, Record<string, string>> | null;
+}
+
 // ============================================================================
 // Seat Booking Types
 // ============================================================================
@@ -470,6 +478,8 @@ export interface MenuEntry {
   hidden: boolean;
   /** Allergens present in this item */
   allergens: Allergen[];
+  /** IDs of labels attached to this entry. */
+  labelIds?: string[];
   /**
    * Variant document paths that override the category's variants.
    * If null/undefined, inherits from parent category.
@@ -543,6 +553,8 @@ export interface RestaurantData {
   openingSchedule?: OpeningSchedule;
   /** All defined menus (Food, Drinks, Lunch, ...) sorted by sortOrder. */
   menus: MenuInfo[];
+  /** Custom entry labels (badges) defined for this restaurant. */
+  labels?: MenuLabel[];
   /** Menu categories with entries (flat — categories belong to the restaurant). */
   categories: MenuCategory[];
   /** Feature flags for optional restaurant capabilities */
