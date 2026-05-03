@@ -103,3 +103,8 @@ test\.local
 (?i)^principal$
 (?i)telefono
 (?i)tełefono
+
+# ── Diet / label vocabulary used in test fixtures and placeholder copy ──
+# "Vegano" (IT/ES) and "Vegan" (EN/DE) are diet labels, not personal names.
+(?i)^vegano?$
+(?i)vegan(o|label|tag)?
