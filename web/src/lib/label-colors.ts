@@ -13,3 +13,9 @@ export const LABEL_COLOR_STYLES: Record<LabelColor, { background: string; color:
 export function labelColorStyle(color: LabelColor): { background: string; color: string } {
   return LABEL_COLOR_STYLES[color] ?? LABEL_COLOR_STYLES.primary;
 }
+
+export function resolveLabel(label: MenuLabel, locale: string): MenuLabel {
+  const translatedName = (label.i18n as Record<string, Record<string, string>> | null | undefined)?.[locale]?.name;
+  if (!translatedName) return label;
+  return { ...label, name: translatedName };
+}

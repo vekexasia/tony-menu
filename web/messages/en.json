@@ -467,7 +467,8 @@
     "entries.preview.expandedTitle": "Preview — detail view",
     "entries.preview.title": "Preview",
     "entries.preview.subtitle": "How customers see it on their phone",
-    "labels.saveFailed": "Failed to save label"
+    "labels.saveFailed": "Failed to save label",
+    "labels.nameLabel": "Name","labels.translateTitle": "Label translations","labels.translatePrimaryHint": "Edit the primary name from the labels list."
   },
   "outOfStock": "OUT OF STOCK"
 }

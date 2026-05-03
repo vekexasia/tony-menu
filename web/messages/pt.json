@@ -467,7 +467,8 @@
     "entries.preview.expandedTitle": "Pré-visualização — detalhe",
     "entries.preview.title": "Pré-visualização",
     "entries.preview.subtitle": "Como o cliente vê no telemóvel",
-    "labels.saveFailed": "Erro ao guardar etiqueta"
+    "labels.saveFailed": "Erro ao guardar etiqueta",
+    "labels.nameLabel": "Nome","labels.translateTitle": "Traduções de etiqueta","labels.translatePrimaryHint": "Edite o nome principal na lista de etiquetas."
   },
   "outOfStock": "ESGOTADO"
 }

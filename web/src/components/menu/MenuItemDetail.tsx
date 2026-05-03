@@ -8,6 +8,7 @@ import type { MenuEntry } from '@/lib/types';
 import { useBackButtonClose } from '@/hooks/useBackButtonClose';
 import { useRestaurantStore, useLabels } from '@/stores/restaurantStore';
 import { getContentDisplayText, getLocalizedContentValue } from '@/lib/content-presentation';
+import { resolveLabel } from '@/lib/label-colors';
 import { MenuItemDetailView } from './views/MenuItemDetailView';
 
 interface MenuItemDetailProps {
@@ -83,7 +84,7 @@ export function MenuItemDetail({ item, onClose, locale, hidePrice }: MenuItemDet
                 image: item.image,
                 allergens: item.allergens,
                 labels: item.labelIds?.length
-                  ? allLabels.filter(l => item.labelIds!.includes(l.id))
+                  ? allLabels.filter(l => item.labelIds!.includes(l.id)).map(l => resolveLabel(l, locale))
                   : undefined,
                 outOfStock: item.outOfStock,
                 containsFrozenIngredient: item.frozen,

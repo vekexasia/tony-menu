@@ -7,11 +7,12 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { uploadEntryImage, deleteEntryImage } from "@/lib/imageUpload";
 import { updateEntry, createEntry, deleteEntry, moveEntry } from "@/lib/api";
 import { useRestaurantStore, useCategories, useLabels } from "@/stores/restaurantStore";
-import { LABEL_COLOR_STYLES } from "@/lib/label-colors";
+import { LABEL_COLOR_STYLES, resolveLabel } from "@/lib/label-colors";
 import { TranslationTabs } from "@/components/admin/TranslationTabs";
 import { MenuItemListView, type MenuItemView } from "@/components/menu/views/MenuItemListView";
 import { MenuItemDetailView } from "@/components/menu/views/MenuItemDetailView";
 import { useTranslations, getMessage } from "@/lib/i18n";
+import { useAdminLocale } from "@/app/admin/AdminI18nProvider";
 
 const FRAME_W = 360;
 const BEZEL = 12;
@@ -151,6 +152,7 @@ export default function EditEntryPage() {
   const allCategories = useCategories();
   const allLabels = useLabels();
   const { loadRestaurant, categoriesCache, isLoading: storeLoading, data: restaurantData } = useRestaurantStore();
+  const { locale: adminLocale } = useAdminLocale();
 
   const primaryLocale = restaurantData?.features?.primaryLocale ?? "it";
   const primaryLocaleLabel =
@@ -709,6 +711,7 @@ export default function EditEntryPage() {
                 {allLabels.map((label) => {
                   const selected = editingEntry.labelIds.includes(label.id);
                   const cs = LABEL_COLOR_STYLES[label.color] ?? LABEL_COLOR_STYLES.primary;
+                  const displayName = resolveLabel(label, adminLocale).name;
                   return (
                     <button
                       key={label.id}
@@ -732,7 +735,7 @@ export default function EditEntryPage() {
                         fontFamily: "inherit",
                       }}
                     >
-                      {label.name}
+                      {displayName}
                     </button>
                   );
                 })}
@@ -870,7 +873,7 @@ export default function EditEntryPage() {
               ? editingEntry.desc
               : i18nForPreview?.desc?.toString().trim() || editingEntry.desc) ?? "";
           const previewLabels = editingEntry.labelIds.length
-            ? allLabels.filter((l) => editingEntry.labelIds.includes(l.id))
+            ? allLabels.filter((l) => editingEntry.labelIds.includes(l.id)).map(l => resolveLabel(l, previewLocale))
             : undefined;
           const view: MenuItemView = {
             name: previewName,

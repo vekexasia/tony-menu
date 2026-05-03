@@ -467,7 +467,8 @@
     "entries.preview.expandedTitle": "Voorbeeld — detailweergave",
     "entries.preview.title": "Voorbeeld",
     "entries.preview.subtitle": "Zoals klanten het op hun telefoon zien",
-    "labels.saveFailed": "Fout bij opslaan van label"
+    "labels.saveFailed": "Fout bij opslaan van label",
+    "labels.nameLabel": "Naam","labels.translateTitle": "Label vertalingen","labels.translatePrimaryHint": "Bewerk de primaire naam in de labellijst."
   },
   "outOfStock": "UITVERKOCHT"
 }

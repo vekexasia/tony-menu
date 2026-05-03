@@ -467,7 +467,8 @@
     "entries.preview.expandedTitle": "Vorschau — Detailansicht",
     "entries.preview.title": "Vorschau",
     "entries.preview.subtitle": "So sehen Gäste es auf dem Smartphone",
-    "labels.saveFailed": "Fehler beim Speichern des Labels"
+    "labels.saveFailed": "Fehler beim Speichern des Labels",
+    "labels.nameLabel": "Name","labels.translateTitle": "Label-Übersetzungen","labels.translatePrimaryHint": "Den primären Namen in der Etikettenliste bearbeiten."
   },
   "outOfStock": "AUSVERKAUFT"
 }

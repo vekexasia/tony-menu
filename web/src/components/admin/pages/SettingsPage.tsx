@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { updateRestaurantSettings, setMenuPublished, fetchRestaurantSettings, downloadMenuExport, fetchLabels, createLabel, updateLabel, deleteLabel, type AdminLabel } from "@/lib/api";
 import { PALETTES, type PaletteKey, DEFAULT_PALETTE, applyPalette } from "@/lib/palettes";
-import { LABEL_COLOR_STYLES } from "@/lib/label-colors";
+import { LABEL_COLOR_STYLES, resolveLabel } from "@/lib/label-colors";
 import { uploadHeaderImage, uploadPromotionalImage, uploadLocaleFlag } from "@/lib/imageUpload";
 import { deleteLocaleFlag } from "@/lib/api";
 import { TranslationTabs } from "@/components/admin/TranslationTabs";
@@ -13,6 +13,7 @@ import { Flag } from "@/components/ui/Flag";
 import { useRestaurantStore } from "@/stores/restaurantStore";
 import { locales } from "@/lib/i18n-config";
 import { useTranslations } from "@/lib/i18n";
+import { useAdminLocale } from "@/app/admin/AdminI18nProvider";
 
 // ── Design tokens (mirrors admin.css) ────────────────────────────
 const T = {
@@ -131,6 +132,7 @@ export type SettingsSection = "profile" | "languages" | "communications" | "chat
 
 export default function SettingsPage({ section }: { section?: SettingsSection } = {}) {
   const t = useTranslations("admin");
+  const { locale: adminLocale } = useAdminLocale();
   const SECTION_TITLES: Record<SettingsSection, string> = {
     profile: t("settings.section.profile"),
     languages: t("settings.section.languages"),
@@ -153,9 +155,11 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
   const [newLabelName, setNewLabelName] = useState("");
   const [newLabelColor, setNewLabelColor] = useState<AdminLabel['color']>('primary');
   const [creatingLabel, setCreatingLabel] = useState(false);
-  const [editingLabelId, setEditingLabelId] = useState<string | null>(null);
-  const [editingLabelName, setEditingLabelName] = useState("");
-  const [editingLabelColor, setEditingLabelColor] = useState<AdminLabel['color']>('primary');
+  const [translatingLabel, setTranslatingLabel] = useState<AdminLabel | null>(null);
+  const [translatingLabelName, setTranslatingLabelName] = useState("");
+  const [translatingLabelColor, setTranslatingLabelColor] = useState<AdminLabel['color']>('primary');
+  const [translatingLabelI18n, setTranslatingLabelI18n] = useState<Record<string, Record<string, string>>>({});
+  const [translatingLabelTab, setTranslatingLabelTab] = useState<string>("it");
 
   const [name, setName] = useState("");
   const [payoff, setPayoff] = useState("");
@@ -386,12 +390,23 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
     finally { setCreatingLabel(false); }
   };
 
-  const handleSaveLabel = async () => {
-    if (!editingLabelId || !editingLabelName.trim()) return;
+  const openLabelModal = (label: AdminLabel, tab: string) => {
+    const raw = (label.i18n as Record<string, Record<string, string>>) ?? {};
+    const { [primaryLocale]: _omit, ...rest } = raw;
+    setTranslatingLabel(label);
+    setTranslatingLabelName(label.name);
+    setTranslatingLabelColor(label.color);
+    setTranslatingLabelI18n(rest);
+    setTranslatingLabelTab(tab);
+  };
+
+  const handleSaveTranslations = async () => {
+    if (!translatingLabel) return;
     try {
-      await updateLabel(editingLabelId, { name: editingLabelName.trim(), color: editingLabelColor });
-      setLabelsList((prev) => prev.map((l) => l.id === editingLabelId ? { ...l, name: editingLabelName.trim(), color: editingLabelColor } : l));
-      setEditingLabelId(null);
+      const { [primaryLocale]: _omit, ...i18nToSave } = translatingLabelI18n;
+      await updateLabel(translatingLabel.id, { name: translatingLabelName.trim(), color: translatingLabelColor, i18n: i18nToSave });
+      setLabelsList((prev) => prev.map((l) => l.id === translatingLabel.id ? { ...l, name: translatingLabelName.trim(), color: translatingLabelColor, i18n: i18nToSave } : l));
+      setTranslatingLabel(null);
     } catch { setError(t('labels.saveFailed')); }
   };
 
@@ -589,7 +604,7 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
                 <p style={{ fontSize: 12, color: T.muted, marginBottom: 14 }}>{t("labels.subtitle")}</p>
 
                 {/* Create form */}
-                <div style={{ display: "flex", gap: 8, marginBottom: 14, alignItems: "center", flexWrap: "wrap" }}>
+                <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginBottom: 14 }}>
                   <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
                     {(Object.keys(LABEL_COLOR_STYLES) as Array<keyof typeof LABEL_COLOR_STYLES>).map((c) => (
                       <button
@@ -598,16 +613,12 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
                         onClick={() => setNewLabelColor(c)}
                         title={c}
                         style={{
-                          width: 22,
-                          height: 22,
-                          borderRadius: "50%",
+                          width: 22, height: 22, borderRadius: "50%",
                           border: newLabelColor === c ? `2px solid ${T.dark}` : `2px solid transparent`,
                           background: LABEL_COLOR_STYLES[c].background,
                           cursor: "pointer",
                           boxShadow: newLabelColor === c ? `0 0 0 1px ${T.dark}` : "none",
-                          padding: 0,
-                          outline: "none",
-                          flexShrink: 0,
+                          padding: 0, outline: "none", flexShrink: 0,
                         }}
                       />
                     ))}
@@ -639,56 +650,14 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                     {labelsList.map((label) => {
-                      const isEditing = editingLabelId === label.id;
-                      if (isEditing) {
-                        return (
-                          <div key={label.id} style={{ display: "flex", gap: 8, alignItems: "center", padding: "6px 0", flexWrap: "wrap" }}>
-                            <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-                              {(Object.keys(LABEL_COLOR_STYLES) as Array<keyof typeof LABEL_COLOR_STYLES>).map((c) => (
-                                <button
-                                  key={c}
-                                  type="button"
-                                  onClick={() => setEditingLabelColor(c)}
-                                  style={{
-                                    width: 22,
-                                    height: 22,
-                                    borderRadius: "50%",
-                                    border: editingLabelColor === c ? `2px solid ${T.dark}` : `2px solid transparent`,
-                                    background: LABEL_COLOR_STYLES[c].background,
-                                    cursor: "pointer",
-                                    boxShadow: editingLabelColor === c ? `0 0 0 1px ${T.dark}` : "none",
-                                    padding: 0,
-                                    outline: "none",
-                                    flexShrink: 0,
-                                  }}
-                                />
-                              ))}
-                            </div>
-                            <input
-                              className="adm-input"
-                              style={{ ...inputStyle, flex: 1, minWidth: 100 }}
-                              value={editingLabelName}
-                              onChange={(e) => setEditingLabelName(e.target.value)}
-                              onKeyDown={(e) => { if (e.key === 'Enter') void handleSaveLabel(); if (e.key === 'Escape') setEditingLabelId(null); }}
-                              maxLength={50}
-                              autoFocus
-                            />
-                            <button type="button" onClick={() => void handleSaveLabel()} disabled={!editingLabelName.trim()} style={{ padding: "0 10px", height: 32, background: T.accent, color: "#fff", border: "none", borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", opacity: !editingLabelName.trim() ? 0.5 : 1 }}>
-                              <i className="fa-solid fa-check" />
-                            </button>
-                            <button type="button" onClick={() => setEditingLabelId(null)} style={{ padding: "0 10px", height: 32, background: T.offBg, color: T.text, border: "none", borderRadius: 6, fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>
-                              <i className="fa-solid fa-xmark" />
-                            </button>
-                          </div>
-                        );
-                      }
                       const cs = LABEL_COLOR_STYLES[label.color] ?? LABEL_COLOR_STYLES.primary;
+                      const displayName = resolveLabel(label as import('@/lib/types').MenuLabel, adminLocale).name;
                       return (
                         <div key={label.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 0" }}>
                           <span style={{ fontSize: 12, fontWeight: 600, padding: "2px 10px", borderRadius: 12, background: cs.background, color: cs.color, flexShrink: 0 }}>
-                            {label.name}
+                            {displayName}
                           </span>
-                          <button type="button" onClick={() => { setEditingLabelId(label.id); setEditingLabelName(label.name); setEditingLabelColor(label.color); }} style={{ fontSize: 11, color: T.accentDeep, background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+                          <button type="button" onClick={() => openLabelModal(label, adminLocale)} style={{ fontSize: 11, color: T.accentDeep, background: "none", border: "none", cursor: "pointer", padding: 0 }} title={t("labels.translateTitle")}>
                             <i className="fa-solid fa-pen" />
                           </button>
                           <button type="button" onClick={() => void handleDeleteLabel(label.id)} style={{ fontSize: 11, color: T.danger, background: "none", border: "none", cursor: "pointer", padding: 0 }}>
@@ -1178,6 +1147,72 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
 
         </div>
       </main>
+
+      {/* ── Label translations modal ── */}
+      {translatingLabel && (
+        <div
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.45)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+          onClick={(e) => { if (e.target === e.currentTarget) setTranslatingLabel(null); }}
+        >
+          <div style={{ background: "#fff", borderRadius: 10, width: "100%", maxWidth: 560, boxShadow: "0 8px 32px rgba(0,0,0,.2)", overflow: "hidden" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderBottom: `1px solid ${T.border}`, background: T.surface }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: T.dark }}>{t("labels.translateTitle")}</span>
+              <button type="button" onClick={() => setTranslatingLabel(null)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16, color: T.off, lineHeight: 1 }}>
+                <i className="fa-solid fa-xmark" />
+              </button>
+            </div>
+            <div style={{ padding: 16 }}>
+              <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 12 }}>
+                {(Object.keys(LABEL_COLOR_STYLES) as Array<keyof typeof LABEL_COLOR_STYLES>).map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setTranslatingLabelColor(c)}
+                    style={{
+                      width: 22, height: 22, borderRadius: "50%",
+                      border: translatingLabelColor === c ? `2px solid ${T.dark}` : `2px solid transparent`,
+                      background: LABEL_COLOR_STYLES[c].background,
+                      cursor: "pointer",
+                      boxShadow: translatingLabelColor === c ? `0 0 0 1px ${T.dark}` : "none",
+                      padding: 0, outline: "none", flexShrink: 0,
+                    }}
+                  />
+                ))}
+              </div>
+              <TranslationTabs
+                activeTab={translatingLabelTab}
+                onTabChange={setTranslatingLabelTab}
+                primaryLocale={primaryLocale}
+                fields={[{ key: "name", label: t("labels.nameLabel"), sourceValue: translatingLabelName }]}
+                i18n={translatingLabelI18n}
+                onI18nChange={setTranslatingLabelI18n}
+                enabledLocales={enabledLocales}
+                disabledLocales={disabledLocales}
+                customLocales={customLocales}
+              >
+                <div>
+                  <label style={{ fontSize: 12, color: T.muted, display: "block", marginBottom: 4 }}>{t("labels.nameLabel")} ({primaryLocale.toUpperCase()})</label>
+                  <input
+                    className="adm-input"
+                    style={{ ...inputStyle, width: "100%" }}
+                    value={translatingLabelName}
+                    onChange={(e) => setTranslatingLabelName(e.target.value)}
+                    maxLength={50}
+                  />
+                </div>
+              </TranslationTabs>
+            </div>
+            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", padding: "12px 16px", borderTop: `1px solid ${T.border}`, background: T.surface }}>
+              <button type="button" onClick={() => setTranslatingLabel(null)} style={{ padding: "0 14px", height: 34, background: T.offBg, color: T.text, border: "none", borderRadius: 6, fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>
+                {t("common.cancel")}
+              </button>
+              <button type="button" onClick={() => void handleSaveTranslations()} style={{ padding: "0 14px", height: 34, background: T.accent, color: "#fff", border: "none", borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+                {t("common.save")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

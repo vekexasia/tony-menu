@@ -467,7 +467,8 @@
     "entries.preview.expandedTitle": "Anteprima — vista detajo",
     "entries.preview.title": "Anteprima",
     "entries.preview.subtitle": "Come lo vede el cliente sul tełefono",
-    "labels.saveFailed": "Erore nel salvar l'eticheta"
+    "labels.saveFailed": "Erore nel salvar l'eticheta",
+    "labels.nameLabel": "Nome","labels.translateTitle": "Tradussioni eticheta","labels.translatePrimaryHint": "Modifica el nome principal dala lista de etichete."
   },
   "outOfStock": "FINIO"
 }

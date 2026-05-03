@@ -467,7 +467,8 @@
     "entries.preview.expandedTitle": "Vista previa — detalle",
     "entries.preview.title": "Vista previa",
     "entries.preview.subtitle": "Cómo lo ven los clientes en el móvil",
-    "labels.saveFailed": "Error al guardar la etiqueta"
+    "labels.saveFailed": "Error al guardar la etiqueta",
+    "labels.nameLabel": "Nombre","labels.translateTitle": "Traducciones de etiqueta","labels.translatePrimaryHint": "Edita el nombre principal desde la lista de etiquetas."
   },
   "outOfStock": "AGOTADO"
 }

@@ -467,7 +467,8 @@
     "entries.preview.expandedTitle": "Aperçu — vue détail",
     "entries.preview.title": "Aperçu",
     "entries.preview.subtitle": "Vu côté client, sur le téléphone",
-    "labels.saveFailed": "Erreur lors de la sauvegarde du libellé"
+    "labels.saveFailed": "Erreur lors de la sauvegarde du libellé",
+    "labels.nameLabel": "Nom","labels.translateTitle": "Traductions du libellé","labels.translatePrimaryHint": "Modifiez le nom principal depuis la liste des libellés."
   },
   "outOfStock": "ÉPUISÉ"
 }

@@ -16,6 +16,7 @@ import { recordView } from "@/lib/api";
 import { viewDedupeKey } from "@/lib/utils";
 import { getContentDisplayText, getLocalizedContentValue, getSearchableContentTexts } from "@/lib/content-presentation";
 import { isMenuAvailableNow } from "@/lib/menu-schedule";
+import { resolveLabel } from "@/lib/label-colors";
 
 // Client-side dedup: skip redundant network calls for items already viewed in this
 // page session. The backend deduplicates via UNIQUE constraint too — this is a
@@ -347,7 +348,7 @@ export default function MenuPageClient() {
                         image: entryWithDesc.image,
                         outOfStock: entryWithDesc.outOfStock,
                         labels: entry.labelIds?.length
-                          ? allLabels.filter(l => entry.labelIds!.includes(l.id))
+                          ? allLabels.filter(l => entry.labelIds!.includes(l.id)).map(l => resolveLabel(l, locale))
                           : undefined,
                       }}
                       outOfStockLabel={t("outOfStock")}

@@ -467,7 +467,8 @@
     "entries.preview.expandedTitle": "Превью — детально",
     "entries.preview.title": "Превью",
     "entries.preview.subtitle": "Как клиент увидит это на телефоне",
-    "labels.saveFailed": "Ошибка при сохранении метки"
+    "labels.saveFailed": "Ошибка при сохранении метки",
+    "labels.nameLabel": "Название","labels.translateTitle": "Переводы метки","labels.translatePrimaryHint": "Изменить основное название можно в списке меток."
   },
   "outOfStock": "НЕТ В НАЛИЧИИ"
 }

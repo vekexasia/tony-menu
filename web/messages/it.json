@@ -467,7 +467,8 @@
     "entries.preview.expandedTitle": "Anteprima — vista dettaglio",
     "entries.preview.title": "Anteprima",
     "entries.preview.subtitle": "Come lo vede il cliente sul telefono",
-    "labels.saveFailed": "Errore nel salvataggio dell'etichetta"
+    "labels.saveFailed": "Errore nel salvataggio dell'etichetta",
+    "labels.nameLabel": "Nome","labels.translateTitle": "Traduzioni etichetta","labels.translatePrimaryHint": "Modifica il nome principale dalla lista etichette."
   },
   "outOfStock": "ESAURITO"
 }
