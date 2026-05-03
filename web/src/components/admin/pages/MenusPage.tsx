@@ -42,6 +42,8 @@ export default function MenusPage() {
   const [editCode, setEditCode] = useState("");
   const [editI18n, setEditI18n] = useState<I18nData>({});
   const [editIcon, setEditIcon] = useState<MenuIconKind>("utensils");
+  const [editAvailableFrom, setEditAvailableFrom] = useState<string>("");
+  const [editAvailableTo, setEditAvailableTo] = useState<string>("");
   const [activeTab, setActiveTab] = useState(primaryLocale);
   const [saving, setSaving] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
@@ -108,6 +110,8 @@ export default function MenusPage() {
     setEditCode(menu.code);
     setEditI18n((menu.i18n ?? {}) as I18nData);
     setEditIcon((MENU_ICON_KINDS as readonly string[]).includes(menu.icon) ? (menu.icon as MenuIconKind) : "utensils");
+    setEditAvailableFrom(menu.availableFrom ?? "");
+    setEditAvailableTo(menu.availableTo ?? "");
     setActiveTab(primaryLocale);
     setEditError(null);
   };
@@ -127,7 +131,10 @@ export default function MenusPage() {
     setSaving(true);
     setEditError(null);
     try {
-      await updateMenu(editing.id, { title, code, icon: editIcon, i18n: editI18n as Record<string, Record<string, string>> });
+      const schedulePayload = editAvailableFrom && editAvailableTo
+        ? { availableFrom: editAvailableFrom, availableTo: editAvailableTo }
+        : { availableFrom: null, availableTo: null };
+      await updateMenu(editing.id, { title, code, icon: editIcon, i18n: editI18n as Record<string, Record<string, string>>, ...schedulePayload });
       setEditing(null);
       await refresh();
       await loadRestaurant({ force: true });
@@ -267,6 +274,11 @@ export default function MenusPage() {
                     </div>
                     <div className="text-xs text-gray-500">
                       <code>{menu.code}</code> · {entryCount} {entryCount === 1 ? t("menus.entryOne") : t("menus.entryMany")}
+                      {menu.availableFrom && menu.availableTo && (
+                        <span className="ml-2 text-[10px] font-medium bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">
+                          {menu.availableFrom}–{menu.availableTo}
+                        </span>
+                      )}
                     </div>
                   </div>
                   <button
@@ -360,6 +372,50 @@ export default function MenusPage() {
                     placeholder={t("menus.editTitlePlaceholder")}
                   />
                 </TranslationTabs>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t("menus.scheduleLabel")}</label>
+                <p className="text-xs text-gray-500 mb-2">{t("menus.scheduleHint")}</p>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="time"
+                    value={editAvailableFrom}
+                    onChange={(e) => setEditAvailableFrom(e.target.value)}
+                    className="px-3 py-2 border rounded text-sm flex-1"
+                    placeholder="HH:MM"
+                  />
+                  <span className="text-sm text-gray-500">{t("menus.scheduleTo")}</span>
+                  <input
+                    type="time"
+                    value={editAvailableTo}
+                    onChange={(e) => setEditAvailableTo(e.target.value)}
+                    className="px-3 py-2 border rounded text-sm flex-1"
+                    placeholder="HH:MM"
+                  />
+                  {(editAvailableFrom || editAvailableTo) && (
+                    <button
+                      type="button"
+                      onClick={() => { setEditAvailableFrom(""); setEditAvailableTo(""); }}
+                      className="text-xs text-gray-500 hover:text-red-500 px-2 py-1 rounded hover:bg-red-50"
+                    >
+                      {t("menus.scheduleClear")}
+                    </button>
+                  )}
+                </div>
+                {editAvailableFrom && !editAvailableTo && (
+                  <p className="text-xs text-amber-600 mt-1">{t("menus.scheduleBothRequired")}</p>
+                )}
+                {!editAvailableFrom && editAvailableTo && (
+                  <p className="text-xs text-amber-600 mt-1">{t("menus.scheduleBothRequired")}</p>
+                )}
+                {editAvailableFrom && editAvailableTo && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    {editAvailableFrom > editAvailableTo
+                      ? t("menus.scheduleOvernight").replace("{from}", editAvailableFrom).replace("{to}", editAvailableTo)
+                      : t("menus.scheduleSameDay").replace("{from}", editAvailableFrom).replace("{to}", editAvailableTo)}
+                  </p>
+                )}
               </div>
 
               {editError && (

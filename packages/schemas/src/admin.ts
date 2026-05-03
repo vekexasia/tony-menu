@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { I18nMapSchema } from './common.js';
-import { MenuIconSchema } from './catalog.js';
+import { MenuIconSchema, HHMMSchema } from './catalog.js';
 import { RestaurantInfoSchema, RestaurantSocialsSchema, PromotionAlertSchema, OpeningScheduleSchema, RestaurantThemeSchema } from './restaurant.js';
 
 // ── Restaurant Settings ─────────────────────────────────────────────
@@ -94,7 +94,16 @@ export const UpdateMenuBodySchema = z.object({
   i18n: I18nMapSchema.optional(),
   published: z.boolean().optional(),
   icon: MenuIconSchema.optional(),
-});
+  availableFrom: HHMMSchema.nullable().optional(),
+  availableTo: HHMMSchema.nullable().optional(),
+}).refine(
+  (d) => {
+    const hasFrom = d.availableFrom != null;
+    const hasTo = d.availableTo != null;
+    return hasFrom === hasTo;
+  },
+  { message: 'availableFrom and availableTo must both be set or both be null' },
+);
 export type UpdateMenuBody = z.infer<typeof UpdateMenuBodySchema>;
 
 // ── Restaurants ─────────────────────────────────────────────────────

@@ -160,6 +160,8 @@ export interface AdminMenu {
   published: boolean;
   sortOrder: number;
   icon: string;
+  availableFrom: string | null;
+  availableTo: string | null;
 }
 
 export function fetchMenus() {

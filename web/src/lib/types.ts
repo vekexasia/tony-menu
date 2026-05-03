@@ -301,6 +301,8 @@ export interface MenuInfo {
   sortOrder: number;
   /** Curated icon kind — see MENU_ICON_KINDS in components/menu/MenuIcon. */
   icon: string;
+  availableFrom?: string | null;
+  availableTo?: string | null;
 }
 
 // ============================================================================

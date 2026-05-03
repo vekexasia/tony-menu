@@ -15,6 +15,7 @@ import type { MenuEntry } from "@/lib/types";
 import { recordView } from "@/lib/api";
 import { viewDedupeKey } from "@/lib/utils";
 import { getContentDisplayText, getLocalizedContentValue, getSearchableContentTexts } from "@/lib/content-presentation";
+import { isMenuAvailableNow } from "@/lib/menu-schedule";
 
 // Client-side dedup: skip redundant network calls for items already viewed in this
 // page session. The backend deduplicates via UNIQUE constraint too — this is a
@@ -89,12 +90,19 @@ export default function MenuPageClient() {
     sessionStorage.setItem('promo_seen', '1');
   };
 
+  // Minute-tick so time-gated menus (availableFrom/availableTo) re-evaluate every minute.
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+
   // Resolve the current menu from `?type=<code>`. Falls back to the first published menu
   // when no `type` is in the query string. The legacy value `drinks` aliases to any menu
   // coded `drinks` (or `takeaway` for old QR codes from before the rename).
   const publishedMenus = useMemo(
-    () => (data?.menus ?? []).filter((m) => m.published),
-    [data?.menus],
+    () => (data?.menus ?? []).filter((m) => m.published && isMenuAvailableNow(m, now)),
+    [data?.menus, now],
   );
   const currentMenu = useMemo(() => {
     if (!data) return undefined;

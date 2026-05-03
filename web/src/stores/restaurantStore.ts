@@ -142,6 +142,8 @@ function catalogToStore(catalog: CatalogResponse) {
       published: m.published,
       sortOrder: m.sortOrder,
       icon: m.icon,
+      availableFrom: m.availableFrom ?? null,
+      availableTo: m.availableTo ?? null,
     }))
     .sort((a, b) => a.sortOrder - b.sortOrder);
 

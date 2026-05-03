@@ -75,6 +75,8 @@ export const menus = sqliteTable(
     published: integer('published', { mode: 'boolean' }).default(true).notNull(),
     sortOrder: integer('sort_order').default(0).notNull(),
     icon: text('icon').default('utensils').notNull(),
+    availableFrom: text('available_from'),
+    availableTo: text('available_to'),
     ...timestamps,
   },
   (table) => ({

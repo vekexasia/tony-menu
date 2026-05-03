@@ -157,6 +157,8 @@ admin.get('/menus', ...base, async (c) => {
       published: m.published,
       sortOrder: m.sortOrder,
       icon: m.icon,
+      availableFrom: m.availableFrom ?? null,
+      availableTo: m.availableTo ?? null,
     })),
   });
 });
@@ -234,6 +236,8 @@ admin.patch('/menus/:menuId', ...base, async (c) => {
   if (body.i18n !== undefined) updates.i18n = body.i18n;
   if (body.published !== undefined) updates.published = body.published;
   if (body.icon !== undefined) updates.icon = body.icon;
+  if ('availableFrom' in body) updates.availableFrom = body.availableFrom ?? null;
+  if ('availableTo' in body) updates.availableTo = body.availableTo ?? null;
 
   await db
     .update(schema.menus)
