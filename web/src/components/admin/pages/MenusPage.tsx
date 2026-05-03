@@ -275,7 +275,7 @@ export default function MenusPage() {
                     <div className="text-xs text-gray-500">
                       <code>{menu.code}</code> · {entryCount} {entryCount === 1 ? t("menus.entryOne") : t("menus.entryMany")}
                       {menu.availableFrom && menu.availableTo && (
-                        <span className="ml-2 text-[10px] font-medium bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">
+                        <span className="adm-pill-accent ml-2 text-[10px] font-medium px-1.5 py-0.5 rounded">
                           {menu.availableFrom}–{menu.availableTo}
                         </span>
                       )}
