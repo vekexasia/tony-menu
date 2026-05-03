@@ -520,17 +520,23 @@ export default function CategoriesPage() {
                       <i className="fa-solid fa-grip-vertical" style={{ fontSize: 11 }} />
                     </div>
 
-                    {/* Name */}
-                    <div style={{ flex: 2, minWidth: 0 }}>
+                    {/* Name (whole area is a link to entries) */}
+                    <Link
+                      href={`/admin?s=entries&category=${category.id}`}
+                      style={{ flex: 2, minWidth: 0, textDecoration: "none", color: "inherit" }}
+                    >
                       <div style={{ fontSize: 13, fontWeight: 600, color: "#1F1A14", wordBreak: "break-word", lineHeight: 1.3 }}>
                         {category.name}
                       </div>
-                    </div>
+                    </Link>
 
-                    {/* Entry count */}
-                    <div style={{ width: 70, textAlign: "right", fontVariantNumeric: "tabular-nums", fontWeight: 600, color: "#424242" }}>
+                    {/* Entry count (clickable too) */}
+                    <Link
+                      href={`/admin?s=entries&category=${category.id}`}
+                      style={{ width: 70, textAlign: "right", fontVariantNumeric: "tabular-nums", fontWeight: 600, color: "#424242", textDecoration: "none" }}
+                    >
                       {category.entryCount}
-                    </div>
+                    </Link>
 
                     {/* Translation status icon */}
                     <div style={{ width: 28, display: "flex", justifyContent: "center" }}>

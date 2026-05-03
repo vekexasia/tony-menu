@@ -8,7 +8,8 @@ import { uploadEntryImage, deleteEntryImage } from "@/lib/imageUpload";
 import { updateEntry, createEntry, deleteEntry, moveEntry } from "@/lib/api";
 import { useRestaurantStore, useCategories } from "@/stores/restaurantStore";
 import { TranslationTabs } from "@/components/admin/TranslationTabs";
-import { MenuItemCardPreview, MenuItemExpandedPreview } from "@/components/admin/MenuItemPreview";
+import { MenuItemListView, type MenuItemView } from "@/components/menu/views/MenuItemListView";
+import { MenuItemDetailView } from "@/components/menu/views/MenuItemDetailView";
 import { useTranslations } from "@/lib/i18n";
 
 const ALLERGEN_IDS = [
@@ -800,65 +801,72 @@ export default function EditEntryPage() {
           </div>
         </div>
 
-        {/* Preview pane — phone frame */}
-        <aside className="hidden md:flex md:w-[320px] md:flex-shrink-0 flex-col items-center gap-3 md:sticky md:top-4 md:self-start">
-          <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wide text-gray-500">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5">
-              <rect x="7" y="2" width="10" height="20" rx="2" />
-              <line x1="11" y1="18" x2="13" y2="18" />
-            </svg>
-            {t("entries.preview.title")}
-          </div>
-          <div className="w-full rounded-[28px] border-[6px] border-gray-900 bg-gray-900 shadow-xl overflow-hidden">
-            <div className="flex justify-center py-1.5">
-              <span className="block w-12 h-1 rounded-full bg-gray-700" />
-            </div>
-            <div className="bg-gray-100 max-h-[70vh] overflow-y-auto">
-              <div className="p-3 space-y-3">
-                <div>
-                  <p className="text-[9px] font-bold uppercase tracking-wide text-gray-500 mb-1.5">
-                    {t("entries.preview.cardTitle")}
-                  </p>
-                  <div className="rounded-md overflow-hidden border border-gray-200">
-                    <MenuItemCardPreview
-                      item={{
-                        name: editingEntry.name,
-                        description: editingEntry.desc,
-                        price: editingEntry.price,
-                        priceUnit: editingEntry.priceUnit,
-                        image: editingEntry.image,
-                        allergens: editingEntry.allergens,
-                        outOfStock: editingEntry.outOfStock,
-                        frozen: editingEntry.frozen,
-                      }}
-                    />
+        {/* Preview pane — phone frame, follows the active translation tab */}
+        {(() => {
+          const previewLocale = activeTranslationTab;
+          const i18nForPreview = editingEntry.i18n?.[previewLocale];
+          const previewName =
+            (previewLocale === primaryLocale
+              ? editingEntry.name
+              : i18nForPreview?.name?.toString().trim() || editingEntry.name) ?? "";
+          const previewDesc =
+            (previewLocale === primaryLocale
+              ? editingEntry.desc
+              : i18nForPreview?.desc?.toString().trim() || editingEntry.desc) ?? "";
+          const view: MenuItemView = {
+            name: previewName,
+            description: previewDesc,
+            price: editingEntry.price,
+            priceUnit: editingEntry.priceUnit,
+            image: editingEntry.image,
+            allergens: editingEntry.allergens,
+            outOfStock: editingEntry.outOfStock,
+            containsFrozenIngredient: editingEntry.frozen,
+          };
+          return (
+            <aside className="hidden md:flex md:w-[260px] md:flex-shrink-0 flex-col items-center gap-2 md:sticky md:top-4 md:self-start">
+              <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wide text-gray-500">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5">
+                  <rect x="7" y="2" width="10" height="20" rx="2" />
+                  <line x1="11" y1="18" x2="13" y2="18" />
+                </svg>
+                {t("entries.preview.title")}
+                <span className="ml-1 inline-flex items-center rounded-full bg-gray-100 px-1.5 py-0.5 text-[9px] font-bold text-gray-600 normal-case">
+                  {previewLocale.toUpperCase()}
+                </span>
+              </div>
+              <div className="w-full rounded-[24px] border-[5px] border-gray-900 bg-gray-900 shadow-xl overflow-hidden">
+                <div className="flex justify-center py-1">
+                  <span className="block w-10 h-0.5 rounded-full bg-gray-700" />
+                </div>
+                <div className="bg-gray-100 max-h-[65vh] overflow-y-auto">
+                  <div className="p-2 space-y-2">
+                    <div>
+                      <p className="text-[8px] font-bold uppercase tracking-wide text-gray-500 mb-1">
+                        {t("entries.preview.cardTitle")}
+                      </p>
+                      <div className="rounded-md overflow-hidden border border-gray-200 text-[12px]">
+                        <MenuItemListView item={view} />
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-[8px] font-bold uppercase tracking-wide text-gray-500 mb-1 mt-2">
+                        {t("entries.preview.expandedTitle")}
+                      </p>
+                      <div className="text-[12px]">
+                        <MenuItemDetailView item={view} />
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <p className="text-[9px] font-bold uppercase tracking-wide text-gray-500 mb-1.5">
-                    {t("entries.preview.expandedTitle")}
-                  </p>
-                  <MenuItemExpandedPreview
-                    item={{
-                      name: editingEntry.name,
-                      description: editingEntry.desc,
-                      price: editingEntry.price,
-                      priceUnit: editingEntry.priceUnit,
-                      image: editingEntry.image,
-                      allergens: editingEntry.allergens,
-                      outOfStock: editingEntry.outOfStock,
-                      frozen: editingEntry.frozen,
-                    }}
-                  />
+                <div className="flex justify-center py-1.5 bg-gray-900">
+                  <span className="block w-8 h-0.5 rounded-full bg-gray-600" />
                 </div>
               </div>
-            </div>
-            <div className="flex justify-center py-2 bg-gray-900">
-              <span className="block w-10 h-1 rounded-full bg-gray-600" />
-            </div>
-          </div>
-          <p className="text-[10px] text-gray-500 italic">{t("entries.preview.subtitle")}</p>
-        </aside>
+              <p className="text-[10px] text-gray-500 italic text-center">{t("entries.preview.subtitle")}</p>
+            </aside>
+          );
+        })()}
       </div>
 
       {/* Delete confirmation */}
