@@ -459,7 +459,7 @@ export default function CategoriesPage() {
         </div>
 
         {/* Table */}
-        <div style={{ background: "#fff", border: "1px solid #E7E5E4", borderRadius: 8, overflow: "hidden" }}>
+        <div style={{ background: "#fff", border: "1px solid #E7E5E4", borderRadius: 8, overflow: "hidden", flexShrink: 0 }}>
           {/* Table header */}
           <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "#FBFAF9", borderBottom: "1px solid #E7E5E4", fontSize: 10.5, fontWeight: 700, color: "#9A9590", textTransform: "uppercase", letterSpacing: 0.5 }}>
             <div style={{ width: 24 }}>
