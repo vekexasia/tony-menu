@@ -220,7 +220,7 @@ export default function AnalyticsPage() {
 
   const itemEditorHref = (item: ViewedItemRanked) =>
     item.entryId && item.categoryId
-      ? `/admin?s=entries&category=${item.categoryId}&entry=${item.entryId}&entryName=${encodeURIComponent(item.name)}`
+      ? `/admin/items/edit?entry=${item.entryId}&category=${item.categoryId}`
       : null;
 
   // ── Loading skeleton ──────────────────────────────────────────────

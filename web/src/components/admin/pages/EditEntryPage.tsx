@@ -261,7 +261,7 @@ export default function EditEntryPage() {
     return cachedCat?.name ?? "";
   }, [categoryId, categoriesCache]);
 
-  const backHref = `/admin?s=entries&category=${categoryId ?? ""}`;
+  const backHref = `/admin/items?category=${categoryId ?? ""}`;
 
   const navigateBackAfterMutation = () => {
     useRestaurantStore.getState().reset();
@@ -389,7 +389,7 @@ export default function EditEntryPage() {
       await moveEntry(editingEntry.id, targetCategoryId);
       useRestaurantStore.getState().reset();
       void loadRestaurant({ force: true });
-      router.push(`/admin?s=entries&category=${targetCategoryId}`);
+      router.push(`/admin/items?category=${targetCategoryId}`);
     } catch (err) {
       console.error("Error moving entry:", err);
       setSaveError(t("entries.moveFailed"));
@@ -411,7 +411,7 @@ export default function EditEntryPage() {
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
           {t(error ?? "entries.categoryNotFound")}
         </div>
-        <Link href={`/admin?s=categories`} className="mt-4 inline-block text-primary hover:underline">
+        <Link href={`/admin/categories`} className="mt-4 inline-block text-primary hover:underline">
           {t("entries.backToCategories")}
         </Link>
       </div>

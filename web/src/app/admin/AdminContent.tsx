@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { getMe, type MeResponse } from "@/lib/api";
 import { useRestaurantStore, useCategories } from "@/stores/restaurantStore";
 import { useTranslations } from "@/lib/i18n";
@@ -29,7 +29,7 @@ export default function AdminContent({
   children: React.ReactNode;
 }) {
   const t = useTranslations("admin");
-  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const [authState, setAuthState] = useState<AuthState>({
     loading: true,
     user: null,
@@ -153,47 +153,61 @@ export default function AdminContent({
       ? Math.round(((totalEntries - entriesWithMissingTranslations) / totalEntries) * 100)
       : 100;
 
-  const s = (section: string, extra = "") => `/admin?s=${section}${extra}`;
+  // pathname is normalized: trailing slashes stripped for comparison.
+  const currentPath = (pathname ?? "/admin").replace(/\/+$/, "") || "/admin";
 
   const topNavItems: { href: string; label: string; matchPrefix?: string }[] = [
-    { href: s("categories"), label: t("layout.nav.menu") },
-    { href: s("analytics"), label: t("layout.nav.analytics") },
-    { href: s("settings"), label: t("layout.nav.settings"), matchPrefix: "settings" },
+    { href: "/admin/categories", label: t("layout.nav.menu") },
+    { href: "/admin/analytics", label: t("layout.nav.analytics") },
+    { href: "/admin/settings", label: t("layout.nav.settings"), matchPrefix: "/admin/settings" },
   ];
 
   const firstCategoryId = categories[0]?.id;
   const entriesHref = firstCategoryId
-    ? s("entries", `&category=${firstCategoryId}`)
-    : s("entries");
+    ? `/admin/items?category=${firstCategoryId}`
+    : "/admin/items";
 
   const gestioneItems: { href: string; icon: string; label: string; count?: number | string }[] = [
-    { href: s("menus"), icon: "fa-book-open", label: t("layout.section.menus") },
-    { href: s("categories"), icon: "fa-layer-group", label: t("layout.section.categories"), count: categories.length },
+    { href: "/admin/menus", icon: "fa-book-open", label: t("layout.section.menus") },
+    { href: "/admin/categories", icon: "fa-layer-group", label: t("layout.section.categories"), count: categories.length },
     { href: entriesHref, icon: "fa-utensils", label: t("layout.section.items"), count: totalEntries },
-    { href: s("hours"), icon: "fa-clock", label: t("layout.section.hours") },
-    { href: s("analytics"), icon: "fa-chart-simple", label: t("layout.section.analytics") },
+    { href: "/admin/hours", icon: "fa-clock", label: t("layout.section.hours") },
+    { href: "/admin/analytics", icon: "fa-chart-simple", label: t("layout.section.analytics") },
   ];
 
   const settingsItems: { href: string; icon: string; label: string }[] = [
-    { href: s("settings-profile"), icon: "fa-user", label: t("layout.section.profile") },
-    { href: s("settings-languages"), icon: "fa-language", label: t("layout.section.languages") },
-    { href: s("settings-communications"), icon: "fa-bullhorn", label: t("layout.section.announcements") },
-    { href: s("settings-chat-ai"), icon: "fa-robot", label: t("layout.section.chatAi") },
-    { href: s("settings-publishing"), icon: "fa-globe", label: t("layout.section.publishing") },
+    { href: "/admin/settings/profile", icon: "fa-user", label: t("layout.section.profile") },
+    { href: "/admin/settings/languages", icon: "fa-language", label: t("layout.section.languages") },
+    { href: "/admin/settings/communications", icon: "fa-bullhorn", label: t("layout.section.announcements") },
+    { href: "/admin/settings/chat-ai", icon: "fa-robot", label: t("layout.section.chatAi") },
+    { href: "/admin/settings/publishing", icon: "fa-globe", label: t("layout.section.publishing") },
   ];
 
+  const hrefBase = (href: string) => href.split("?")[0].replace(/\/+$/, "") || "/admin";
+
+  // For sidebar: highlight when path matches exactly. The categories link
+  // also matches the bare /admin root so the sidebar isn't blank on /admin.
   const isActive = (href: string) => {
-    const ts = new URLSearchParams(href.split("?")[1] || "").get("s");
-    return ts !== null && searchParams.get("s") === ts;
+    const base = hrefBase(href);
+    if (base === "/admin/categories") return currentPath === "/admin" || currentPath === "/admin/categories";
+    if (base === "/admin/items") return currentPath === "/admin/items" || currentPath === "/admin/items/edit";
+    return currentPath === base;
   };
 
   const isActiveTab = (item: { href: string; matchPrefix?: string }) => {
-    if (isActive(item.href)) return true;
-    if (item.matchPrefix) {
-      const current = searchParams.get("s") ?? "";
-      return current === item.matchPrefix || current.startsWith(`${item.matchPrefix}-`);
+    const base = hrefBase(item.href);
+    if (base === "/admin/categories") {
+      // Top "Menu" tab covers categories, items, items/edit, menus, hours.
+      return currentPath === "/admin"
+        || currentPath === "/admin/categories"
+        || currentPath.startsWith("/admin/items")
+        || currentPath === "/admin/menus"
+        || currentPath === "/admin/hours";
     }
-    return false;
+    if (item.matchPrefix) {
+      return currentPath === item.matchPrefix || currentPath.startsWith(`${item.matchPrefix}/`);
+    }
+    return currentPath === base;
   };
 
   return (

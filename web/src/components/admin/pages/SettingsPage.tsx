@@ -472,7 +472,7 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
             return (
               <Link
                 key={s}
-                href={`/admin?s=settings-${s}`}
+                href={`/admin/settings/${s}`}
                 style={{
                   fontSize: 12,
                   fontWeight: 600,

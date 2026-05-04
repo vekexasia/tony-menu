@@ -191,13 +191,13 @@ export default function EntriesPage() {
   const describeWorkItem = (item: { entry: MenuEntry; locale: string; field: "name" | "desc" }) =>
     `${item.entry.name} → ${item.locale.toUpperCase()} (${item.field === "name" ? t("entries.fieldNameLabel") : t("entries.fieldDescLabel")})`;
 
-  // Navigation helpers — the dish form lives at /admin?s=entries-edit
+  // Navigation helpers — the dish form lives at /admin/items/edit
   const openEntry = (entryId: string) => {
-    router.push(`/admin?s=entries-edit&entry=${entryId}&category=${categoryId ?? ""}`);
+    router.push(`/admin/items/edit?entry=${entryId}&category=${categoryId ?? ""}`);
   };
 
   const openNewEntry = () => {
-    router.push(`/admin?s=entries-edit&entry=new&category=${categoryId ?? ""}`);
+    router.push(`/admin/items/edit?entry=new&category=${categoryId ?? ""}`);
   };
 
   // Move entry up or down
@@ -371,7 +371,7 @@ export default function EntriesPage() {
           {t(error)}
         </div>
         <Link
-          href={`/admin?s=categories`}
+          href={`/admin/categories`}
           className="mt-4 inline-block text-primary hover:underline"
         >
           {t("entries.backToCategories")}
@@ -386,7 +386,7 @@ export default function EntriesPage() {
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-3 min-w-0">
           <Link
-            href={`/admin?s=categories`}
+            href={`/admin/categories`}
             className="p-2 hover:bg-gray-100 rounded-lg shrink-0"
           >
             <svg

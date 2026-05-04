@@ -1,5 +1,7 @@
+import { Suspense } from "react";
 import "./admin.css";
 import { AdminI18nProvider } from "./AdminI18nProvider";
+import AdminContent from "./AdminContent";
 
 export default function AdminLayout({
   children,
@@ -15,7 +17,15 @@ export default function AdminLayout({
         crossOrigin="anonymous"
         referrerPolicy="no-referrer"
       />
-      <AdminI18nProvider>{children}</AdminI18nProvider>
+      <AdminI18nProvider>
+        <Suspense fallback={
+          <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+            <div className="text-gray-500">Loading...</div>
+          </div>
+        }>
+          <AdminContent>{children}</AdminContent>
+        </Suspense>
+      </AdminI18nProvider>
     </>
   );
 }

@@ -522,7 +522,7 @@ export default function CategoriesPage() {
 
                     {/* Name (whole area is a link to entries) */}
                     <Link
-                      href={`/admin?s=entries&category=${category.id}`}
+                      href={`/admin/items?category=${category.id}`}
                       style={{ flex: 2, minWidth: 0, textDecoration: "none", color: "inherit" }}
                     >
                       <div style={{ fontSize: 13, fontWeight: 600, color: "#1F1A14", wordBreak: "break-word", lineHeight: 1.3 }}>
@@ -532,7 +532,7 @@ export default function CategoriesPage() {
 
                     {/* Entry count (clickable too) */}
                     <Link
-                      href={`/admin?s=entries&category=${category.id}`}
+                      href={`/admin/items?category=${category.id}`}
                       style={{ width: 70, textAlign: "right", fontVariantNumeric: "tabular-nums", fontWeight: 600, color: "#424242", textDecoration: "none" }}
                     >
                       {category.entryCount}
@@ -579,7 +579,7 @@ export default function CategoriesPage() {
                         <i className={deletingCategoryId === category.id ? "fa-solid fa-spinner fa-spin" : "fa-solid fa-trash"} style={{ fontSize: 11 }} />
                       </button>
                       <Link
-                        href={`/admin?s=entries&category=${category.id}`}
+                        href={`/admin/items?category=${category.id}`}
                         title={t("categories.row.actionViewItems")}
                         style={{ width: 28, height: 28, border: "none", background: "transparent", borderRadius: 4, color: "#888", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none" }}
                       >
