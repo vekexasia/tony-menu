@@ -9,7 +9,10 @@ import {
   reorderMenus,
   updateMenu,
   type AdminMenu,
+  type Weekday,
 } from "@/lib/api";
+
+const ALL_WEEKDAYS: Weekday[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 import { useRestaurantStore, useCategories } from "@/stores/restaurantStore";
 import { SortableList, DragHandle } from "@/components/admin/SortableList";
 import { TranslationTabs } from "@/components/admin/TranslationTabs";
@@ -44,6 +47,7 @@ export default function MenusPage() {
   const [editIcon, setEditIcon] = useState<MenuIconKind>("utensils");
   const [editAvailableFrom, setEditAvailableFrom] = useState<string>("");
   const [editAvailableTo, setEditAvailableTo] = useState<string>("");
+  const [editAvailableDays, setEditAvailableDays] = useState<Weekday[] | null>(null);
   const [activeTab, setActiveTab] = useState(primaryLocale);
   const [saving, setSaving] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
@@ -112,6 +116,7 @@ export default function MenusPage() {
     setEditIcon((MENU_ICON_KINDS as readonly string[]).includes(menu.icon) ? (menu.icon as MenuIconKind) : "utensils");
     setEditAvailableFrom(menu.availableFrom ?? "");
     setEditAvailableTo(menu.availableTo ?? "");
+    setEditAvailableDays(menu.availableDays ?? null);
     setActiveTab(primaryLocale);
     setEditError(null);
   };
@@ -134,7 +139,13 @@ export default function MenusPage() {
       const schedulePayload = editAvailableFrom && editAvailableTo
         ? { availableFrom: editAvailableFrom, availableTo: editAvailableTo }
         : { availableFrom: null, availableTo: null };
-      await updateMenu(editing.id, { title, code, icon: editIcon, i18n: editI18n as Record<string, Record<string, string>>, ...schedulePayload });
+      // Normalize all-7 / empty to null so we don't store two equivalent representations.
+      const days = editAvailableDays;
+      const daysPayload =
+        !days || days.length === 0 || days.length === 7
+          ? { availableDays: null }
+          : { availableDays: ALL_WEEKDAYS.filter((d) => days.includes(d)) };
+      await updateMenu(editing.id, { title, code, icon: editIcon, i18n: editI18n as Record<string, Record<string, string>>, ...schedulePayload, ...daysPayload });
       setEditing(null);
       await refresh();
       await loadRestaurant({ force: true });
@@ -279,6 +290,11 @@ export default function MenusPage() {
                           {menu.availableFrom}–{menu.availableTo}
                         </span>
                       )}
+                      {menu.availableDays && menu.availableDays.length > 0 && menu.availableDays.length < 7 && (
+                        <span className="adm-pill-accent ml-2 text-[10px] font-medium px-1.5 py-0.5 rounded">
+                          {ALL_WEEKDAYS.filter((d) => menu.availableDays!.includes(d)).map((d) => t(`menus.day.${d}`)).join(' · ')}
+                        </span>
+                      )}
                     </div>
                   </div>
                   <button
@@ -416,6 +432,38 @@ export default function MenusPage() {
                       : t("menus.scheduleSameDay").replace("{from}", editAvailableFrom).replace("{to}", editAvailableTo)}
                   </p>
                 )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t("menus.daysLabel")}</label>
+                <p className="text-xs text-gray-500 mb-2">{t("menus.daysHint")}</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {ALL_WEEKDAYS.map((day) => {
+                    const selected = editAvailableDays?.includes(day) ?? false;
+                    return (
+                      <button
+                        key={day}
+                        type="button"
+                        onClick={() => {
+                          setEditAvailableDays((prev) => {
+                            const current = prev ?? [];
+                            const next = current.includes(day)
+                              ? current.filter((d) => d !== day)
+                              : [...current, day];
+                            return next.length === 0 ? null : next;
+                          });
+                        }}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                          selected
+                            ? "bg-primary text-white border-primary"
+                            : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                        }`}
+                      >
+                        {t(`menus.day.${day}`)}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               {editError && (

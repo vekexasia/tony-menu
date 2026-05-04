@@ -391,6 +391,7 @@ export async function buildCatalogFromDb(
       icon: m.icon,
       availableFrom: m.availableFrom ?? null,
       availableTo: m.availableTo ?? null,
+      availableDays: m.availableDays ?? null,
     })),
     categories: categories.map((cat) => ({
       id: cat.id,

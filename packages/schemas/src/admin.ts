@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { I18nMapSchema } from './common.js';
-import { MenuIconSchema, HHMMSchema, LabelColorSchema } from './catalog.js';
+import { MenuIconSchema, HHMMSchema, LabelColorSchema, WeekdaySchema } from './catalog.js';
 import { RestaurantInfoSchema, RestaurantSocialsSchema, PromotionAlertSchema, OpeningScheduleSchema, RestaurantThemeSchema } from './restaurant.js';
 
 // ── Restaurant Settings ─────────────────────────────────────────────
@@ -98,6 +98,8 @@ export const UpdateMenuBodySchema = z.object({
   icon: MenuIconSchema.optional(),
   availableFrom: HHMMSchema.nullable().optional(),
   availableTo: HHMMSchema.nullable().optional(),
+  availableDays: z.array(WeekdaySchema).min(1).max(7).nullable().optional()
+    .refine((d) => d == null || new Set(d).size === d.length, { message: 'availableDays must not contain duplicates' }),
 }).refine(
   (d) => {
     const hasFrom = d.availableFrom != null;

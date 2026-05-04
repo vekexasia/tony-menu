@@ -161,6 +161,7 @@ admin.get('/menus', ...base, async (c) => {
       icon: m.icon,
       availableFrom: m.availableFrom ?? null,
       availableTo: m.availableTo ?? null,
+      availableDays: m.availableDays ?? null,
     })),
   });
 });
@@ -240,6 +241,11 @@ admin.patch('/menus/:menuId', ...base, async (c) => {
   if (body.icon !== undefined) updates.icon = body.icon;
   if ('availableFrom' in body) updates.availableFrom = body.availableFrom ?? null;
   if ('availableTo' in body) updates.availableTo = body.availableTo ?? null;
+  if ('availableDays' in body) {
+    // Normalize "all 7 days" to null so we don't store two equivalent representations.
+    const days = body.availableDays;
+    updates.availableDays = days && days.length > 0 && days.length < 7 ? days : null;
+  }
 
   await db
     .update(schema.menus)

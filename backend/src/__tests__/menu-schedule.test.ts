@@ -19,6 +19,7 @@ type MenuRow = {
   id: string;
   availableFrom: string | null;
   availableTo: string | null;
+  availableDays: string[] | null;
 };
 
 describe('menu schedule — GET /admin/menus', () => {
@@ -128,6 +129,97 @@ describe('menu schedule — PATCH /admin/menus/:menuId', () => {
       body: { availableTo: '15:00' },
     });
     expect(res.status).toBe(400);
+  });
+});
+
+describe('menu schedule — availableDays', () => {
+  it('returns availableDays as null by default', async () => {
+    const { env, headers } = await adminEnv();
+    const res = await testRequest('/admin/menus', { headers, env });
+    const body = await res.json() as { menus: MenuRow[] };
+    expect(body.menus[0].availableDays).toBeNull();
+  });
+
+  it('round-trips a partial weekday list', async () => {
+    const { env, headers } = await adminEnv();
+    await testRequest('/admin/menus/menu-1', {
+      method: 'PATCH',
+      headers,
+      env,
+      body: { availableDays: ['mon', 'tue', 'wed', 'thu', 'fri'] },
+    });
+    const res = await testRequest('/admin/menus', { headers, env });
+    const body = await res.json() as { menus: MenuRow[] };
+    const menu = body.menus.find((m) => m.id === 'menu-1')!;
+    expect(menu.availableDays).toEqual(['mon', 'tue', 'wed', 'thu', 'fri']);
+  });
+
+  it('clears availableDays by sending null', async () => {
+    const { env, headers } = await adminEnv();
+    await testRequest('/admin/menus/menu-1', {
+      method: 'PATCH',
+      headers,
+      env,
+      body: { availableDays: ['fri'] },
+    });
+    await testRequest('/admin/menus/menu-1', {
+      method: 'PATCH',
+      headers,
+      env,
+      body: { availableDays: null },
+    });
+    const res = await testRequest('/admin/menus', { headers, env });
+    const body = await res.json() as { menus: MenuRow[] };
+    const menu = body.menus.find((m) => m.id === 'menu-1')!;
+    expect(menu.availableDays).toBeNull();
+  });
+
+  it('rejects an invalid weekday code', async () => {
+    const { env, headers } = await adminEnv();
+    const res = await testRequest('/admin/menus/menu-1', {
+      method: 'PATCH',
+      headers,
+      env,
+      body: { availableDays: ['monday'] },
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it('rejects an empty array', async () => {
+    const { env, headers } = await adminEnv();
+    const res = await testRequest('/admin/menus/menu-1', {
+      method: 'PATCH',
+      headers,
+      env,
+      body: { availableDays: [] },
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it('rejects duplicate weekdays', async () => {
+    const { env, headers } = await adminEnv();
+    const res = await testRequest('/admin/menus/menu-1', {
+      method: 'PATCH',
+      headers,
+      env,
+      body: { availableDays: ['mon', 'mon'] },
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it('exposes availableDays on the public catalog', async () => {
+    const { db, env, headers } = await adminEnv();
+    await testRequest('/admin/menus/menu-1', {
+      method: 'PATCH',
+      headers,
+      env,
+      body: { availableDays: ['sat', 'sun'] },
+    });
+    db.raw.prepare(`UPDATE settings SET publication_state = 'published' WHERE id = 1`).run();
+    const res = await testRequest('/catalog', { env });
+    const body = await res.json() as { menus: MenuRow[] };
+    const menu = body.menus.find((m) => m.id === 'menu-1')!;
+    expect(menu.availableDays).toEqual(['sat', 'sun']);
   });
 });
 

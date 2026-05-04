@@ -71,6 +71,10 @@ export type MenuIcon = z.infer<typeof MenuIconSchema>;
 export const HHMM_RE = /^\d{2}:\d{2}$/;
 export const HHMMSchema = z.string().regex(HHMM_RE, 'must be HH:MM');
 
+export const WEEKDAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
+export const WeekdaySchema = z.enum(WEEKDAYS);
+export type Weekday = z.infer<typeof WeekdaySchema>;
+
 export const CatalogMenuSchema = z.object({
   id: z.string(),
   code: z.string(),
@@ -81,6 +85,7 @@ export const CatalogMenuSchema = z.object({
   icon: z.string(),
   availableFrom: HHMMSchema.nullable().optional(),
   availableTo: HHMMSchema.nullable().optional(),
+  availableDays: z.array(WeekdaySchema).nullable().optional(),
 });
 export type CatalogMenu = z.infer<typeof CatalogMenuSchema>;
 

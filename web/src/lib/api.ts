@@ -164,7 +164,10 @@ export interface AdminMenu {
   icon: string;
   availableFrom: string | null;
   availableTo: string | null;
+  availableDays: Weekday[] | null;
 }
+
+export type Weekday = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
 
 export function fetchMenus() {
   return apiFetch<{ menus: AdminMenu[] }>(`/admin/menus`, { auth: true });

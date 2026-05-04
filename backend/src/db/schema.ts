@@ -77,6 +77,7 @@ export const menus = sqliteTable(
     icon: text('icon').default('utensils').notNull(),
     availableFrom: text('available_from'),
     availableTo: text('available_to'),
+    availableDays: jsonColumn<string[] | null>('available_days'),
     ...timestamps,
   },
   (table) => ({

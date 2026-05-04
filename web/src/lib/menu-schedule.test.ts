@@ -92,4 +92,95 @@ describe('isMenuAvailableNow', () => {
     expect(isMenuAvailableNow({ availableFrom: '00:00', availableTo: '23:59' }, at(12))).toBe(true);
     expect(isMenuAvailableNow({ availableFrom: '00:00', availableTo: '23:59' }, at(23, 59))).toBe(false);
   });
+
+  // ── Day-of-week ───────────────────────────────────────────────────
+  // Reference dates: 2026-05-01 is a Friday, 2026-05-02 Saturday,
+  //                  2026-05-03 Sunday, 2026-05-04 Monday.
+  // (`at(...)` above uses 2026-01-01 which is a Thursday.)
+
+  function on(year: number, month0: number, day: number, h: number, m = 0): Date {
+    return new Date(year, month0, day, h, m, 0, 0);
+  }
+
+  it('availableDays null/undefined: every day passes', () => {
+    expect(isMenuAvailableNow({ availableDays: null }, on(2026, 4, 4, 12))).toBe(true);
+    expect(isMenuAvailableNow({}, on(2026, 4, 3, 12))).toBe(true);
+  });
+
+  it('day-only schedule (no time window): matches included day', () => {
+    expect(isMenuAvailableNow({ availableDays: ['mon'] }, on(2026, 4, 4, 12))).toBe(true);
+  });
+
+  it('day-only schedule (no time window): excludes other days', () => {
+    expect(isMenuAvailableNow({ availableDays: ['mon'] }, on(2026, 4, 3, 12))).toBe(false);
+  });
+
+  it('same-day window + day list: matches when day and time both match', () => {
+    expect(
+      isMenuAvailableNow(
+        { availableFrom: '12:00', availableTo: '15:00', availableDays: ['fri'] },
+        on(2026, 4, 1, 13),
+      ),
+    ).toBe(true);
+  });
+
+  it('same-day window + day list: rejects when time is in but day is out', () => {
+    expect(
+      isMenuAvailableNow(
+        { availableFrom: '12:00', availableTo: '15:00', availableDays: ['fri'] },
+        on(2026, 4, 2, 13),
+      ),
+    ).toBe(false);
+  });
+
+  // Anchor-to-start-day for overnight windows.
+
+  it('overnight + day list: Fri 23:00 active when Fri is included', () => {
+    expect(
+      isMenuAvailableNow(
+        { availableFrom: '22:00', availableTo: '02:00', availableDays: ['fri'] },
+        on(2026, 4, 1, 23),
+      ),
+    ).toBe(true);
+  });
+
+  it('overnight + day list: Sat 01:00 still counts as Fri-anchored', () => {
+    expect(
+      isMenuAvailableNow(
+        { availableFrom: '22:00', availableTo: '02:00', availableDays: ['fri'] },
+        on(2026, 4, 2, 1),
+      ),
+    ).toBe(true);
+  });
+
+  it('overnight + day list: Sat 23:00 rejected (Sat not in list)', () => {
+    expect(
+      isMenuAvailableNow(
+        { availableFrom: '22:00', availableTo: '02:00', availableDays: ['fri'] },
+        on(2026, 4, 2, 23),
+      ),
+    ).toBe(false);
+  });
+
+  it('overnight + day list: Sun 01:00 rejected (anchored to Sat, not in list)', () => {
+    expect(
+      isMenuAvailableNow(
+        { availableFrom: '22:00', availableTo: '02:00', availableDays: ['fri'] },
+        on(2026, 4, 3, 1),
+      ),
+    ).toBe(false);
+  });
+
+  it('overnight wrap from Sun anchors to Sun, not Mon', () => {
+    expect(
+      isMenuAvailableNow(
+        { availableFrom: '22:00', availableTo: '02:00', availableDays: ['sun'] },
+        on(2026, 4, 4, 1),
+      ),
+    ).toBe(true);
+  });
+
+  it('empty availableDays array treated as "every day"', () => {
+    expect(isMenuAvailableNow({ availableDays: [] }, on(2026, 4, 3, 12))).toBe(true);
+  });
 });

@@ -11,6 +11,64 @@ are written for LLM coding assistants picking up this codebase in a future
 session: they call out file moves, schema invariants, and gotchas that aren't
 obvious from the diff but matter when extending the feature.
 
+## 2026-05-04 — Day-of-week menu scheduling
+
+### Added
+
+- `menus.availableDays` — optional list of weekday codes (`mon`, `tue`,
+  `wed`, `thu`, `fri`, `sat`, `sun`) on each menu, alongside the existing
+  `availableFrom`/`availableTo` time window. A diner only sees the menu on
+  days included in the list. `null` (or omitted) means every day.
+- 7 weekday toggle chips in the admin menu edit modal, plus a pill in the
+  menu list row showing which days the menu is restricted to.
+
+### Changed
+
+- `isMenuAvailableNow` (web/src/lib/menu-schedule.ts) now takes an optional
+  `availableDays` field and applies **anchor-to-start-day** semantics for
+  overnight windows: a Fri 22:00 → 02:00 schedule with `availableDays=['fri']`
+  is active Fri 22:00–24:00 AND Sat 00:00–02:00, because the wrap belongs
+  to Friday's slot. The day check uses the diner's local time (same
+  convention as the existing time-of-day check).
+- The admin `PATCH /admin/menus/:menuId` payload accepts `availableDays`.
+  All-7-days and empty arrays are normalized to `null` server-side so we
+  don't store two equivalent representations of "every day".
+
+### Breaking changes
+
+None. Existing menus default to `availableDays = null` (every day) and
+catalog consumers that ignore the new field continue to work.
+
+### Upgrade actions
+
+```bash
+git pull
+(cd backend && npx wrangler d1 migrations apply menu-db --remote)
+(cd backend && npm run deploy)
+(cd web && npm run deploy:cf)
+```
+
+### Migrations
+
+- `0006_menu_available_days.sql` — adds nullable `available_days TEXT`
+  (JSON array) to `menus`. Backfill is implicit (existing rows get `NULL`).
+
+### Notes for AI agents
+
+- Storage is a JSON text column matching the `customLocales`/`allergens`
+  pattern, not a bitmask. Keep that consistent if you add more multi-value
+  fields to menus.
+- The validator (`UpdateMenuBodySchema` in `packages/schemas/src/admin.ts`)
+  rejects empty arrays and duplicates. The admin route additionally
+  collapses a 7-element array to `null` before writing.
+- The predicate's anchor-to-start-day rule for overnight windows means
+  you cannot derive the active day from `now.getDay()` alone — you must
+  consult `availableFrom`/`availableTo` first to decide whether `now` is
+  in the wrap-around portion (which belongs to *yesterday*'s slot).
+- `Date.getDay()` returns 0=Sun..6=Sat; the predicate maps via
+  `WEEKDAY_BY_INDEX` to the schema's `mon..sun` codes. Keep that mapping
+  in sync with `WEEKDAYS` in `packages/schemas/src/catalog.ts`.
+
 ## 2026-05-01 — Language flags and custom flag uploads
 
 ### Added

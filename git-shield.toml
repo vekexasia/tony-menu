@@ -1,0 +1,9 @@
+[git_shield]
+# Project-level overrides for the global git-shield install.
+# Static i18n translation dictionaries: lots of regional vocabulary that the
+# OPF person-name model misclassifies. They never contain customer data —
+# they're public UI strings shipped with the frontend.
+ignore_globs = [
+  "web/messages/vec.json",
+]
+allowlist_paths = [".pii-allowlist"]
