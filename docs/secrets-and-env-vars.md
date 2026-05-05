@@ -29,6 +29,8 @@ wrangler secret put OPENAI_API_KEY
 | `ALLOWED_ORIGINS` | `https://your-domain.example` | Comma-separated CORS origins |
 | `ALLOWED_HOST_SUFFIXES` | `.your-pages-project.pages.dev` | Optional. Hostname suffixes allowed over HTTPS (Pages preview deploys). |
 
+`PUBLIC_MENU_BUCKET` is an R2 binding, not a string var. The repo's initializer/config generator emits the `[[r2_buckets]]` block in `backend/wrangler.toml` when `.risto-menu.local.json` includes an R2 bucket name.
+
 ---
 
 ## Chat Worker — Cloudflare Worker (`menu-chat`)
@@ -123,7 +125,13 @@ These files may contain real secrets and must stay out of git history:
 
 4. Set Pages environment variables from `web/.env.local` or configure them in the Pages dashboard.
 
-5. Build/deploy:
+5. If you use `.github/workflows/deploy-demo.yml`, also set GitHub Actions repository/org variables:
+   - `DEMO_D1_DATABASE_ID`
+   - `DEMO_R2_BUCKET_NAME`
+   - `DEMO_R2_PUBLIC_URL`
+   and secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `DEMO_CHAT_SESSION_SECRET`.
+
+6. Build/deploy:
    ```bash
    cd backend && npm run deploy
    cd ../web/workers/chat && npm run deploy

@@ -23,6 +23,7 @@ const DEFAULT_CONFIG = {
     d1DatabaseName: 'menu-db',
     d1DatabaseId: '00000000-0000-0000-0000-000000000000',
     r2PublicUrl: 'https://pub-XXXXXXXX.r2.dev',
+    r2BucketName: '',
     accessTeamDomain: 'https://your-team.cloudflareaccess.com',
     accessAud: 'your-access-aud-tag',
     adminEmails: 'you@example.com',
@@ -143,6 +144,7 @@ async function collectConfig(existing) {
   config.backend.d1DatabaseId = await ask('D1 database id', config.backend.d1DatabaseId);
   config.chat.kvNamespaceId = await ask('Chat KV namespace id', config.chat.kvNamespaceId);
   config.backend.r2PublicUrl = await ask('R2 public URL for images/catalog snapshots', config.backend.r2PublicUrl);
+  config.backend.r2BucketName = await ask('R2 bucket name for images/catalog snapshots (blank disables R2 binding)', config.backend.r2BucketName);
 
   if (!isDemo) {
     config.backend.adminEmails = await ask('Admin email(s), comma-separated', config.backend.adminEmails);
@@ -200,7 +202,7 @@ binding = "DB"
 database_name = "${config.backend.d1DatabaseName}"
 database_id = "${config.backend.d1DatabaseId}"
 migrations_dir = "drizzle"
-${isDemo ? '\n[triggers]\ncrons = ["0 * * * *"]\n' : ''}`;
+${config.backend.r2BucketName ? `\n[[r2_buckets]]\nbinding = "PUBLIC_MENU_BUCKET"\nbucket_name = "${config.backend.r2BucketName}"\npreview_bucket_name = "${config.backend.r2BucketName}"\n` : ''}${isDemo ? '\n[triggers]\ncrons = ["0 * * * *"]\n' : ''}`;
 
   const backendDevVars = `${GENERATED_HEADER}OPENAI_API_KEY=${config.backend.openAiApiKey}
 `;
@@ -258,9 +260,15 @@ function printNextSteps(config) {
   } else {
     console.log('2. Chat KV namespace id is set.');
   }
-  console.log('3. Apply D1 migrations:');
+  if (!config.backend.r2BucketName) {
+    console.log('3. Optional but recommended: create an R2 bucket, update `.risto-menu.local.json`, then run `npm run config:generate`:');
+    console.log('   cd backend && npx wrangler r2 bucket create menu-public');
+  } else {
+    console.log(`3. R2 bucket name is set (${config.backend.r2BucketName}).`);
+  }
+  console.log('4. Apply D1 migrations:');
   console.log(`   cd backend && npx wrangler d1 migrations apply ${config.backend.d1DatabaseName} --local`);
-  console.log('4. Start dev servers in separate terminals:');
+  console.log('5. Start dev servers in separate terminals:');
   console.log('   cd backend && npm run dev');
   console.log('   cd web/workers/chat && npm run dev');
   console.log('   cd web && npm run dev');
