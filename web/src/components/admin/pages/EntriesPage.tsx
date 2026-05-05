@@ -9,7 +9,7 @@ import { useRestaurantStore } from "@/stores/restaurantStore";
 import { SortableList, DragHandle } from "@/components/admin/SortableList";
 import { useTranslations } from "@/lib/i18n";
 
-const STANDARD_TRANSLATION_LOCALES = ["it", "en", "de", "fr", "es", "nl", "ru", "pt"];
+const STANDARD_TRANSLATION_LOCALES = ["it", "en", "de", "fr", "es", "nl", "ru", "pt", "hu"];
 const TRANSLATE_THROTTLE_MS = 2200; // Gentle pacing: ~27 requests/min, below backend's 30/min limit.
 
 interface I18nData {

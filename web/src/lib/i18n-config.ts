@@ -1,5 +1,5 @@
 // Shared i18n config - can be imported by both server and client code
-export const locales = ["it", "en", "de", "fr", "es", "nl", "ru", "pt", "vec"] as const;
+export const locales = ["it", "en", "de", "fr", "es", "nl", "ru", "pt", "hu", "vec"] as const;
 export type Locale = (typeof locales)[number];
 
 const FALLBACK_DEFAULT_LOCALE: Locale = "en";

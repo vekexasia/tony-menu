@@ -11,6 +11,7 @@ import esMessages from "../../messages/es.json";
 import nlMessages from "../../messages/nl.json";
 import ruMessages from "../../messages/ru.json";
 import ptMessages from "../../messages/pt.json";
+import huMessages from "../../messages/hu.json";
 import vecMessages from "../../messages/vec.json";
 
 // Re-export from config for convenience
@@ -28,6 +29,7 @@ const messagesMap: Record<Locale, Messages> = {
   nl: nlMessages,
   ru: ruMessages,
   pt: ptMessages,
+  hu: huMessages,
   vec: vecMessages,
 };
 

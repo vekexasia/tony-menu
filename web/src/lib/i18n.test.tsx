@@ -91,6 +91,16 @@ describe('I18nProvider + useTranslations', () => {
     expect(tFn('wineAndBeers')).toBe('VINI E BIRE');
   });
 
+  it('loads Hungarian messages when locale is hu', () => {
+    let tFn!: (key: string) => string;
+    render(
+      <Wrapper locale="hu">
+        <HookReporter hook={useTranslations} onResult={(t) => { tFn = t; }} />
+      </Wrapper>
+    );
+    expect(tFn('wineAndBeers')).toBe('BOROK ÉS SÖRÖK');
+  });
+
   it('useLocale returns the current locale', () => {
     let locale!: string;
     render(

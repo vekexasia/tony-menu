@@ -3,7 +3,7 @@ import { getBundledFlagSvg, svgToDataUrl } from "./locale-flags";
 
 describe("locale-flags", () => {
   it("returns SVG strings for standard locales", () => {
-    for (const code of ["it", "en", "de", "fr", "es", "nl", "ru", "pt"]) {
+    for (const code of ["it", "en", "de", "fr", "es", "nl", "ru", "pt", "hu"]) {
       const svg = getBundledFlagSvg(code);
       expect(svg, `missing flag for ${code}`).toBeTruthy();
       expect(svg).toMatch(/^<svg/);

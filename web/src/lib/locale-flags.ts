@@ -6,6 +6,7 @@ import ES from "country-flag-icons/string/3x2/ES";
 import NL from "country-flag-icons/string/3x2/NL";
 import RU from "country-flag-icons/string/3x2/RU";
 import PT from "country-flag-icons/string/3x2/PT";
+import HU from "country-flag-icons/string/3x2/HU";
 
 export const LOCALE_FLAG_SVG: Record<string, string> = {
   it: IT,
@@ -16,6 +17,7 @@ export const LOCALE_FLAG_SVG: Record<string, string> = {
   nl: NL,
   ru: RU,
   pt: PT,
+  hu: HU,
 };
 
 export function getBundledFlagSvg(locale: string): string | null {

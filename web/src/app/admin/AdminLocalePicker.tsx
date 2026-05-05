@@ -14,6 +14,7 @@ const PICKER_LOCALES: { code: Locale; label: string }[] = [
   { code: "nl", label: "Nederlands" },
   { code: "ru", label: "Русский" },
   { code: "pt", label: "Português" },
+  { code: "hu", label: "Magyar" },
 ];
 
 export function AdminLocalePicker() {

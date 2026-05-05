@@ -15,6 +15,7 @@ const STANDARD_LOCALE_META: Record<string, { label: string }> = {
   nl: { label: "Nederlands" },
   ru: { label: "Русский" },
   pt: { label: "Português" },
+  hu: { label: "Magyar" },
 };
 
 const STANDARD_LOCALES: Locale[] = (locales as readonly string[]).filter(
