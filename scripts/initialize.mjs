@@ -22,12 +22,15 @@ const DEFAULT_CONFIG = {
     workerName: 'menu-backend',
     d1DatabaseName: 'menu-db',
     d1DatabaseId: '00000000-0000-0000-0000-000000000000',
+    r2BucketName: '',
     r2PublicUrl: 'https://pub-XXXXXXXX.r2.dev',
     r2BucketName: '',
     accessTeamDomain: 'https://your-team.cloudflareaccess.com',
     accessAud: 'your-access-aud-tag',
     adminEmails: 'you@example.com',
     openAiApiKey: '',
+    allowedOrigins: '',
+    allowedHostSuffixes: '',
   },
   chat: {
     workerName: 'menu-chat',
@@ -179,8 +182,9 @@ function generate(config) {
   const isDemo = config.profile === 'public-demo';
   const isProdLike = config.profile !== 'local-dev';
   const allowedOrigins = isProdLike
-    ? csv([config.frontendUrl])
-    : csv(['http://localhost:3000', config.frontendUrl !== 'http://localhost:3000' ? config.frontendUrl : '']);
+    ? csv([config.frontendUrl, config.backend.allowedOrigins])
+    : csv(['http://localhost:3000', config.frontendUrl !== 'http://localhost:3000' ? config.frontendUrl : '', config.backend.allowedOrigins]);
+  const backendAllowedHostSuffixes = config.backend.allowedHostSuffixes || config.chat.allowedHostSuffixes;
 
   const backendToml = `${GENERATED_HEADER}name = "${config.backend.workerName}"
 main = "src/index.ts"
@@ -196,7 +200,7 @@ ACCESS_TEAM_DOMAIN = "${config.backend.accessTeamDomain}"
 ACCESS_AUD = "${config.backend.accessAud}"
 ADMIN_EMAILS = "${isDemo ? 'demo-admin@risto.menu' : config.backend.adminEmails}"
 ALLOWED_ORIGINS = "${allowedOrigins}"
-
+${backendAllowedHostSuffixes ? `ALLOWED_HOST_SUFFIXES = "${backendAllowedHostSuffixes}"\n` : ''}
 [[d1_databases]]
 binding = "DB"
 database_name = "${config.backend.d1DatabaseName}"
@@ -224,7 +228,7 @@ ${config.chat.llmProvider === 'workers-ai' ? '\n[ai]\nbinding = "AI"\n' : ''}
 [vars]
 LLM_PROVIDER = "${config.chat.llmProvider}"
 LLM_MODEL = "${config.chat.llmModel}"
-ALLOWED_ORIGINS = "${config.frontendUrl}"
+ALLOWED_ORIGINS = "${csv([config.frontendUrl, config.backend.allowedOrigins])}"
 ALLOWED_HOST_SUFFIXES = "${config.chat.allowedHostSuffixes}"
 ${config.chat.dailyAiRequestLimit ? `DAILY_AI_REQUEST_LIMIT = "${config.chat.dailyAiRequestLimit}"\n` : ''}`;
 
