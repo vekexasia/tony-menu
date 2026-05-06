@@ -215,17 +215,22 @@ function resolveServerTool(locale: string, collectedToolCalls: ChatToolCall[]) {
 function assertNoUnsafeGuarantees(text: string) {
   const normalized = text.replace(/\s+/g, ' ');
   const unsafePatterns = [
-    /\b(?:100%|completely|totally)\s+(?:safe|allergen[- ]free|gluten[- ]free|nut[- ]free|lactose[- ]free|contamination[- ]free)\b/i,
-    /\b(?:is|are|it's|they're|this is|these are)\s+(?:safe|allergen[- ]free|contamination[- ]free)\b/i,
-    /\bguaranteed\s+(?:safe|allergen[- ]free|gluten[- ]free|nut[- ]free|lactose[- ]free|contamination[- ]free)\b/i,
-    /\b(?:è|sono|questo è|questi sono|questa è|queste sono)\s+(?:sicuro|sicura|sicuri|sicure)\b/i,
-    /\b(?:100%|completamente|totalmente)\s+(?:sicuro|sicura|sicuri|sicure|senza allergeni|senza glutine|senza lattosio)\b/i,
-    /\b(?:garantito|garantita|garantiti|garantite)\s+(?:sicuro|sicura|sicuri|sicure|senza allergeni|senza glutine|senza lattosio)\b/i,
-    /\b(?:senza allergeni|privo di allergeni|priva di allergeni|privi di allergeni|prive di allergeni)\b/i,
+    /\b(?:100%|completely|totally)\s+(?:safe|allergen[- ]free|gluten[- ]free|nut[- ]free|lactose[- ]free|contamination[- ]free)\b/gi,
+    /\b(?:is|are|it's|they're|this is|these are)\s+(?:safe|allergen[- ]free|contamination[- ]free)\b/gi,
+    /\bguaranteed\s+(?:safe|allergen[- ]free|gluten[- ]free|nut[- ]free|lactose[- ]free|contamination[- ]free)\b/gi,
+    /\b(?:è|sono|questo è|questi sono|questa è|queste sono)\s+(?:sicuro|sicura|sicuri|sicure)\b/gi,
+    /\b(?:100%|completamente|totalmente)\s+(?:sicuro|sicura|sicuri|sicure|senza allergeni|senza glutine|senza lattosio)\b/gi,
+    /\b(?:garantito|garantita|garantiti|garantite)\s+(?:sicuro|sicura|sicuri|sicure|senza allergeni|senza glutine|senza lattosio)\b/gi,
+    /\b(?:senza allergeni|privo di allergeni|priva di allergeni|privi di allergeni|prive di allergeni)\b/gi,
   ];
+  const negationPattern = /\b(?:not|no|never|cannot|can't|do not|don't|non|mai)\b|n't/i;
 
   for (const pattern of unsafePatterns) {
-    expect(normalized).not.toMatch(pattern);
+    for (const match of normalized.matchAll(pattern)) {
+      const index = match.index ?? 0;
+      const precedingContext = normalized.slice(Math.max(0, index - 40), index);
+      expect(precedingContext, `Unsafe guarantee found: "${match[0]}"`).toMatch(negationPattern);
+    }
   }
 }
 
