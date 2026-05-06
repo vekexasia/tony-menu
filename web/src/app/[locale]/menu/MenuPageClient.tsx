@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef, useMemo } from "react";
 import { useTranslations } from "@/lib/i18n";
 import Image from "next/image";
+import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { useRestaurantStore, useCategories, useLabels } from "@/stores/restaurantStore";
 import { MenuItemDetail } from "@/components/menu/MenuItemDetail";
@@ -11,6 +12,7 @@ import { RestaurantInfoModal } from "@/components/menu/RestaurantInfoModal";
 import { PromotionPopup } from "@/components/menu/PromotionPopup";
 import { ChatPanel } from "@/components/chat/ChatPanel";
 import { useChatActionsStore, useScrollToCategoryId, useChatFilterCriteria } from "@/stores/chatActionsStore";
+import { useSelectionStore } from "@/stores/selectionStore";
 import type { MenuEntry } from "@/lib/types";
 import { recordView } from "@/lib/api";
 import { viewDedupeKey } from "@/lib/utils";
@@ -40,6 +42,8 @@ export default function MenuPageClient() {
   const { data, isLoading, error, loadRestaurant } = useRestaurantStore();
   const categories = useCategories();
   const allLabels = useLabels();
+  const initializeSelection = useSelectionStore((state) => state.initialize);
+  const selectionCount = useSelectionStore((state) => state.count());
   const [showNotice, setShowNotice] = useState(true);
   const [showPromo, setShowPromo] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -64,6 +68,10 @@ export default function MenuPageClient() {
     }
     loadRestaurant();
   }, [loadRestaurant]);
+
+  useEffect(() => {
+    if (data?.id) initializeSelection(data.id);
+  }, [data?.id, initializeSelection]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -128,6 +136,7 @@ export default function MenuPageClient() {
   const noticeEnabled = noticeConfig?.enabled !== false;
   const defaultNoticeText = `${t("allergyWarning")}\n\n${t("frozenIngredientsNote")}`;
   const noticeText = noticeConfig?.i18n?.[locale]?.text || noticeConfig?.text || defaultNoticeText;
+  const selectionEnabled = data?.features?.selection === true;
 
   const filteredCategories = useMemo(() => {
     if (!currentMenu) return [];
@@ -267,6 +276,15 @@ export default function MenuPageClient() {
             <input type="text" placeholder={t("searchDish")} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="flex-1 outline-none text-gray-700 text-center" />
           </div>
         </div>
+        {selectionEnabled && selectionCount > 0 && (
+          <Link
+            href={`/${locale}/selection`}
+            className="absolute top-4 right-4 z-20 rounded-full bg-primary text-white shadow-lg px-3 py-2 text-xs font-semibold"
+            aria-label={`My selection (${selectionCount})`}
+          >
+            My selection ({selectionCount})
+          </Link>
+        )}
         <div className="relative -mt-20 mx-3 z-20">
           <button onClick={() => setShowInfoModal(true)} className="w-full bg-white rounded-xl shadow-lg p-4 text-center">
             <h1 className="text-xl font-semibold text-primary tracking-wide" style={{ fontFamily: data.theme?.font || "inherit" }}>
@@ -391,7 +409,7 @@ export default function MenuPageClient() {
       )}
 
       {hasChatWorker && (data?.features?.aiChat === true || aiChatDevOverride) && <ChatPanel locale={locale} />}
-      <MenuItemDetail item={selectedItem} onClose={() => setSelectedItem(null)} locale={locale} />
+      <MenuItemDetail item={selectedItem} onClose={() => setSelectedItem(null)} locale={locale} selectionEnabled={selectionEnabled} />
 
       {data && <RestaurantInfoModal restaurant={data} isOpen={showInfoModal} onClose={() => setShowInfoModal(false)} />}
       {data.promotion && <PromotionPopup promotion={data.promotion} open={showPromo} onClose={handlePromoClose} />}

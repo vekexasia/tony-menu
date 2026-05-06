@@ -7,6 +7,7 @@ import { useState, useCallback } from 'react';
 import type { MenuEntry } from '@/lib/types';
 import { useBackButtonClose } from '@/hooks/useBackButtonClose';
 import { useRestaurantStore, useLabels } from '@/stores/restaurantStore';
+import { useSelectionStore } from '@/stores/selectionStore';
 import { getContentDisplayText, getLocalizedContentValue } from '@/lib/content-presentation';
 import { resolveLabel } from '@/lib/label-colors';
 import { MenuItemDetailView } from './views/MenuItemDetailView';
@@ -17,12 +18,18 @@ interface MenuItemDetailProps {
   locale: string;
   /** When true, price is hidden — used in AI chat context where pricing should not be displayed. */
   hidePrice?: boolean;
+  /** When true, diners can add this item to their local menu selection. */
+  selectionEnabled?: boolean;
 }
 
-export function MenuItemDetail({ item, onClose, locale, hidePrice }: MenuItemDetailProps) {
+export function MenuItemDetail({ item, onClose, locale, hidePrice, selectionEnabled }: MenuItemDetailProps) {
   const t = useTranslations();
   const restaurantId = useRestaurantStore((state) => state.data?.id);
   const allLabels = useLabels();
+  const quantity = useSelectionStore((state) => item ? state.quantityFor(item.id) : 0);
+  const addToSelection = useSelectionStore((state) => state.add);
+  const incrementSelection = useSelectionStore((state) => state.increment);
+  const decrementSelection = useSelectionStore((state) => state.decrement);
   const [isClosing, setIsClosing] = useState(false);
 
   const handleClose = useCallback(() => {
@@ -41,6 +48,7 @@ export function MenuItemDetail({ item, onClose, locale, hidePrice }: MenuItemDet
   const description =
     getLocalizedContentValue({ description: item.description, i18n: item.i18n }, 'description', locale)
     || item.description;
+  const canSelect = selectionEnabled && !item.outOfStock;
 
   return (
     <Dialog as="div" className="relative z-50" open={!!item} onClose={handleClose} static>
@@ -93,6 +101,39 @@ export function MenuItemDetail({ item, onClose, locale, hidePrice }: MenuItemDet
               allergyWarning={t('allergyWarning')}
               frozenWarning={t('frozenProduct')}
             />
+            {canSelect && (
+              <div className="sticky bottom-0 bg-white border-t border-gray-100 p-4 shadow-[0_-6px_20px_rgba(0,0,0,0.08)]">
+                {quantity > 0 ? (
+                  <div className="flex items-center justify-center gap-4">
+                    <button
+                      type="button"
+                      onClick={() => decrementSelection(item.id)}
+                      aria-label="Decrease quantity"
+                      className="w-12 h-12 rounded-full bg-gray-100 text-gray-700 text-2xl font-semibold flex items-center justify-center"
+                    >
+                      -
+                    </button>
+                    <span className="min-w-10 text-center text-lg font-bold text-gray-800">{quantity}</span>
+                    <button
+                      type="button"
+                      onClick={() => incrementSelection(item.id)}
+                      aria-label="Increase quantity"
+                      className="w-12 h-12 rounded-full bg-primary text-white text-2xl font-semibold flex items-center justify-center"
+                    >
+                      +
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => addToSelection(item.id)}
+                    className="w-full bg-primary text-white py-3 rounded-full font-semibold hover:opacity-90 transition-opacity"
+                  >
+                    Add to selection
+                  </button>
+                )}
+              </div>
+            )}
           </DialogPanel>
         </motion.div>
       </div>

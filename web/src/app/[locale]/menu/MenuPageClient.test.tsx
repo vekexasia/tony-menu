@@ -38,6 +38,7 @@ vi.mock('@/components/menu/PromotionPopup', () => ({ PromotionPopup: () => null 
 
 import { useRestaurantStore } from '@/stores/restaurantStore';
 import { useChatActionsStore } from '@/stores/chatActionsStore';
+import { useSelectionStore, SELECTION_STORAGE_KEY } from '@/stores/selectionStore';
 import MenuPageClient from './MenuPageClient';
 
 function resetStores() {
@@ -51,6 +52,8 @@ function resetStores() {
     scrollToCategoryId: null,
     chatFilterCriteria: null,
   } as never);
+  useSelectionStore.setState({ restaurantId: null, updatedAt: 0, lines: [] });
+  localStorage.clear();
 }
 
 beforeEach(() => {
@@ -62,7 +65,7 @@ beforeEach(() => {
 const menuData = {
   id: 'demo-restaurant',
   name: 'Trattoria Demo',
-  features: { aiChat: true },
+  features: { aiChat: true, selection: false },
   menus: [
     { id: 'menu-food', code: 'food', title: 'Food', published: true, sortOrder: 0 },
   ],
@@ -157,5 +160,34 @@ describe('MenuPageClient', () => {
     expect(credit).toHaveAttribute('href', 'https://github.com/vekexasia/tony-menu');
     expect(credit).toHaveAttribute('target', '_blank');
     expect(credit).toHaveAttribute('rel', 'noopener noreferrer');
+  });
+
+  it('hides the selection header link when menu selection is disabled', () => {
+    localStorage.setItem(SELECTION_STORAGE_KEY, JSON.stringify({
+      version: 1,
+      restaurantId: 'demo-restaurant',
+      updatedAt: Date.now(),
+      lines: [{ entryId: 'entry-bruschetta', quantity: 1, addedAt: Date.now() }],
+    }));
+    useRestaurantStore.setState({ data: menuData, isLoading: false } as never);
+
+    render(<MenuPageClient />);
+
+    expect(screen.queryByRole('link', { name: /My selection/i })).not.toBeInTheDocument();
+  });
+
+  it('shows the selection header link when enabled and count is greater than zero', async () => {
+    localStorage.setItem(SELECTION_STORAGE_KEY, JSON.stringify({
+      version: 1,
+      restaurantId: 'demo-restaurant',
+      updatedAt: Date.now(),
+      lines: [{ entryId: 'entry-bruschetta', quantity: 2, addedAt: Date.now() }],
+    }));
+    useRestaurantStore.setState({ data: { ...menuData, features: { aiChat: true, selection: true } }, isLoading: false } as never);
+
+    render(<MenuPageClient />);
+
+    const selectionLink = await screen.findByRole('link', { name: /My selection \(2\)/i });
+    expect(selectionLink).toHaveAttribute('href', '/it/selection');
   });
 });
