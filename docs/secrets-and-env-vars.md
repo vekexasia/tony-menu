@@ -2,7 +2,7 @@
 
 Complete reference for all secrets and environment variables across the stack.
 
-For local setup, prefer `npm run initialize`. It creates `.risto-menu.local.json` as the single source of truth and generates the framework-specific files below. Edit `.risto-menu.local.json`, then run `npm run config:generate` instead of editing generated files directly.
+For local setup, prefer `npm run initialize`. It creates `.tony-menu.local.json` as the single source of truth and generates the framework-specific files below. Edit `.tony-menu.local.json`, then run `npm run config:generate` instead of editing generated files directly.
 
 ## Backend — Cloudflare Worker (`menu-backend`)
 
@@ -29,7 +29,7 @@ wrangler secret put OPENAI_API_KEY
 | `ALLOWED_ORIGINS` | `https://your-domain.example` | Comma-separated CORS origins |
 | `ALLOWED_HOST_SUFFIXES` | `.your-pages-project.pages.dev` | Optional. Hostname suffixes allowed over HTTPS (Pages preview deploys). |
 
-`PUBLIC_MENU_BUCKET` is an R2 binding, not a string var. The repo's initializer/config generator emits the `[[r2_buckets]]` block in `backend/wrangler.toml` when `.risto-menu.local.json` includes an R2 bucket name.
+`PUBLIC_MENU_BUCKET` is an R2 binding, not a string var. The repo's initializer/config generator emits the `[[r2_buckets]]` block in `backend/wrangler.toml` when `.tony-menu.local.json` includes an R2 bucket name.
 
 ---
 
@@ -99,7 +99,7 @@ sent via the `Cf-Access-Jwt-Assertion` header to the backend.
 
 These files may contain real secrets and must stay out of git history:
 
-- `.risto-menu.local.json`
+- `.tony-menu.local.json`
 - `backend/.dev.vars`
 - `backend/wrangler.toml`
 - `web/.env.local`
@@ -118,7 +118,7 @@ These files may contain real secrets and must stay out of git history:
    ```
 
 2. Set up Cloudflare Access apps for the Pages project + the backend Worker
-   (Zero Trust → Access → Applications). Copy the AUD tag into `.risto-menu.local.json`,
+   (Zero Trust → Access → Applications). Copy the AUD tag into `.tony-menu.local.json`,
    then run `npm run config:generate`.
 
 3. Set Worker secrets (see above).

@@ -1,6 +1,6 @@
-# Risto web
+# TonyMenu web
 
-Next.js frontend for Risto Menu, deployed to Cloudflare Pages.
+Next.js frontend for TonyMenu, deployed to Cloudflare Pages.
 
 ## Stack
 

@@ -1,4 +1,4 @@
-# Self-hosting Risto Menu
+# Self-hosting TonyMenu
 
 This guide walks through deploying your own copy on Cloudflare. Everything
 here is free-tier-friendly; you only pay if traffic or AI chat usage grows.
@@ -44,8 +44,8 @@ You'll also need:
 ## 2. Clone and install
 
 ```bash
-git clone https://github.com/vekexasia/risto-menu.git
-cd risto-menu
+git clone https://github.com/vekexasia/tony-menu.git
+cd tony-menu
 
 npm ci
 cd web/workers/chat && npm ci && cd -
@@ -86,7 +86,7 @@ npx wrangler r2 bucket create menu-public
 
 Enable public access on the bucket in the Cloudflare dashboard and copy the
 `pub-XXXX.r2.dev` URL (or attach a custom domain). You will store both the
-public URL and the bucket name in `.risto-menu.local.json` so `config:generate`
+public URL and the bucket name in `.tony-menu.local.json` so `config:generate`
 can emit the `PUBLIC_MENU_BUCKET` binding automatically.
 
 ### 3.4 Generate config files
@@ -98,7 +98,7 @@ cd ..
 npm run initialize
 ```
 
-It creates `.risto-menu.local.json`, which is the source of truth for local setup and is gitignored because it may contain secrets. It then generates the runtime files required by Next.js and Wrangler:
+It creates `.tony-menu.local.json`, which is the source of truth for local setup and is gitignored because it may contain secrets. It then generates the runtime files required by Next.js and Wrangler:
 
 - `backend/wrangler.toml`
 - `backend/.dev.vars`
@@ -106,13 +106,13 @@ It creates `.risto-menu.local.json`, which is the source of truth for local setu
 - `web/workers/chat/wrangler.toml`
 - `web/workers/chat/.dev.vars`
 
-Do not edit the generated files directly. Edit `.risto-menu.local.json`, then regenerate:
+Do not edit the generated files directly. Edit `.tony-menu.local.json`, then regenerate:
 
 ```bash
 npm run config:generate
 ```
 
-The script asks for your D1/KV IDs, URLs, R2 bucket name/public URL, Cloudflare Access values, admin emails, and chat provider. If you do not have the IDs yet, accept the placeholders, create the resources above, update `.risto-menu.local.json`, then run `npm run config:generate`.
+The script asks for your D1/KV IDs, URLs, R2 bucket name/public URL, Cloudflare Access values, admin emails, and chat provider. If you do not have the IDs yet, accept the placeholders, create the resources above, update `.tony-menu.local.json`, then run `npm run config:generate`.
 
 ---
 

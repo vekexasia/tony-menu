@@ -1,4 +1,5 @@
 {
+  "name": "tony-menu",
   "private": true,
   "scripts": {
     "health": "npm --workspace web run lint && npm --workspace web run test:run && npm --workspace backend run check && npm --workspace backend run test:run && npm --workspace backend run test:migration-sql && cd web/workers/chat && npm run test:run",

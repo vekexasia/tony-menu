@@ -5,8 +5,8 @@ import { randomBytes } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 
-const CONFIG_PATH = '.risto-menu.local.json';
-const GENERATED_HEADER = '# Generated from .risto-menu.local.json. Do not edit directly.\n# Run: npm run config:generate\n';
+const CONFIG_PATH = '.tony-menu.local.json';
+const GENERATED_HEADER = '# Generated from .tony-menu.local.json. Do not edit directly.\n# Run: npm run config:generate\n';
 const yes = process.argv.includes('--yes') || process.argv.includes('-y');
 const force = process.argv.includes('--force') || process.argv.includes('-f');
 const generateOnly = process.argv.includes('--generate');
@@ -109,9 +109,9 @@ function withProfileDefaults(config) {
     next.frontendUrl = next.frontendUrl || 'https://menu.example.com';
     next.apiUrl = next.apiUrl || 'https://menu-api.example.com';
     next.chatUrl = next.chatUrl || 'https://menu-chat.example.workers.dev';
-    next.backend.workerName = next.backend.workerName === 'menu-backend' ? 'risto-menu-demo-api' : next.backend.workerName;
-    next.backend.d1DatabaseName = next.backend.d1DatabaseName === 'menu-db' ? 'risto-menu-demo-db' : next.backend.d1DatabaseName;
-    next.chat.workerName = next.chat.workerName === 'menu-chat' ? 'risto-menu-demo-chat' : next.chat.workerName;
+    next.backend.workerName = next.backend.workerName === 'menu-backend' ? 'tony-menu-demo-api' : next.backend.workerName;
+    next.backend.d1DatabaseName = next.backend.d1DatabaseName === 'menu-db' ? 'tony-menu-demo-db' : next.backend.d1DatabaseName;
+    next.chat.workerName = next.chat.workerName === 'menu-chat' ? 'tony-menu-demo-chat' : next.chat.workerName;
     next.chat.llmProvider = next.chat.llmProvider === 'openai' ? 'workers-ai' : next.chat.llmProvider;
     next.chat.llmModel = next.chat.llmModel === 'gpt-5.4-mini' ? '@cf/meta/llama-3.3-70b-instruct-fp8-fast' : next.chat.llmModel;
     next.chat.dailyAiRequestLimit = next.chat.dailyAiRequestLimit || '200';
@@ -253,19 +253,19 @@ NEXT_PUBLIC_DEFAULT_LOCALE=${config.defaultLocale}
 function printNextSteps(config) {
   console.log('\nNext steps\n');
   if (config.backend.d1DatabaseId.startsWith('00000000')) {
-    console.log('1. Create D1, then update `.risto-menu.local.json` and run `npm run config:generate`:');
+    console.log('1. Create D1, then update `.tony-menu.local.json` and run `npm run config:generate`:');
     console.log(`   cd backend && npx wrangler d1 create ${config.backend.d1DatabaseName}`);
   } else {
     console.log('1. D1 database id is set.');
   }
   if (/^0{32}$/.test(config.chat.kvNamespaceId)) {
-    console.log('2. Create chat KV, then update `.risto-menu.local.json` and run `npm run config:generate`:');
+    console.log('2. Create chat KV, then update `.tony-menu.local.json` and run `npm run config:generate`:');
     console.log('   cd web/workers/chat && npx wrangler kv namespace create MENU_CACHE');
   } else {
     console.log('2. Chat KV namespace id is set.');
   }
   if (!config.backend.r2BucketName) {
-    console.log('3. Optional but recommended: create an R2 bucket, update `.risto-menu.local.json`, then run `npm run config:generate`:');
+    console.log('3. Optional but recommended: create an R2 bucket, update `.tony-menu.local.json`, then run `npm run config:generate`:');
     console.log('   cd backend && npx wrangler r2 bucket create menu-public');
   } else {
     console.log(`3. R2 bucket name is set (${config.backend.r2BucketName}).`);
@@ -287,8 +287,8 @@ function printNextSteps(config) {
   }
 }
 
-console.log('\nRisto Menu initializer\n');
-console.log('`.risto-menu.local.json` is the source of truth. Runtime env/TOML files are generated from it.');
+console.log('\nTonyMenu initializer\n');
+console.log('`.tony-menu.local.json` is the source of truth. Runtime env/TOML files are generated from it.');
 console.log('Generated files and the source-of-truth file are gitignored.\n');
 
 let config = loadConfig();

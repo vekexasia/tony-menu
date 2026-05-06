@@ -1,4 +1,4 @@
-# Risto Menu
+# TonyMenu
 
 Self-hostable digital restaurant menu, built on Next.js and Cloudflare. Diners scan a QR code, browse a localized menu, and can ask an optional AI assistant for recommendations.
 
@@ -61,17 +61,17 @@ Prerequisites: Node 22+, npm 10+, Git, and a Cloudflare account with Zero Trust 
 
 Quick local setup:
 ```bash
-git clone https://github.com/vekexasia/risto-menu.git
-cd risto-menu
+git clone https://github.com/vekexasia/tony-menu.git
+cd tony-menu
 
 npm ci
 cd web/workers/chat && npm ci && cd -
 
-# Create .risto-menu.local.json and generated local config files
+# Create .tony-menu.local.json and generated local config files
 npm run initialize
 
 # If you accepted placeholder IDs, provision Cloudflare resources, update
-# .risto-menu.local.json, then regenerate
+# .tony-menu.local.json, then regenerate
 # (also create an R2 bucket if you want image uploads/catalog snapshots)
 (cd backend && npx wrangler d1 create menu-db)
 (cd web/workers/chat && npx wrangler kv namespace create MENU_CACHE)
@@ -118,7 +118,7 @@ cd web/workers/chat && npm run deploy
 
 ## Upgrading
 
-When pulling a new version of Risto Menu into an existing self-hosted deployment:
+When pulling a new version of TonyMenu into an existing self-hosted deployment:
 
 ```bash
 git pull

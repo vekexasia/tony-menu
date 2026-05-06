@@ -38,7 +38,7 @@ out/
 # committed. Each clone copies the .example file and fills in their own values.
 backend/wrangler.toml
 web/workers/chat/wrangler.toml
-.risto-menu.local.json
+.tony-menu.local.json
 
 # Build outputs
 build/

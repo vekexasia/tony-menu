@@ -370,6 +370,17 @@ export default function MenuPageClient() {
         ))}
       </div>
 
+      <footer className="px-4 py-8 text-center">
+        <a
+          href="https://github.com/vekexasia/tony-menu"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          {t("poweredByTonyMenu")}
+        </a>
+      </footer>
+
       {showNotice && noticeEnabled && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl">

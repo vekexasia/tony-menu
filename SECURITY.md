@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-Risto Menu does not currently issue numbered releases. Security fixes land on
+TonyMenu does not currently issue numbered releases. Security fixes land on
 the `main` branch and are deployed to the canonical hosted instance.
 Self-hosters should track `main`.
 

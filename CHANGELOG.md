@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Risto Menu.
+All notable changes to TonyMenu.
 
 The project does not currently publish versioned releases — each entry is dated
 and corresponds to a deploy of `main`. If you fork and tag, switch to the

@@ -147,4 +147,15 @@ describe('MenuPageClient', () => {
     if (previous === undefined) delete process.env.NEXT_PUBLIC_CHAT_WORKER_URL;
     else process.env.NEXT_PUBLIC_CHAT_WORKER_URL = previous;
   });
+
+  it('renders a localized TonyMenu GitHub credit at the end of the menu', () => {
+    useRestaurantStore.setState({ data: menuData, isLoading: false } as never);
+
+    render(<MenuPageClient />);
+
+    const credit = screen.getByRole('link', { name: 'poweredByTonyMenu' });
+    expect(credit).toHaveAttribute('href', 'https://github.com/vekexasia/tony-menu');
+    expect(credit).toHaveAttribute('target', '_blank');
+    expect(credit).toHaveAttribute('rel', 'noopener noreferrer');
+  });
 });

@@ -1,6 +1,6 @@
-# Risto backend
+# TonyMenu backend
 
-Cloudflare Worker REST API for Risto Menu.
+Cloudflare Worker REST API for TonyMenu.
 
 ## Stack
 

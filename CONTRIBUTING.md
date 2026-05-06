@@ -1,4 +1,4 @@
-# Contributing to Risto Menu
+# Contributing to TonyMenu
 
 Thanks for your interest. This project is source-available under the
 [PolyForm Noncommercial License 1.0.0](LICENSE) — anyone may read, fork,

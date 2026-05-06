@@ -111,5 +111,5 @@ _none_
 
 ---
 
-Full diff: https://github.com/vekexasia/risto-menu/compare/PREV_TAG...THIS_TAG
-Changelog entry: [CHANGELOG.md](https://github.com/vekexasia/risto-menu/blob/main/CHANGELOG.md)
+Full diff: https://github.com/vekexasia/tony-menu/compare/PREV_TAG...THIS_TAG
+Changelog entry: [CHANGELOG.md](https://github.com/vekexasia/tony-menu/blob/main/CHANGELOG.md)

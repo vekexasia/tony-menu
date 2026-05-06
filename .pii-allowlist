@@ -10,7 +10,8 @@
 # ── Public URLs that aren't PII ──
 ^https?://(www\.)?keepachangelog\.com(/.*)?$
 ^https?://(www\.)?nextjs\.org(/.*)?$
-^https?://github\.com/vekexasia/risto-menu(/.*)?$
+^https?://github\.com/vekexasia/tony-menu(\.git)?(/.*)?$
+(?i)^tony-?menu$
 # RFC 2606 reserved example domains used in test fixtures.
 ^https?://([a-z0-9-]+\.)*example\.(com|org|net)(/.*)?$
 # test.local fake hostname used in worker integration tests.

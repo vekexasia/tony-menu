@@ -42,10 +42,10 @@ function makeConfig(overrides = {}) {
 }
 
 test('config:generate includes PUBLIC_MENU_BUCKET binding when r2BucketName is configured', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'risto-init-'));
+  const dir = mkdtempSync(join(tmpdir(), 'tony-init-'));
   mkdirSync(join(dir, 'scripts'), { recursive: true });
   copyFileSync(join(process.cwd(), 'scripts/initialize.mjs'), join(dir, 'scripts/initialize.mjs'));
-  writeFileSync(join(dir, '.risto-menu.local.json'), JSON.stringify(makeConfig(), null, 2));
+  writeFileSync(join(dir, '.tony-menu.local.json'), JSON.stringify(makeConfig(), null, 2));
 
   execFileSync(process.execPath, ['scripts/initialize.mjs', '--generate'], {
     cwd: dir,
@@ -61,10 +61,10 @@ test('config:generate includes PUBLIC_MENU_BUCKET binding when r2BucketName is c
 });
 
 test('config:generate omits PUBLIC_MENU_BUCKET binding when r2BucketName is blank', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'risto-init-'));
+  const dir = mkdtempSync(join(tmpdir(), 'tony-init-'));
   mkdirSync(join(dir, 'scripts'), { recursive: true });
   copyFileSync(join(process.cwd(), 'scripts/initialize.mjs'), join(dir, 'scripts/initialize.mjs'));
-  writeFileSync(join(dir, '.risto-menu.local.json'), JSON.stringify(makeConfig({ backend: { r2BucketName: '' } }), null, 2));
+  writeFileSync(join(dir, '.tony-menu.local.json'), JSON.stringify(makeConfig({ backend: { r2BucketName: '' } }), null, 2));
 
   execFileSync(process.execPath, ['scripts/initialize.mjs', '--generate'], {
     cwd: dir,
