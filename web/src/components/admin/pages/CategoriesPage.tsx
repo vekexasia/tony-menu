@@ -22,7 +22,7 @@ interface Category {
   i18n?: I18nData;
 }
 
-const STANDARD_TRANSLATION_LOCALES = ["it", "en", "de", "fr", "es", "nl", "ru", "pt"];
+const STANDARD_TRANSLATION_LOCALES = ["it", "en", "de", "fr", "es", "nl", "ru", "pt", "hu"];
 const TRANSLATE_THROTTLE_MS = 2200;
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 

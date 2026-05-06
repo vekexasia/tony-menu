@@ -46,8 +46,8 @@ migrations_dir = "drizzle"
 # Optional: enable when you have an R2 bucket for catalog snapshots / images.
 # [[r2_buckets]]
 # binding = "PUBLIC_MENU_BUCKET"
-# bucket_name = "risto-public-menu"
-# preview_bucket_name = "risto-public-menu"
+# bucket_name = "menu-public"
+# preview_bucket_name = "menu-public"
 
 
 # Optional for demo deployments: reset demo data every hour.

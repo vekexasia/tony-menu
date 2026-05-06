@@ -139,6 +139,7 @@ const PRIMARY_LOCALE_LABELS: Record<string, string> = {
   nl: "Nederlands",
   ru: "Русский",
   pt: "Português",
+  hu: "Magyar",
 };
 
 export default function EditEntryPage() {

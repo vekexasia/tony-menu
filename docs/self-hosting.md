@@ -85,7 +85,9 @@ npx wrangler r2 bucket create menu-public
 ```
 
 Enable public access on the bucket in the Cloudflare dashboard and copy the
-`pub-XXXX.r2.dev` URL (or attach a custom domain).
+`pub-XXXX.r2.dev` URL (or attach a custom domain). You will store both the
+public URL and the bucket name in `.risto-menu.local.json` so `config:generate`
+can emit the `PUBLIC_MENU_BUCKET` binding automatically.
 
 ### 3.4 Generate config files
 
@@ -110,7 +112,7 @@ Do not edit the generated files directly. Edit `.risto-menu.local.json`, then re
 npm run config:generate
 ```
 
-The script asks for your D1/KV IDs, URLs, Cloudflare Access values, admin emails, and chat provider. If you do not have the IDs yet, accept the placeholders, create the resources above, update `.risto-menu.local.json`, then run `npm run config:generate`.
+The script asks for your D1/KV IDs, URLs, R2 bucket name/public URL, Cloudflare Access values, admin emails, and chat provider. If you do not have the IDs yet, accept the placeholders, create the resources above, update `.risto-menu.local.json`, then run `npm run config:generate`.
 
 ---
 

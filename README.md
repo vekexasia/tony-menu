@@ -72,8 +72,10 @@ npm run initialize
 
 # If you accepted placeholder IDs, provision Cloudflare resources, update
 # .risto-menu.local.json, then regenerate
+# (also create an R2 bucket if you want image uploads/catalog snapshots)
 (cd backend && npx wrangler d1 create menu-db)
 (cd web/workers/chat && npx wrangler kv namespace create MENU_CACHE)
+(cd backend && npx wrangler r2 bucket create menu-public)
 npm run config:generate
 
 # Apply local migrations

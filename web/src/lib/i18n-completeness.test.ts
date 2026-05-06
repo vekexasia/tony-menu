@@ -8,6 +8,7 @@ import es_msgs from '../../messages/es.json';
 import nl_msgs from '../../messages/nl.json';
 import ru_msgs from '../../messages/ru.json';
 import pt_msgs from '../../messages/pt.json';
+import hu_msgs from '../../messages/hu.json';
 import vec_msgs from '../../messages/vec.json';
 
 type RawMessages = Record<string, string | Record<string, string>>;
@@ -34,6 +35,7 @@ const locales: [string, RawMessages][] = [
   ['nl', nl_msgs as RawMessages],
   ['ru', ru_msgs as RawMessages],
   ['pt', pt_msgs as RawMessages],
+  ['hu', hu_msgs as RawMessages],
   ['vec', vec_msgs as RawMessages],
 ];
 

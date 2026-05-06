@@ -20,6 +20,8 @@ env:
   DEMO_BACKEND_NAME: risto-menu-demo-api
   DEMO_PAGES_PROJECT: risto-menu-demo
   DEMO_D1_DATABASE_NAME: risto-menu-demo-db
+  DEMO_R2_BUCKET_NAME: ${{ vars.DEMO_R2_BUCKET_NAME }}
+  DEMO_R2_PUBLIC_URL: ${{ vars.DEMO_R2_PUBLIC_URL }}
 
 jobs:
   deploy-demo:
@@ -54,6 +56,14 @@ jobs:
           npm --workspace web run lint
           npm --workspace web run test:run
 
+      - name: Validate demo R2 config
+        env:
+          DEMO_R2_BUCKET_NAME: ${{ env.DEMO_R2_BUCKET_NAME }}
+          DEMO_R2_PUBLIC_URL: ${{ env.DEMO_R2_PUBLIC_URL }}
+        run: |
+          test -n "$DEMO_R2_BUCKET_NAME" || (echo "Missing repo/org variable DEMO_R2_BUCKET_NAME" && exit 1)
+          test -n "$DEMO_R2_PUBLIC_URL" || (echo "Missing repo/org variable DEMO_R2_PUBLIC_URL" && exit 1)
+
       - name: Write demo backend config
         working-directory: backend
         run: |
@@ -73,7 +83,7 @@ jobs:
           DEMO_MODE = "true"
           ALLOWED_ORIGINS = "${DEMO_WEB_DOMAIN}"
           ALLOWED_HOST_SUFFIXES = ".pages.dev"
-          R2_PUBLIC_URL = ""
+          R2_PUBLIC_URL = "${DEMO_R2_PUBLIC_URL}"
 
           [triggers]
           crons = ["0 * * * *"]
@@ -83,6 +93,11 @@ jobs:
           database_name = "${DEMO_D1_DATABASE_NAME}"
           database_id = "${{ vars.DEMO_D1_DATABASE_ID }}"
           migrations_dir = "drizzle"
+
+          [[r2_buckets]]
+          binding = "PUBLIC_MENU_BUCKET"
+          bucket_name = "${DEMO_R2_BUCKET_NAME}"
+          preview_bucket_name = "${DEMO_R2_BUCKET_NAME}"
           EOF
 
       - name: Apply demo D1 migrations
