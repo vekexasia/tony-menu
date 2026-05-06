@@ -10,6 +10,7 @@ export const healthRoutes = new Hono<AppBindings>()
       service: config.serviceName,
       environment: config.appEnv,
       apiVersion: config.apiVersion,
+      commitSha: config.commitSha,
       databaseMode: config.databaseMode,
       hasPublicMenuBucket: config.hasPublicMenuBucket,
       authConfigured: config.auth.configured,

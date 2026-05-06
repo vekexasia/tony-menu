@@ -78,6 +78,7 @@ jobs:
           APP_ENV = "staging"
           API_VERSION = "v1"
           SERVICE_NAME = "risto-menu-demo-api"
+          COMMIT_SHA = "${GITHUB_SHA}"
           DEMO_MODE = "true"
           ALLOWED_ORIGINS = "${DEMO_WEB_DOMAIN}"
           ALLOWED_HOST_SUFFIXES = ".pages.dev"
@@ -155,6 +156,7 @@ jobs:
           NEXT_PUBLIC_API_URL: ${{ env.DEMO_API_DOMAIN }}
           NEXT_PUBLIC_CHAT_WORKER_URL: ${{ env.DEMO_CHAT_DOMAIN }}
           NEXT_PUBLIC_DEFAULT_LOCALE: en
+          NEXT_PUBLIC_COMMIT_SHA: ${{ github.sha }}
         run: npm run build:cf
 
       - name: Deploy demo frontend
@@ -174,7 +176,8 @@ jobs:
         env:
           DEMO_API_DOMAIN: ${{ env.DEMO_API_DOMAIN }}
         run: |
-          curl --fail --retry 8 --retry-all-errors --retry-delay 5 --max-time 20 "${DEMO_API_DOMAIN}/health"
+          curl --fail --retry 8 --retry-all-errors --retry-delay 5 --max-time 20 "${DEMO_API_DOMAIN}/health" -o /tmp/health.json
+          node -e "const h=require('/tmp/health.json'); if (h.commitSha !== process.env.GITHUB_SHA) throw new Error('API SHA mismatch: ' + h.commitSha)"
           curl --fail --retry 8 --retry-all-errors --retry-delay 5 --max-time 20 "${DEMO_API_DOMAIN}/catalog" -o /tmp/catalog.json
           node -e "const c=require('/tmp/catalog.json'); const entries=(c.categories||[]).flatMap(cat => cat.entries || []); if (c.restaurant?.name !== 'Trattoria Demo') throw new Error('demo fixture not loaded: ' + c.restaurant?.name); if (entries.length < 10) throw new Error('demo catalog too small'); if (!Array.isArray(c.menus) || c.menus.length === 0) throw new Error('demo has no menus')"
 
@@ -187,6 +190,7 @@ jobs:
           grep -q "_next/static" /tmp/menu.html
           grep -R "${DEMO_API_DOMAIN}" web/out/_next/static
           grep -R "${DEMO_CHAT_DOMAIN}" web/out/_next/static
+          grep -R "${GITHUB_SHA}" web/out/_next/static
           ! grep -R "http://localhost\|http://127\.0\.0\.1\|:8787\|:8788" web/out/_next/static
           grep -R "Tony" web/out/_next/static
 

@@ -18,6 +18,14 @@ describe('GET /health', () => {
     expect(typeof body.timestamp).toBe('string');
   });
 
+  it('includes backend commit SHA when provided by deployment', async () => {
+    const res = await testRequest('/health', {
+      env: { COMMIT_SHA: 'ced844cafebabedeadbeef' },
+    });
+    const body = await res.json() as Record<string, unknown>;
+    expect(body.commitSha).toBe('ced844cafebabedeadbeef');
+  });
+
   it('reports auth configured when issuer + audience set', async () => {
     const res = await testRequest('/health');
     const body = await res.json() as Record<string, unknown>;

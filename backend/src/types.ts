@@ -5,6 +5,7 @@ export interface Env {
   APP_ENV?: string;
   API_VERSION?: string;
   SERVICE_NAME?: string;
+  COMMIT_SHA?: string;
   ALLOWED_ORIGINS?: string;
   ALLOWED_HOST_SUFFIXES?: string;
   DB?: D1Database;
@@ -24,6 +25,7 @@ export interface RuntimeConfig {
   appEnv: AppEnvironment;
   apiVersion: string;
   serviceName: string;
+  commitSha: string;
   databaseMode: 'd1' | 'unconfigured';
   hasPublicMenuBucket: boolean;
   auth: {

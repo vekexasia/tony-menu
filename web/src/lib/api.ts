@@ -35,6 +35,16 @@ import type {
 export type { CatalogResponse, MeResponse, AnalyticsResponse, ViewedItemRanked, MenuViewBreakdown, HourlyTotal };
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+const WEB_COMMIT_SHA = process.env.NEXT_PUBLIC_COMMIT_SHA || 'dev';
+
+interface HealthResponse {
+  commitSha?: string;
+}
+
+export interface DeploymentInfo {
+  webCommitSha: string;
+  apiCommitSha: string;
+}
 
 interface FetchOptions {
   method?: string;
@@ -104,6 +114,21 @@ export function getAdminCatalog() {
 /** Get the current user's profile + admin status. */
 export function getMe() {
   return apiFetch<MeResponse>('/admin/me', { auth: true });
+}
+
+export async function getDeploymentInfo(): Promise<DeploymentInfo> {
+  try {
+    const health = await apiFetch<HealthResponse>('/health');
+    return {
+      webCommitSha: WEB_COMMIT_SHA,
+      apiCommitSha: health.commitSha || 'unknown',
+    };
+  } catch {
+    return {
+      webCommitSha: WEB_COMMIT_SHA,
+      apiCommitSha: 'unknown',
+    };
+  }
 }
 
 // ── Admin API ────────────────────────────────────────────────────────

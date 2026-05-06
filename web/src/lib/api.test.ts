@@ -35,6 +35,47 @@ describe('getCatalog', () => {
   });
 });
 
+// ── getDeploymentInfo ────────────────────────────────────────────────────────
+describe('getDeploymentInfo', () => {
+  const ORIG_API_URL = process.env.NEXT_PUBLIC_API_URL;
+  const ORIG_COMMIT_SHA = process.env.NEXT_PUBLIC_COMMIT_SHA;
+
+  beforeEach(() => {
+    process.env.NEXT_PUBLIC_API_URL = 'https://api.test';
+    process.env.NEXT_PUBLIC_COMMIT_SHA = 'web-sha-123';
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ commitSha: 'api-sha-456' }), { status: 200 }),
+    ));
+  });
+
+  afterEach(() => {
+    process.env.NEXT_PUBLIC_API_URL = ORIG_API_URL;
+    process.env.NEXT_PUBLIC_COMMIT_SHA = ORIG_COMMIT_SHA;
+    vi.unstubAllGlobals();
+    vi.resetModules();
+  });
+
+  it('returns web and API deployment commit SHAs', async () => {
+    const { getDeploymentInfo } = await import('./api');
+
+    await expect(getDeploymentInfo()).resolves.toEqual({
+      webCommitSha: 'web-sha-123',
+      apiCommitSha: 'api-sha-456',
+    });
+    expect(fetch).toHaveBeenCalledWith(`${process.env.NEXT_PUBLIC_API_URL}/health`, expect.any(Object));
+  });
+
+  it('uses unknown for API SHA when health cannot be loaded', async () => {
+    (fetch as ReturnType<typeof vi.fn>).mockRejectedValue(new TypeError('Failed to fetch'));
+    const { getDeploymentInfo } = await import('./api');
+
+    await expect(getDeploymentInfo()).resolves.toEqual({
+      webCommitSha: 'web-sha-123',
+      apiCommitSha: 'unknown',
+    });
+  });
+});
+
 // ── recordView ─────────────────────────────────────────────────────────────────
 
 describe('recordView', () => {

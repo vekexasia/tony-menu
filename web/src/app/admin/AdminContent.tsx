@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { getMe, type MeResponse } from "@/lib/api";
+import { getDeploymentInfo, getMe, type DeploymentInfo, type MeResponse } from "@/lib/api";
 import { useRestaurantStore, useCategories } from "@/stores/restaurantStore";
 import { useTranslations } from "@/lib/i18n";
 import { AdminLocalePicker } from "./AdminLocalePicker";
@@ -35,6 +35,7 @@ export default function AdminContent({
     user: null,
     isAdmin: false,
   });
+  const [deploymentInfo, setDeploymentInfo] = useState<DeploymentInfo | null>(null);
   const { data, loadRestaurant } = useRestaurantStore();
   const categories = useCategories();
 
@@ -70,6 +71,10 @@ export default function AdminContent({
       loadRestaurant();
     }
   }, [authState.isAdmin, loadRestaurant]);
+
+  useEffect(() => {
+    getDeploymentInfo().then(setDeploymentInfo);
+  }, []);
 
   const handleSignOut = () => {
     // Cloudflare Access logout — clears the session cookie and redirects.
@@ -350,6 +355,11 @@ export default function AdminContent({
                       : t("layout.itemsMissingTranslationsPlural").replace("{count}", String(entriesWithMissingTranslations)))}
               </div>
             </div>
+            {deploymentInfo && (
+              <div style={{ marginTop: 8, fontSize: 10.5, color: "#9A9590", fontFamily: "monospace", lineHeight: 1.4, wordBreak: "break-all" }} title={`Web ${deploymentInfo.webCommitSha} · API ${deploymentInfo.apiCommitSha}`}>
+                Web {deploymentInfo.webCommitSha.slice(0, 7)} · API {deploymentInfo.apiCommitSha.slice(0, 7)}
+              </div>
+            )}
           </div>
         </aside>
 
