@@ -41,12 +41,12 @@ describe('PUT /admin/settings', () => {
       method: 'PUT',
       headers,
       env,
-      body: { name: 'Trattoria Nuova', payoff: 'Il sapore di casa', aiChatEnabled: true, selectionEnabled: true },
+      body: { name: 'Updated Restaurant', payoff: 'Updated tagline', aiChatEnabled: true, selectionEnabled: true },
     });
     expect(res.status).toBe(200);
     const row = db.raw.prepare('SELECT name, payoff, ai_chat_enabled, selection_enabled FROM settings WHERE id = 1').get() as SettingsRow;
-    expect(row.name).toBe('Trattoria Nuova');
-    expect(row.payoff).toBe('Il sapore di casa');
+    expect(row.name).toBe('Updated Restaurant');
+    expect(row.payoff).toBe('Updated tagline');
     expect(row.ai_chat_enabled).toBe(1);
     expect(row.selection_enabled).toBe(1);
   });

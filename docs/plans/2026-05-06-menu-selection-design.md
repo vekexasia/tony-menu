@@ -67,7 +67,7 @@ When enabled:
 
 Only the item detail modal can add items. There are no direct `+` controls on list cards.
 
-Tony's floating chat button remains unchanged. There is no bottom dock.
+The floating chat button remains unchanged. There is no bottom dock.
 
 ## Selection page
 
