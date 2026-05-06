@@ -50,6 +50,13 @@
       "when": 1746374400000,
       "tag": "0006_menu_available_days",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1778000000000,
+      "tag": "0007_selection_enabled",
+      "breakpoints": true
     }
   ]
 }

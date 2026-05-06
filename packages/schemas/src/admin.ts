@@ -14,6 +14,7 @@ export const UpdateSettingsBodySchema = z.object({
   promotionAlert: PromotionAlertSchema.optional(),
   chatAgentPrompt: z.string().optional(),
   aiChatEnabled: z.boolean().optional(),
+  selectionEnabled: z.boolean().optional(),
   primaryLocale: z.string().min(2).max(10).regex(/^[a-z0-9-]+$/).optional(),
   enabledLocales: z.array(z.string()).nullable().optional(),
   disabledLocales: z.array(z.string()).nullable().optional(),

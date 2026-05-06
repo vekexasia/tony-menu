@@ -3,7 +3,7 @@ import { testRequest } from './helpers';
 import { createTestDb, makeDbEnv, seedSettings, seedMenu, seedCategory, seedEntry, seedMembership, signTestJwt, installJwksMock } from './helpers/db';
 
 type CatalogBody = {
-  restaurant: { name: string };
+  restaurant: { name: string; features?: { selection?: boolean } };
   menus: Array<{ id: string; code: string; title: string; published: boolean }>;
   categories: Array<{ id: string; entries: Array<{ name: string; price: number; menuIds: string[]; hidden: boolean }> }>;
 };
@@ -34,6 +34,7 @@ describe('GET /catalog', () => {
     expect(res.status).toBe(200);
     const body = await res.json() as CatalogBody;
     expect(body.restaurant.name).toBe('Trattoria Test');
+    expect(body.restaurant.features?.selection).toBe(false);
     expect(body.menus).toHaveLength(1);
     expect(body.menus[0].code).toBe('food');
     expect(body.menus[0].published).toBe(true);
@@ -96,6 +97,17 @@ describe('GET /catalog', () => {
     const body = await res.json() as CatalogBody;
     const entry = body.categories[0].entries.find(e => e.name === 'Tiramisu')!;
     expect(entry.menuIds.sort()).toEqual(['menu-a', 'menu-b']);
+  });
+});
+
+describe('menu selection feature flag', () => {
+  it('surfaces enabled selection in the catalog response', async () => {
+    const db = createTestDb();
+    seedSettings(db, { selection_enabled: 1 });
+    const res = await testRequest('/catalog', { env: makeDbEnv(db) });
+    expect(res.status).toBe(200);
+    const body = await res.json() as CatalogBody;
+    expect(body.restaurant.features?.selection).toBe(true);
   });
 });
 

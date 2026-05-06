@@ -58,6 +58,7 @@ admin.get('/settings', ...base, async (c) => {
     .select({
       chatAgentPrompt: schema.settings.chatAgentPrompt,
       aiChatEnabled: schema.settings.aiChatEnabled,
+      selectionEnabled: schema.settings.selectionEnabled,
       promotionAlert: schema.settings.promotionAlert,
       publicationState: schema.settings.publicationState,
       primaryLocale: schema.settings.primaryLocale,
@@ -73,6 +74,7 @@ admin.get('/settings', ...base, async (c) => {
   return c.json({
     chatAgentPrompt: row.chatAgentPrompt ?? '',
     aiChatEnabled: row.aiChatEnabled,
+    selectionEnabled: row.selectionEnabled,
     promotionAlert: row.promotionAlert ?? null,
     publicationState: row.publicationState,
     primaryLocale: row.primaryLocale,
@@ -95,6 +97,7 @@ admin.put('/settings', ...base, async (c) => {
   if (body.promotionAlert !== undefined) updates.promotionAlert = body.promotionAlert;
   if (body.chatAgentPrompt !== undefined) updates.chatAgentPrompt = body.chatAgentPrompt;
   if (body.aiChatEnabled !== undefined) updates.aiChatEnabled = body.aiChatEnabled;
+  if (body.selectionEnabled !== undefined) updates.selectionEnabled = body.selectionEnabled;
   if (body.primaryLocale !== undefined) updates.primaryLocale = body.primaryLocale;
   if (body.enabledLocales !== undefined) updates.enabledLocales = body.enabledLocales;
   if (body.disabledLocales !== undefined) updates.disabledLocales = body.disabledLocales;
