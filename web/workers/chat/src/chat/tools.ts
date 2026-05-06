@@ -98,7 +98,7 @@ export const TOOLS: ToolDefinition[] = [
   },
   {
     name: 'search_by_allergens',
-    description: 'Find menu items that do NOT contain specific allergens. Use when the user has dietary restrictions or allergies. Returns a list of safe items.',
+    description: 'Find menu items whose listed allergens do not include specific allergens according to menu data. Use when the user has dietary restrictions, allergies, or intolerances. This does not guarantee safety; the diner must confirm with the waiter before ordering.',
     serverSide: true,
     parameters: [
       {
