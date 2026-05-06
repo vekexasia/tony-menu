@@ -1,4 +1,4 @@
-# Tony Allergy Safety Implementation Plan
+# Chat Allergy Safety Implementation Plan
 
 > **REQUIRED SUB-SKILL:** Use the executing-plans skill to implement this plan task-by-task.
 
@@ -146,7 +146,7 @@ git commit -m "chat: require waiter confirmation for allergy questions"
 Run:
 
 ```bash
-cd /home/vekex/git/personale/risto-menu/.worktrees/tony-allergy-safety
+cd <repo>
 sed -n '1,220p' web/workers/chat/src/chat/provider.ts
 sed -n '1,120p' web/workers/chat/src/chat/openai.ts
 sed -n '1,120p' web/workers/chat/src/chat/anthropic.ts
