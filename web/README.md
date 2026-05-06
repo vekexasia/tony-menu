@@ -25,6 +25,15 @@ npm run test:run     # Vitest unit tests
 npm run test:e2e     # Playwright, starts dev server
 ```
 
+## Live LLM chat tests
+
+Normal test runs skip live LLM calls unless `RUN_LIVE_LLM_TESTS=1` and provider credentials are set. The allergy safety smoke test currently runs against OpenAI:
+
+```bash
+cd web/workers/chat
+RUN_LIVE_LLM_TESTS=1 LLM_PROVIDER=openai OPENAI_API_KEY=... LLM_MODEL=... npm run test:run -- src/chat/allergy-safety.live.test.ts
+```
+
 ## Environment variables
 
 Common local `.env.local` values:
