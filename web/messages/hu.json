@@ -74,7 +74,10 @@
     "chipBestForKids": "Gyerekeknek",
     "emptyGreeting": "Hi, I am Tony. Ask me for menu advice, wine pairings, allergens, or what to order.",
     "inputPlaceholder": "Ask Tony about the menu...",
-    "confirmSelection": "Megerősítés"
+    "confirmSelection": "Megerősítés",
+    "voiceDictation": "Hangdiktálás",
+    "voiceLanguage": "Diktálás nyelve",
+    "voiceListening": "Felvétel folyamatban"
   },
   "admin": {
     "common.cancel": "Cancel",

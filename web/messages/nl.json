@@ -74,7 +74,10 @@
     "chipBestForKids": "Voor kinderen",
     "emptyGreeting": "Hallo, ik ben Tony. Vraag me om menuadvies, wijncombinaties, allergenen of wat je kunt bestellen.",
     "inputPlaceholder": "Vraag Tony over het menu...",
-    "confirmSelection": "Bevestigen"
+    "confirmSelection": "Bevestigen",
+    "voiceDictation": "Spraakdicteren",
+    "voiceLanguage": "Dicteertaal",
+    "voiceListening": "Opname bezig"
   },
   "admin": {
     "common.cancel": "Cancel",

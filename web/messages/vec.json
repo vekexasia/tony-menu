@@ -74,7 +74,10 @@
     "chipBestForKids": "Par putei",
     "emptyGreeting": "Ciao, son Tony. Domàndame consigli sul menù, vin, alergeni o cossa ordinar.",
     "inputPlaceholder": "Domanda a Tony sul menù...",
-    "confirmSelection": "Conferma"
+    "confirmSelection": "Conferma",
+    "voiceDictation": "Detadura vocałe",
+    "voiceLanguage": "Lengua de detadura",
+    "voiceListening": "Registrassion in corso"
   },
   "admin": {
     "common.cancel": "Cancel",

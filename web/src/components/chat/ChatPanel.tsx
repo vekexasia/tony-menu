@@ -161,7 +161,7 @@ export function ChatPanel({ locale }: ChatPanelProps) {
               )}
 
               {/* Input */}
-              <ChatInput onSend={sendMessage} onCancel={cancel} />
+              <ChatInput locale={locale} onSend={sendMessage} onCancel={cancel} />
             </motion.div>
           </>
         )}

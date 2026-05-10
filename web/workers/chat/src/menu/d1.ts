@@ -24,7 +24,7 @@ interface EntryRow {
   price_unit: string | null;
   out_of_stock: number; // SQLite boolean stored as 0/1
   frozen: number;       // SQLite boolean stored as 0/1
-  visibility: string;
+  hidden: number;       // SQLite boolean stored as 0/1
   allergens: string | null;  // JSON TEXT
   i18n: string | null;       // JSON TEXT
 }
@@ -57,21 +57,16 @@ function parseJson<T>(raw: string | null): T | null {
   }
 }
 
-/**
- * Maps D1 `visibility` (single string) to the array shape expected by CachedEntry.
- * 'hidden' → [] (not shown to customers)
- * anything else → [value]
- */
-function visibilityToArray(v: string): string[] {
-  if (v === 'hidden') return [];
-  return [v];
+interface MembershipRow {
+  entry_id: string;
+  menu_id: string;
 }
 
 // ── Main fetch ────────────────────────────────────────────────────────────────
 
 export async function fetchMenuFromD1(env: Env): Promise<MenuDataCache> {
   // Fire all queries in parallel for minimum latency.
-  const [settingsResult, categoriesResult, entriesResult, variantsResult, extrasResult] = await Promise.all([
+  const [settingsResult, categoriesResult, entriesResult, membershipsResult, variantsResult, extrasResult] = await Promise.all([
     env.DB.prepare(
       'SELECT name, payoff, chat_agent_prompt FROM settings WHERE id = 1'
     ).first<SettingsRow>(),
@@ -81,8 +76,15 @@ export async function fetchMenuFromD1(env: Env): Promise<MenuDataCache> {
     ).all<CategoryRow>(),
 
     env.DB.prepare(
-      'SELECT id, category_id, name, description, price, price_unit, out_of_stock, frozen, visibility, allergens, i18n FROM menu_entries ORDER BY sort_order ASC'
+      'SELECT id, category_id, name, description, price, price_unit, out_of_stock, frozen, hidden, allergens, i18n FROM menu_entries ORDER BY sort_order ASC'
     ).all<EntryRow>(),
+
+    env.DB.prepare(
+      `SELECT mem.entry_id, mem.menu_id
+       FROM menu_entry_memberships mem
+       INNER JOIN menus m ON m.id = mem.menu_id
+       WHERE m.published = 1`
+    ).all<MembershipRow>(),
 
     env.DB.prepare(
       'SELECT id, name, description, selections, i18n FROM menu_variants ORDER BY sort_order ASC'
@@ -97,7 +99,17 @@ export async function fetchMenuFromD1(env: Env): Promise<MenuDataCache> {
     throw new Error('Settings row not found in D1');
   }
 
-  // ── Group entries by categoryId for O(n) assembly ─────────────────────────
+  // ── Group memberships and entries by categoryId for O(n) assembly ──────────
+  const menuIdsByEntry = new Map<string, string[]>();
+  for (const row of membershipsResult.results) {
+    const menuIds = menuIdsByEntry.get(row.entry_id);
+    if (menuIds) {
+      menuIds.push(row.menu_id);
+    } else {
+      menuIdsByEntry.set(row.entry_id, [row.menu_id]);
+    }
+  }
+
   const entriesByCategory = new Map<string, CachedEntry[]>();
   for (const row of entriesResult.results) {
     const entry: CachedEntry = {
@@ -110,7 +122,7 @@ export async function fetchMenuFromD1(env: Env): Promise<MenuDataCache> {
       outOfStock: row.out_of_stock === 1,
       containsFrozenIngredient: row.frozen === 1,
       allergens: parseJson<string[]>(row.allergens) ?? [],
-      menuVisibility: visibilityToArray(row.visibility),
+      menuVisibility: row.hidden === 1 ? [] : menuIdsByEntry.get(row.id) ?? [],
       i18n: parseJson<Record<string, Record<string, string>>>(row.i18n) ?? undefined,
     };
 

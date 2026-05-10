@@ -74,7 +74,10 @@
     "chipBestForKids": "Para crianças",
     "emptyGreeting": "Olá, sou o Tony. Pergunte-me sobre recomendações, harmonizações, alergénios ou o que pedir.",
     "inputPlaceholder": "Pergunte ao Tony sobre o menu...",
-    "confirmSelection": "Confirmar"
+    "confirmSelection": "Confirmar",
+    "voiceDictation": "Ditado por voz",
+    "voiceLanguage": "Idioma do ditado",
+    "voiceListening": "Gravação em curso"
   },
   "admin": {
     "common.cancel": "Cancel",

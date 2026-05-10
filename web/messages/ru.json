@@ -74,7 +74,10 @@
     "chipBestForKids": "Для детей",
     "emptyGreeting": "Привет, я Tony. Спросите меня о меню, винных сочетаниях, аллергенах или что заказать.",
     "inputPlaceholder": "Спросите Tony о меню...",
-    "confirmSelection": "Подтвердить"
+    "confirmSelection": "Подтвердить",
+    "voiceDictation": "Голосовой ввод",
+    "voiceLanguage": "Язык голосового ввода",
+    "voiceListening": "Идет запись"
   },
   "admin": {
     "common.cancel": "Cancel",
