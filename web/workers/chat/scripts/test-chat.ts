@@ -13,7 +13,6 @@ const RESTAURANT_ID = process.env.TEST_RESTAURANT_ID || 'demo-restaurant';
 // ANSI colours
 const RED = '\x1b[31m';
 const GREEN = '\x1b[32m';
-const YELLOW = '\x1b[33m';
 const CYAN = '\x1b[36m';
 const BOLD = '\x1b[1m';
 const RESET = '\x1b[0m';

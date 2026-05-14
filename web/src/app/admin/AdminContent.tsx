@@ -271,6 +271,7 @@ export default function AdminContent({
         <aside className="adm-sidebar" style={{ width: 230, background: "#fff", borderRight: "1px solid #E7E5E4", display: "flex", flexDirection: "column", padding: "14px 0", flexShrink: 0, overflowY: "auto" }}>
           {data?.headerImage && (
             <div style={{ margin: "0 10px 14px", borderRadius: 8, overflow: "hidden", position: "relative", height: 90, flexShrink: 0 }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={data.headerImage}
                 alt={restaurantName}

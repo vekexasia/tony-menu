@@ -21,8 +21,12 @@ vi.mock('@/lib/api', () => ({
 
 vi.mock('next/image', () => ({
   default: (props: Record<string, unknown>) => {
-    // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
-    const { src, alt, fill: _fill, priority: _priority, sizes: _sizes, unoptimized: _unoptimized, ...rest } = props;
+    const { src, alt, ...rest } = props;
+    delete rest.fill;
+    delete rest.priority;
+    delete rest.sizes;
+    delete rest.unoptimized;
+    // eslint-disable-next-line @next/next/no-img-element
     return <img src={src as string} alt={alt as string} {...rest} />;
   },
 }));

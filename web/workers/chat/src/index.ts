@@ -14,7 +14,7 @@ function json(data: unknown, status: number, corsHeaders: Record<string, string>
   });
 }
 
-export default {
+const worker = {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
@@ -107,3 +107,5 @@ export default {
     return new Response('Not Found', { status: 404 });
   },
 };
+
+export default worker;

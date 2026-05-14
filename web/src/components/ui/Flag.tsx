@@ -15,11 +15,13 @@ export function Flag({ code, customUrl, label, className, decorative }: FlagProp
   const ariaHidden = decorative ? true : undefined;
 
   if (customUrl) {
+    // eslint-disable-next-line @next/next/no-img-element
     return <img src={customUrl} alt={alt} className={cls} aria-hidden={ariaHidden} />;
   }
 
   const bundled = getBundledFlagSvg(code);
   if (bundled) {
+    // eslint-disable-next-line @next/next/no-img-element
     return <img src={svgToDataUrl(bundled)} alt={alt} className={cls} aria-hidden={ariaHidden} />;
   }
 

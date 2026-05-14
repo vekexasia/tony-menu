@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ApiError,
   createMenu,
@@ -55,7 +55,7 @@ export default function MenusPage() {
   const [deleting, setDeleting] = useState<AdminMenu | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     setLoadError(null);
     try {
       const res = await fetchMenus();
@@ -63,11 +63,11 @@ export default function MenusPage() {
     } catch (err) {
       setLoadError(err instanceof Error ? err.message : t("menus.loadError"));
     }
-  };
+  }, [t]);
 
   useEffect(() => {
     refresh().finally(() => setLoading(false));
-  }, []);
+  }, [refresh]);
 
   // Compute per-menu entry counts using the public catalog the store already loaded.
   // (Memberships drive these counts, so categories alone aren't enough.)

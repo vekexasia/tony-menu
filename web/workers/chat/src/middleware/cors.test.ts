@@ -21,7 +21,7 @@ function makeEnv({
 }: MakeEnvOptions = {}) {
   return {
     DB: {
-      prepare: (_sql: string) => ({
+      prepare: () => ({
         bind: (domain: string) => ({
           first: async () => verifiedDomains.includes(domain) ? { restaurant_id: 'resto-1' } : null,
         }),

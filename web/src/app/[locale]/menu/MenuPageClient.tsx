@@ -126,12 +126,6 @@ export default function MenuPageClient() {
     return publishedMenus[0];
   }, [data, typeParam, publishedMenus]);
 
-  const isVisible = (entry: MenuEntry) => {
-    if (!currentMenu) return false;
-    if (entry.hidden) return false;
-    return entry.menuIds.includes(currentMenu.id);
-  };
-
   const noticeConfig = data?.info?.menuNotice;
   const noticeEnabled = noticeConfig?.enabled !== false;
   const defaultNoticeText = `${t("allergyWarning")}\n\n${t("frozenIngredientsNote")}`;
@@ -140,6 +134,10 @@ export default function MenuPageClient() {
 
   const filteredCategories = useMemo(() => {
     if (!currentMenu) return [];
+    const isVisible = (entry: MenuEntry) => {
+      if (entry.hidden) return false;
+      return entry.menuIds.includes(currentMenu.id);
+    };
     return categories
       .map((cat) => ({
         ...cat,

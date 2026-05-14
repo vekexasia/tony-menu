@@ -398,7 +398,8 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
 
   const openLabelModal = (label: AdminLabel, tab: string) => {
     const raw = (label.i18n as Record<string, Record<string, string>>) ?? {};
-    const { [primaryLocale]: _omit, ...rest } = raw;
+    const rest = { ...raw };
+    delete rest[primaryLocale];
     setTranslatingLabel(label);
     setTranslatingLabelName(label.name);
     setTranslatingLabelColor(label.color);
@@ -409,7 +410,8 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
   const handleSaveTranslations = async () => {
     if (!translatingLabel) return;
     try {
-      const { [primaryLocale]: _omit, ...i18nToSave } = translatingLabelI18n;
+      const i18nToSave = { ...translatingLabelI18n };
+      delete i18nToSave[primaryLocale];
       await updateLabel(translatingLabel.id, { name: translatingLabelName.trim(), color: translatingLabelColor, i18n: i18nToSave });
       setLabelsList((prev) => prev.map((l) => l.id === translatingLabel.id ? { ...l, name: translatingLabelName.trim(), color: translatingLabelColor, i18n: i18nToSave } : l));
       setTranslatingLabel(null);
