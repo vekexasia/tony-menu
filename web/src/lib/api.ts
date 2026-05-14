@@ -141,6 +141,7 @@ export interface CustomLocale {
 export interface RestaurantSettingsResponse {
   chatAgentPrompt: string;
   aiChatEnabled: boolean;
+  aiVoiceEnabled: boolean;
   selectionEnabled: boolean;
   promotionAlert: Record<string, unknown> | null;
   publicationState: string;

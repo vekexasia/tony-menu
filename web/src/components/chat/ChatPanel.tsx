@@ -12,9 +12,10 @@ import type { MenuEntry } from '@/lib/types';
 
 interface ChatPanelProps {
   locale: string;
+  voiceEnabled?: boolean;
 }
 
-export function ChatPanel({ locale }: ChatPanelProps) {
+export function ChatPanel({ locale, voiceEnabled = false }: ChatPanelProps) {
   const t = useTranslations('chat');
   const panelState = useChatPanelState();
   const unreadCount = useChatUnread();
@@ -161,7 +162,7 @@ export function ChatPanel({ locale }: ChatPanelProps) {
               )}
 
               {/* Input */}
-              <ChatInput locale={locale} onSend={sendMessage} onCancel={cancel} />
+              <ChatInput locale={locale} onSend={sendMessage} onCancel={cancel} voiceEnabled={voiceEnabled} />
             </motion.div>
           </>
         )}

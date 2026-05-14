@@ -187,6 +187,7 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
 
   const [chatAgentPrompt, setChatAgentPrompt] = useState("");
   const [aiChatEnabled, setAiChatEnabled] = useState(false);
+  const [aiVoiceEnabled, setAiVoiceEnabled] = useState(false);
   const [selectionEnabled, setSelectionEnabled] = useState(false);
 
   const { data: restaurantStoreData, loadRestaurant } = useRestaurantStore();
@@ -249,6 +250,7 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
         const settings = await fetchRestaurantSettings();
         setChatAgentPrompt(settings.chatAgentPrompt || "");
         setAiChatEnabled(settings.aiChatEnabled ?? false);
+        setAiVoiceEnabled((settings.aiChatEnabled && settings.aiVoiceEnabled) ?? false);
         setSelectionEnabled(settings.selectionEnabled ?? false);
         setPublished(settings.publicationState === "published");
         if (settings.primaryLocale) setPrimaryLocaleDraft(settings.primaryLocale);
@@ -321,6 +323,7 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
         socials: { facebook, instagram, whatsapp },
         chatAgentPrompt,
         aiChatEnabled,
+        aiVoiceEnabled: aiChatEnabled && aiVoiceEnabled,
         selectionEnabled,
         primaryLocale: primaryLocaleDraft,
         enabledLocales,
@@ -1059,8 +1062,17 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
                     <p style={{ fontSize: 13, fontWeight: 600, color: T.dark, margin: 0 }}>{t("settings.chat.enable")}</p>
                     <p style={{ fontSize: 11, color: T.off, margin: "2px 0 0" }}>{t("settings.chat.enableDesc")}</p>
                   </div>
-                  <Toggle on={aiChatEnabled} onChange={() => setAiChatEnabled((v) => !v)} />
+                  <Toggle on={aiChatEnabled} onChange={() => setAiChatEnabled((v) => { if (v) setAiVoiceEnabled(false); return !v; })} />
                 </div>
+                {aiChatEnabled && (
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, marginLeft: 18, padding: "10px 12px", background: "#fff", borderRadius: 6, border: `1px solid ${T.border}` }}>
+                    <div>
+                      <p style={{ fontSize: 13, fontWeight: 600, color: T.dark, margin: 0 }}>Voice dictation</p>
+                      <p style={{ fontSize: 11, color: T.off, margin: "2px 0 0" }}>Show the microphone and language picker inside Tony chat.</p>
+                    </div>
+                    <Toggle on={aiVoiceEnabled} onChange={() => setAiVoiceEnabled((v) => !v)} />
+                  </div>
+                )}
                 <Field label={t("settings.chat.promptLabel")}>
                   <textarea
                     className="adm-textarea"

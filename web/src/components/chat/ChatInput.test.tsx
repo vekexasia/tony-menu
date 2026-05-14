@@ -30,10 +30,10 @@ class FakeSpeechRecognition {
   }
 }
 
-function renderInput(onSend = vi.fn(), locale = 'it') {
+function renderInput(onSend = vi.fn(), locale = 'it', voiceEnabled = true) {
   render(
     <I18nProvider locale={locale}>
-      <ChatInput locale={locale} onSend={onSend} onCancel={vi.fn()} />
+      <ChatInput locale={locale} onSend={onSend} onCancel={vi.fn()} voiceEnabled={voiceEnabled} />
     </I18nProvider>,
   );
   return { onSend };
@@ -112,5 +112,12 @@ describe('ChatInput voice dictation', () => {
     renderInput();
 
     expect(screen.queryByLabelText('Dettatura vocale')).not.toBeInTheDocument();
+  });
+
+  it('does not render microphone controls when voice dictation is disabled by the restaurant', () => {
+    renderInput(vi.fn(), 'it', false);
+
+    expect(screen.queryByLabelText('Dettatura vocale')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Lingua dettatura')).not.toBeInTheDocument();
   });
 });

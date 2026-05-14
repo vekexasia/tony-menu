@@ -11,6 +11,37 @@ are written for LLM coding assistants picking up this codebase in a future
 session: they call out file moves, schema invariants, and gotchas that aren't
 obvious from the diff but matter when extending the feature.
 
+
+## 2026-05-14 — Voice dictation admin toggle
+
+### Added
+
+- `ai_voice_enabled` setting and migration `0008_ai_voice_enabled.sql`.
+- Admin Chat AI sub-toggle for Tony voice dictation, shown only when AI chat is enabled.
+- Public catalog `features.aiVoice` flag used by the frontend to show or hide the microphone and dictation language picker.
+
+### Changed
+
+- Turning off Tony AI chat also turns off voice dictation.
+- Demo reset enables voice dictation alongside Tony chat.
+
+### Breaking changes
+
+None. Existing deployments default voice dictation to disabled until the owner enables it.
+
+### Upgrade actions
+
+```bash
+git pull
+(cd backend && npx wrangler d1 migrations apply risto-menu-demo-db --remote --config wrangler.demo.toml)
+(cd backend && npm run deploy)
+(cd web && npm run deploy:cf)
+```
+
+### Notes for AI agents
+
+- Voice dictation is intentionally a sub-feature of `aiChat`: API responses coerce `aiVoice` false when `aiChat` is false.
+- Keep backend schema, `packages/schemas`, web API types, and `RestaurantData.features` in sync when adding feature flags.
 ## 2026-05-04 — Day-of-week menu scheduling
 
 ### Added

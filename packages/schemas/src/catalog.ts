@@ -120,6 +120,7 @@ export const CatalogRestaurantSchema = z.object({
   openingSchedule: OpeningScheduleSchema.nullable(),
   features: z.object({
     aiChat: z.boolean(),
+    aiVoice: z.boolean(),
     selection: z.boolean(),
     primaryLocale: z.string().optional(),
     enabledLocales: z.array(z.string()).nullable().optional(),

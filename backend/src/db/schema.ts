@@ -57,6 +57,7 @@ export const settings = sqliteTable('settings', {
   promotionAlert: jsonColumn<Record<string, unknown> | null>('promotion_alert'),
   chatAgentPrompt: text('chat_agent_prompt'),
   aiChatEnabled: integer('ai_chat_enabled', { mode: 'boolean' }).default(false).notNull(),
+  aiVoiceEnabled: integer('ai_voice_enabled', { mode: 'boolean' }).default(false).notNull(),
   selectionEnabled: integer('selection_enabled', { mode: 'boolean' }).default(false).notNull(),
   primaryLocale: text('primary_locale').default('it').notNull(),
   enabledLocales: jsonColumn<string[] | null>('enabled_locales'),

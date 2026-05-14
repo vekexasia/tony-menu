@@ -375,6 +375,7 @@ export async function buildCatalogFromDb(
       openingSchedule: restaurant.openingSchedule,
       features: {
         aiChat: restaurant.aiChatEnabled,
+        aiVoice: restaurant.aiChatEnabled && restaurant.aiVoiceEnabled,
         selection: restaurant.selectionEnabled,
         primaryLocale: restaurant.primaryLocale,
         enabledLocales: restaurant.enabledLocales,

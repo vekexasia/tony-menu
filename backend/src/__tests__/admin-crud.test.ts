@@ -5,7 +5,7 @@ import { createTestDb, makeDbEnv, seedSettings, seedMenu, seedCategory, seedEntr
 beforeAll(() => installJwksMock());
 
 const ADMIN_UID = 'admin-1';
-type SettingsRow = { name: string; payoff: string; ai_chat_enabled: number; selection_enabled: number };
+type SettingsRow = { name: string; payoff: string; ai_chat_enabled: number; ai_voice_enabled: number; selection_enabled: number };
 type PublicationRow = { publication_state: string };
 type CategoryRow = { name: string };
 type EntryRow = { name: string; price: number; hidden: number; out_of_stock: number; category_id: string };
@@ -27,9 +27,10 @@ describe('GET /admin/settings', () => {
     const { env, headers } = await adminEnv();
     const res = await testRequest('/admin/settings', { headers, env });
     expect(res.status).toBe(200);
-    const body = await res.json() as { publicationState: string; aiChatEnabled: boolean; selectionEnabled: boolean };
+    const body = await res.json() as { publicationState: string; aiChatEnabled: boolean; aiVoiceEnabled: boolean; selectionEnabled: boolean };
     expect(body).toHaveProperty('publicationState');
     expect(body).toHaveProperty('aiChatEnabled');
+    expect(body).toHaveProperty('aiVoiceEnabled');
     expect(body.selectionEnabled).toBe(false);
   });
 });
@@ -41,14 +42,29 @@ describe('PUT /admin/settings', () => {
       method: 'PUT',
       headers,
       env,
-      body: { name: 'Updated Restaurant', payoff: 'Updated tagline', aiChatEnabled: true, selectionEnabled: true },
+      body: { name: 'Updated Restaurant', payoff: 'Updated tagline', aiChatEnabled: true, aiVoiceEnabled: true, selectionEnabled: true },
     });
     expect(res.status).toBe(200);
-    const row = db.raw.prepare('SELECT name, payoff, ai_chat_enabled, selection_enabled FROM settings WHERE id = 1').get() as SettingsRow;
+    const row = db.raw.prepare('SELECT name, payoff, ai_chat_enabled, ai_voice_enabled, selection_enabled FROM settings WHERE id = 1').get() as SettingsRow;
     expect(row.name).toBe('Updated Restaurant');
     expect(row.payoff).toBe('Updated tagline');
     expect(row.ai_chat_enabled).toBe(1);
+    expect(row.ai_voice_enabled).toBe(1);
     expect(row.selection_enabled).toBe(1);
+  });
+
+  it('turns voice dictation off when Tony chat is disabled', async () => {
+    const { db, env, headers } = await adminEnv();
+    const res = await testRequest('/admin/settings', {
+      method: 'PUT',
+      headers,
+      env,
+      body: { aiChatEnabled: false, aiVoiceEnabled: true },
+    });
+    expect(res.status).toBe(200);
+    const row = db.raw.prepare('SELECT ai_chat_enabled, ai_voice_enabled FROM settings WHERE id = 1').get() as SettingsRow;
+    expect(row.ai_chat_enabled).toBe(0);
+    expect(row.ai_voice_enabled).toBe(0);
   });
 });
 

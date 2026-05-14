@@ -3,7 +3,7 @@ import { testRequest } from './helpers';
 import { createTestDb, makeDbEnv, seedSettings, seedMenu, seedCategory, seedEntry, seedMembership, signTestJwt, installJwksMock } from './helpers/db';
 
 type CatalogBody = {
-  restaurant: { name: string; features?: { selection?: boolean } };
+  restaurant: { name: string; features?: { aiChat?: boolean; aiVoice?: boolean; selection?: boolean } };
   menus: Array<{ id: string; code: string; title: string; published: boolean }>;
   categories: Array<{ id: string; entries: Array<{ name: string; price: number; menuIds: string[]; hidden: boolean }> }>;
 };
@@ -108,6 +108,21 @@ describe('menu selection feature flag', () => {
     expect(res.status).toBe(200);
     const body = await res.json() as CatalogBody;
     expect(body.restaurant.features?.selection).toBe(true);
+  });
+
+  it('surfaces voice dictation only when Tony chat is enabled too', async () => {
+    const db = createTestDb();
+    seedSettings(db, { ai_chat_enabled: 0, ai_voice_enabled: 1 });
+    let res = await testRequest('/catalog', { env: makeDbEnv(db) });
+    let body = await res.json() as CatalogBody;
+    expect(body.restaurant.features?.aiChat).toBe(false);
+    expect(body.restaurant.features?.aiVoice).toBe(false);
+
+    seedSettings(db, { ai_chat_enabled: 1, ai_voice_enabled: 1 });
+    res = await testRequest('/catalog', { env: makeDbEnv(db) });
+    body = await res.json() as CatalogBody;
+    expect(body.restaurant.features?.aiChat).toBe(true);
+    expect(body.restaurant.features?.aiVoice).toBe(true);
   });
 });
 

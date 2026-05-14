@@ -408,7 +408,7 @@ export default function MenuPageClient() {
         </div>
       )}
 
-      {hasChatWorker && (data?.features?.aiChat === true || aiChatDevOverride) && <ChatPanel locale={locale} />}
+      {hasChatWorker && (data?.features?.aiChat === true || aiChatDevOverride) && <ChatPanel locale={locale} voiceEnabled={data?.features?.aiVoice === true} />}
       <MenuItemDetail item={selectedItem} onClose={() => setSelectedItem(null)} locale={locale} selectionEnabled={selectionEnabled} />
 
       {data && <RestaurantInfoModal restaurant={data} isOpen={showInfoModal} onClose={() => setShowInfoModal(false)} />}

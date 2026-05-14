@@ -29,6 +29,7 @@ interface ChatInputProps {
   locale: string;
   onSend: (message: string) => void;
   onCancel: () => void;
+  voiceEnabled?: boolean;
 }
 
 const SPEECH_LANGUAGE_STORAGE_KEY = 'risto-chat-speech-language';
@@ -45,7 +46,7 @@ const SPEECH_LANGUAGE_OPTIONS = [
   { value: 'ru-RU', label: 'RU', flag: 'ru' },
 ] as const;
 
-const SPEECH_LANGUAGE_VALUES = new Set(SPEECH_LANGUAGE_OPTIONS.map(option => option.value));
+const SPEECH_LANGUAGE_VALUES = new Set<string>(SPEECH_LANGUAGE_OPTIONS.map(option => option.value));
 
 const SPEECH_LOCALES: Record<string, string> = {
   it: 'it-IT',
@@ -86,7 +87,7 @@ function getInitialSpeechLanguage(locale: string): string {
   return normalizeSpeechLanguage(window.navigator.language, localeFallback);
 }
 
-export function ChatInput({ locale, onSend, onCancel }: ChatInputProps) {
+export function ChatInput({ locale, onSend, onCancel, voiceEnabled = true }: ChatInputProps) {
   const [value, setValue] = useState('');
   const [speechLanguage, setSpeechLanguage] = useState(() => getInitialSpeechLanguage(locale));
   const [isLanguagePickerOpen, setIsLanguagePickerOpen] = useState(false);
@@ -98,6 +99,7 @@ export function ChatInput({ locale, onSend, onCancel }: ChatInputProps) {
   const t = useTranslations('chat');
   const SpeechRecognition = useMemo(() => getSpeechRecognition(), []);
   const activeSpeechOption = SPEECH_LANGUAGE_OPTIONS.find(option => option.value === speechLanguage) ?? SPEECH_LANGUAGE_OPTIONS[0];
+  const canUseSpeechRecognition = voiceEnabled && Boolean(SpeechRecognition);
 
   const handleSubmit = useCallback(() => {
     const trimmed = value.trim();
@@ -114,7 +116,7 @@ export function ChatInput({ locale, onSend, onCancel }: ChatInputProps) {
   }, [handleSubmit]);
 
   const startRecognition = useCallback((language: string) => {
-    if (!SpeechRecognition || isStreaming) return;
+    if (!canUseSpeechRecognition || !SpeechRecognition || isStreaming) return;
 
     const recognition = new SpeechRecognition();
     recognition.continuous = false;
@@ -137,10 +139,10 @@ export function ChatInput({ locale, onSend, onCancel }: ChatInputProps) {
     recognitionRef.current = recognition;
     setIsListening(true);
     recognition.start();
-  }, [SpeechRecognition, isStreaming]);
+  }, [SpeechRecognition, canUseSpeechRecognition, isStreaming]);
 
   const handleVoiceToggle = useCallback(() => {
-    if (!SpeechRecognition || isStreaming) return;
+    if (!canUseSpeechRecognition || !SpeechRecognition || isStreaming) return;
 
     if (isListening) {
       recognitionRef.current?.stop();
@@ -149,7 +151,7 @@ export function ChatInput({ locale, onSend, onCancel }: ChatInputProps) {
     }
 
     startRecognition(speechLanguage);
-  }, [SpeechRecognition, isListening, isStreaming, speechLanguage, startRecognition]);
+  }, [SpeechRecognition, canUseSpeechRecognition, isListening, isStreaming, speechLanguage, startRecognition]);
 
   useEffect(() => {
     if (isStreaming && isListening) {
@@ -211,7 +213,7 @@ export function ChatInput({ locale, onSend, onCancel }: ChatInputProps) {
         </button>
       ) : (
         <>
-          {SpeechRecognition && (
+          {canUseSpeechRecognition && (
             <div ref={pickerRef} className="relative flex-shrink-0">
               <div className="flex items-center rounded-full bg-gray-100 border border-gray-200 overflow-hidden">
                 <button
