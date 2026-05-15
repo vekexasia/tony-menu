@@ -234,6 +234,8 @@
     "entries.modal.descPrimary": "Descrizione ({locale} - principale)",
     "entries.modal.descPlaceholder": "Descrizione del piatto...",
     "entries.modal.priceLabel": "Prezzo (€)",
+    "entries.modal.internalCodeLabel": "Codice articolo",
+    "entries.modal.internalCodePlaceholder": "es. 042",
     "entries.modal.unitLabel": "Unità",
     "entries.modal.unitPlaceholder": "kg, l...",
     "entries.modal.outOfStock": "Esaurito",

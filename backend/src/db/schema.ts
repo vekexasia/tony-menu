@@ -111,6 +111,7 @@ export const menuEntries = sqliteTable(
       .references(() => menuCategories.id, { onDelete: 'cascade' }),
     name: text('name').notNull(),
     description: text('description'),
+    internalCode: text('internal_code'),
     // Prices stored as integer cents (€12.50 → 1250) to avoid IEEE 754 float drift.
     // Divide by 100 when returning to API clients.
     price: integer('price').notNull(),

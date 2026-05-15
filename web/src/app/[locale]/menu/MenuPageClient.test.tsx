@@ -41,6 +41,7 @@ vi.mock('@/components/menu/RestaurantInfoModal', () => ({ RestaurantInfoModal: (
 vi.mock('@/components/menu/PromotionPopup', () => ({ PromotionPopup: () => null }));
 
 import { useRestaurantStore } from '@/stores/restaurantStore';
+import type { RestaurantData } from '@/lib/types';
 import { useChatActionsStore } from '@/stores/chatActionsStore';
 import { useSelectionStore, SELECTION_STORAGE_KEY } from '@/stores/selectionStore';
 import MenuPageClient from './MenuPageClient';
@@ -92,7 +93,7 @@ const menuData = {
       ],
     },
   ],
-} as never;
+} as unknown as RestaurantData;
 
 describe('MenuPageClient', () => {
   it('renders the loading spinner when isLoading is true', () => {
@@ -187,7 +188,7 @@ describe('MenuPageClient', () => {
       updatedAt: Date.now(),
       lines: [{ entryId: 'entry-bruschetta', quantity: 2, addedAt: Date.now() }],
     }));
-    useRestaurantStore.setState({ data: { ...menuData, features: { aiChat: true, selection: true } }, isLoading: false } as never);
+    useRestaurantStore.setState({ data: { ...menuData, features: { aiChat: true, selection: true } } as unknown as RestaurantData, isLoading: false });
 
     render(<MenuPageClient />);
 

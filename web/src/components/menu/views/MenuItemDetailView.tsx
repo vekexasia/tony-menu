@@ -75,7 +75,12 @@ export function MenuItemDetailView({ item, hidePrice, allergyWarning, frozenWarn
         {item.image ? (
           <div className="flex justify-between items-start gap-4 mb-3">
             <h2 className="text-2xl font-bold text-gray-800 flex-1">
-              <span className="block">{item.name}</span>
+              <span className="flex items-start justify-between gap-2">
+                <span>{item.name}</span>
+                {item.internalCode && (
+                  <span className="font-mono text-sm font-normal text-gray-400 shrink-0 mt-1">{item.internalCode}</span>
+                )}
+              </span>
               {item.nameSecondary && (
                 <span className="mt-1 block text-sm font-medium text-gray-500">{item.nameSecondary}</span>
               )}
@@ -89,7 +94,12 @@ export function MenuItemDetailView({ item, hidePrice, allergyWarning, frozenWarn
         ) : (
           <>
             <h2 className="text-2xl font-bold text-gray-800 mb-3">
-              <span className="block">{item.name}</span>
+              <span className="flex items-start justify-between gap-2">
+                <span>{item.name}</span>
+                {item.internalCode && (
+                  <span className="font-mono text-sm font-normal text-gray-400 shrink-0 mt-1">{item.internalCode}</span>
+                )}
+              </span>
               {item.nameSecondary && (
                 <span className="mt-1 block text-sm font-medium text-gray-500">{item.nameSecondary}</span>
               )}

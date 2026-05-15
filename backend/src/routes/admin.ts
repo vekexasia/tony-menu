@@ -459,6 +459,7 @@ admin.post('/categories/:categoryId/entries', ...base, async (c) => {
       hidden: body.hidden ?? false,
       allergens: body.allergens || null,
       i18n: body.i18n || null,
+      internalCode: body.internalCode ?? null,
     });
 
   if (body.menuIds && body.menuIds.length > 0) {
@@ -488,6 +489,7 @@ admin.put('/entries/:entryId', ...base, async (c) => {
   if (body.priceUnit !== undefined) updates.priceUnit = body.priceUnit;
   if (body.i18n !== undefined) updates.i18n = body.i18n;
   if (body.hidden !== undefined) updates.hidden = body.hidden;
+  if (body.internalCode !== undefined) updates.internalCode = body.internalCode ?? null;
 
   const db = c.get('db');
   await db

@@ -404,6 +404,7 @@ export async function buildCatalogFromDb(
         id: e.id,
         name: e.name,
         description: e.description,
+        internalCode: e.internalCode ?? null,
         price: e.price / 100,
         priceUnit: e.priceUnit,
         imageUrl: e.imageUrl,

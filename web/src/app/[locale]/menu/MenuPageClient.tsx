@@ -363,6 +363,7 @@ export default function MenuPageClient() {
                         priceUnit: entryWithDesc.priceUnit,
                         image: entryWithDesc.image,
                         outOfStock: entryWithDesc.outOfStock,
+                        internalCode: entryWithDesc.internalCode,
                         labels: entry.labelIds?.length
                           ? allLabels.filter(l => entry.labelIds!.includes(l.id)).map(l => resolveLabel(l, locale))
                           : undefined,

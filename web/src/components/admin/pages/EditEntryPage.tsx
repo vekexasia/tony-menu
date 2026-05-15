@@ -56,6 +56,7 @@ interface MenuEntry {
   menuIds: string[];
   labelIds: string[];
   hidden: boolean;
+  internalCode?: string;
 }
 
 function RichTextEditor({
@@ -208,6 +209,7 @@ export default function EditEntryPage() {
         menuIds: defaultMenuIds,
         labelIds: [],
         hidden: false,
+        internalCode: undefined,
       });
       setActiveTranslationTab(primaryLocale);
       setLoading(false);
@@ -250,6 +252,7 @@ export default function EditEntryPage() {
       menuIds: cached.menuIds,
       labelIds: (cached.labelIds || []) as string[],
       hidden: cached.hidden,
+      internalCode: cached.internalCode ?? undefined,
     });
     setActiveTranslationTab(primaryLocale);
     setLoading(false);
@@ -345,6 +348,7 @@ export default function EditEntryPage() {
           menuIds: editingEntry.menuIds,
           labelIds: editingEntry.labelIds,
           hidden: editingEntry.hidden,
+          internalCode: editingEntry.internalCode || null,
         });
       } else {
         await updateEntry(editingEntry.id, {
@@ -359,6 +363,7 @@ export default function EditEntryPage() {
           menuIds: editingEntry.menuIds,
           labelIds: editingEntry.labelIds,
           hidden: editingEntry.hidden,
+          internalCode: editingEntry.internalCode || null,
         });
       }
       navigateBackAfterMutation();
@@ -596,6 +601,22 @@ export default function EditEntryPage() {
                 </div>
               </div>
             </TranslationTabs>
+          </div>
+
+          {/* Internal code */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {t("entries.modal.internalCodeLabel")}
+            </label>
+            <input
+              type="text"
+              value={editingEntry.internalCode || ""}
+              onChange={(e) =>
+                setEditingEntry({ ...editingEntry, internalCode: e.target.value || undefined })
+              }
+              className="w-full px-3 py-2 border rounded-lg font-mono text-sm"
+              placeholder={t("entries.modal.internalCodePlaceholder")}
+            />
           </div>
 
           {/* Price */}
@@ -885,6 +906,7 @@ export default function EditEntryPage() {
             allergens: editingEntry.allergens,
             outOfStock: editingEntry.outOfStock,
             containsFrozenIngredient: editingEntry.frozen,
+            internalCode: editingEntry.internalCode,
             labels: previewLabels,
           };
           return (

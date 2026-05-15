@@ -234,6 +234,8 @@
     "entries.modal.descPrimary": "Description ({locale} - principal)",
     "entries.modal.descPlaceholder": "Item description...",
     "entries.modal.priceLabel": "Price (€)",
+    "entries.modal.internalCodeLabel": "Article code",
+    "entries.modal.internalCodePlaceholder": "e.g. 042",
     "entries.modal.unitLabel": "Unit",
     "entries.modal.unitPlaceholder": "kg, l...",
     "entries.modal.outOfStock": "Out of stock",

@@ -77,12 +77,17 @@ function ItemCard({ itemId, locale, onClick }: { itemId: string; locale: string;
         </div>
       )}
       <div className="flex-1 min-w-0">
-        <p className="font-semibold text-gray-800 text-xs leading-tight">
-          <span className="block">{name.primary}</span>
-          {name.secondary && (
-            <span className="mt-0.5 block text-[10px] font-medium text-gray-500">
-              {name.secondary}
-            </span>
+        <p className="font-semibold text-gray-800 text-xs leading-tight flex items-start justify-between gap-1">
+          <span>
+            <span className="block">{name.primary}</span>
+            {name.secondary && (
+              <span className="mt-0.5 block text-[10px] font-medium text-gray-500">
+                {name.secondary}
+              </span>
+            )}
+          </span>
+          {entry.internalCode && (
+            <span className="font-mono text-[10px] font-normal text-gray-400 shrink-0">{entry.internalCode}</span>
           )}
         </p>
         {desc && <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-1">{desc}</p>}

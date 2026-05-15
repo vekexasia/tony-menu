@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { MenuItemDetail } from './MenuItemDetail';
 import { useRestaurantStore } from '@/stores/restaurantStore';
+import type { MenuEntry } from '@/lib/types';
 import { useSelectionStore } from '@/stores/selectionStore';
 
 vi.mock('@/lib/i18n', () => ({
@@ -33,11 +34,11 @@ const item = {
   menuIds: ['menu-food'],
   hidden: false,
   allergens: [],
-} as never;
+} as unknown as MenuEntry;
 
 function resetStores() {
   localStorage.clear();
-  useRestaurantStore.setState({ data: { id: 'restaurant-1' } } as never);
+  useRestaurantStore.setState({ data: { id: 'restaurant-1' } as unknown as import('@/lib/types').RestaurantData });
   useSelectionStore.setState({ restaurantId: null, updatedAt: 0, lines: [] });
   useSelectionStore.getState().initialize('restaurant-1');
 }
@@ -74,7 +75,7 @@ describe('MenuItemDetail selection controls', () => {
   });
 
   it('hides selection controls for out of stock items', () => {
-    render(<MenuItemDetail item={{ ...item, outOfStock: true } as never} onClose={vi.fn()} locale="it" selectionEnabled />);
+    render(<MenuItemDetail item={{ ...item, outOfStock: true } as unknown as MenuEntry} onClose={vi.fn()} locale="it" selectionEnabled />);
 
     expect(screen.queryByRole('button', { name: 'Add to selection' })).not.toBeInTheDocument();
   });

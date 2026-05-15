@@ -96,6 +96,7 @@ export function MenuItemDetail({ item, onClose, locale, hidePrice, selectionEnab
                   : undefined,
                 outOfStock: item.outOfStock,
                 containsFrozenIngredient: item.frozen,
+                internalCode: item.internalCode,
               }}
               hidePrice={hidePrice}
               allergyWarning={t('allergyWarning')}

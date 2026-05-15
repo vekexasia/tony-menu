@@ -15,6 +15,8 @@ import { labelColorStyle } from "@/lib/label-colors";
 export interface MenuItemView {
   /** Primary display name (already localized). */
   name: string;
+  /** Internal article code (shown only when present). */
+  internalCode?: string | null;
   /** Secondary display name (e.g. fallback locale). */
   nameSecondary?: string | null;
   /** Description (already localized). */
@@ -58,12 +60,17 @@ export function MenuItemListView({ item, outOfStockLabel, onClick }: MenuItemLis
       } ${interactive ? "cursor-pointer hover:shadow-md transition-all" : ""}`}
     >
       <div className="flex-1 min-w-0">
-        <h4 className="font-semibold text-gray-800">
-          <span className="block">{item.name}</span>
-          {item.nameSecondary && (
-            <span className="mt-0.5 block text-xs font-medium text-gray-500">
-              {item.nameSecondary}
-            </span>
+        <h4 className="font-semibold text-gray-800 flex items-start justify-between gap-2">
+          <span>
+            <span className="block">{item.name}</span>
+            {item.nameSecondary && (
+              <span className="mt-0.5 block text-xs font-medium text-gray-500">
+                {item.nameSecondary}
+              </span>
+            )}
+          </span>
+          {item.internalCode && (
+            <span className="font-mono text-xs font-normal text-gray-400 shrink-0 mt-0.5">{item.internalCode}</span>
           )}
         </h4>
         {item.labels && item.labels.length > 0 && (

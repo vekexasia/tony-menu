@@ -176,6 +176,7 @@ function catalogToStore(catalog: CatalogResponse) {
       menuIds: e.menuIds,
       labelIds: e.labelIds ?? [],
       hidden: e.hidden,
+      internalCode: e.internalCode ?? undefined,
       overriddenVariantPaths: (e.metadata?.variantRefs as string[]) || [],
       overriddenExtraPaths: (e.metadata?.extraRefs as string[]) || [],
       i18n: e.i18n as Record<string, Record<string, string>> | undefined,

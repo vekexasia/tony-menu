@@ -20,6 +20,7 @@ export const CatalogEntrySchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string().nullable(),
+  internalCode: z.string().nullable().optional(),
   price: z.number(),
   priceUnit: z.string().nullable(),
   imageUrl: z.string().nullable(),

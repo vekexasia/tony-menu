@@ -59,6 +59,7 @@ export const CreateEntryBodySchema = z.object({
   menuIds: z.array(z.string()).optional(),
   labelIds: z.array(z.string()).optional(),
   hidden: z.boolean().optional(),
+  internalCode: z.string().nullable().optional(),
 });
 export type CreateEntryBody = z.infer<typeof CreateEntryBodySchema>;
 
@@ -74,6 +75,7 @@ export const UpdateEntryBodySchema = z.object({
   menuIds: z.array(z.string()).optional(),
   labelIds: z.array(z.string()).optional(),
   hidden: z.boolean().optional(),
+  internalCode: z.string().nullable().optional(),
 });
 export type UpdateEntryBody = z.infer<typeof UpdateEntryBodySchema>;
 
