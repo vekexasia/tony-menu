@@ -9,6 +9,7 @@ import { checkMenuForChat } from '../middleware/menu-guard';
 import { checkIpRateLimit, checkSessionRateLimit } from '../middleware/rate-limit';
 import { consumeDailyAiRequest } from '../middleware/daily-cap';
 import type { ChatSession } from '../middleware/session';
+import { detectChatLocaleFromMessages, languageNameForLocale } from './locale';
 
 const MAX_MESSAGES = 20;
 
@@ -93,11 +94,9 @@ export async function handleChat(request: Request, env: Env, corsHeaders: Record
   // Limit message history
   const trimmedMessages = messages.slice(-MAX_MESSAGES);
 
-  // Detect user's language from conversation and inject explicit directive.
-  // Short messages (e.g. clicked choices like "Main courses") aren't enough
-  // for the model to detect language — we analyze the full conversation.
-  const userLang = detectUserLanguage(trimmedMessages);
-  console.log(`[CHAT] ${ip} | sid=${session.sid.slice(0, 8)}… | locale=${locale} | lang=${userLang} | msgs=${messages.length} | user=${summarizeTextForLog(lastUserMsg)}`);
+  const chatLocale = detectChatLocaleFromMessages(trimmedMessages, locale);
+  const userLang = languageNameForLocale(chatLocale);
+  console.log(`[CHAT] ${ip} | sid=${session.sid.slice(0, 8)}… | locale=${locale} | chatLocale=${chatLocale} | lang=${userLang} | msgs=${messages.length} | user=${summarizeTextForLog(lastUserMsg)}`);
 
   // Load menu data (from in-memory cache, KV, or D1)
   let menuData;
@@ -115,12 +114,12 @@ export async function handleChat(request: Request, env: Env, corsHeaders: Record
   }
 
 
-  const systemPrompt = buildSystemPrompt(menuData, locale, userLang);
+  const systemPrompt = buildSystemPrompt(menuData, chatLocale, userLang);
   console.log(`[CHAT] ${ip} | system prompt: ${systemPrompt.length} chars, ~${Math.ceil(systemPrompt.length / 4)} tokens`);
   const provider = createProvider(env);
 
   // Server-side tool resolver
-  const resolveServerTool = createServerToolResolver(menuData, locale);
+  const resolveServerTool = createServerToolResolver(menuData, chatLocale);
 
   // Create a streaming response using TransformStream
   const { readable, writable } = new TransformStream();
@@ -203,46 +202,6 @@ export async function handleChat(request: Request, env: Env, corsHeaders: Record
   });
 }
 
-/**
- * Detect the user's language from all user messages in the conversation.
- * Uses simple keyword heuristics on the longest user messages (most reliable).
- * Falls back to Italian since the restaurant is Italian.
- */
-function detectUserLanguage(messages: Array<{ role: string; content: string }>): string {
-  // Combine all user messages, prioritizing longer ones (more reliable for detection)
-  const userTexts = messages
-    .filter(m => m.role === 'user')
-    .map(m => m.content)
-    .sort((a, b) => b.length - a.length); // longest first
-
-  const combined = userTexts.join(' ').toLowerCase();
-
-  // English indicators
-  const en = ['what', 'which', 'would', 'could', 'have', 'with', 'the', 'and', 'for',
-    'not sure', 'something', 'recommend', 'menu', 'dishes', 'fish', 'meat', 'seafood',
-    'i\'m', 'i am', 'do you', 'can you', 'please', 'without', 'allergic', 'vegetarian',
-    'looking for', 'tell me', 'show me', 'prefer', 'light', 'local', 'undecided'];
-
-  // German indicators
-  const de = ['was', 'welche', 'haben', 'können', 'möchte', 'bitte', 'gericht',
-    'fisch', 'fleisch', 'ohne', 'allergisch', 'vegetarisch', 'ich bin', 'empfehlen',
-    'speisekarte', 'gibt es', 'hätten', 'gerne', 'und', 'oder', 'nicht'];
-
-  // Italian indicators
-  const it = ['cosa', 'quale', 'avete', 'vorrei', 'consiglio', 'piatto', 'pesce',
-    'carne', 'senza', 'allergico', 'vegetariano', 'sono', 'menu', 'mi', 'che',
-    'per favore', 'potete', 'mangiare', 'bere', 'vino', 'pizza', 'non so'];
-
-  const score = (words: string[]) => words.filter(w => combined.includes(w)).length;
-
-  const scores = { English: score(en), German: score(de), Italian: score(it) };
-
-  // Pick highest scoring language
-  const best = Object.entries(scores).sort((a, b) => b[1] - a[1])[0];
-
-  // If no clear signal, fall back to Italian
-  return best[1] > 0 ? best[0] : 'Italian';
-}
 
 function createServerToolResolver(menuData: MenuDataCache, locale: string) {
   return (call: ChatToolCall): string | null => {

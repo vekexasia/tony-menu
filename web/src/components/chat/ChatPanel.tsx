@@ -32,7 +32,7 @@ export function ChatPanel({ locale, voiceEnabled = false }: ChatPanelProps) {
 
   return (
     <I18nProvider locale={chatUiLocale}>
-      <ChatPanelChrome locale={locale} voiceEnabled={voiceEnabled} onSend={handleSend} onCancel={cancel} />
+      <ChatPanelChrome locale={chatUiLocale} voiceEnabled={voiceEnabled} onSend={handleSend} onCancel={cancel} />
     </I18nProvider>
   );
 }

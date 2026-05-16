@@ -1,29 +1,25 @@
+import { detectAll } from 'tinyld';
 import { locales, type Locale } from './i18n-config';
 
 const SUPPORTED_LOCALES = new Set<string>(locales);
-
-const LANGUAGE_PATTERNS: Array<{ locale: Locale; patterns: RegExp[] }> = [
-  { locale: 'ru', patterns: [/[\u0400-\u04FF]/] },
-  { locale: 'it', patterns: [/\b(vorrei|voglio|posso|senza|con|antipast[oi]|primi?|second[oi]|dolc[ei]|formaggio|vino|acqua|pesce|carne|consigli|consiglia)\b/i] },
-  { locale: 'de', patterns: [/\b(ich|möchte|moechte|ohne|mit|gericht|speisekarte|wein|wasser|fleisch|fisch|vegetarisch|empfiehl|empfehlen)\b/i] },
-  { locale: 'fr', patterns: [/\b(je|voudrais|sans|avec|entrée|entree|plat|dessert|vin|eau|poisson|viande|végétarien|vegetarien|conseille)\b/i] },
-  { locale: 'es', patterns: [/\b(quiero|quisiera|sin|con|entrante|plato|postre|vino|agua|pescado|carne|vegetariano|recomienda)\b/i] },
-  { locale: 'pt', patterns: [/\b(quero|gostaria|sem|com|entrada|prato|sobremesa|vinho|água|agua|peixe|carne|vegetariano|recomenda)\b/i] },
-  { locale: 'nl', patterns: [/\b(ik|wil|graag|zonder|met|gerecht|wijn|water|vis|vlees|vegetarisch|aanraden)\b/i] },
-  { locale: 'hu', patterns: [/\b(szeretnék|szeretnek|nélkül|nelkul|étel|etel|bor|víz|viz|hal|hús|hus|vegetáriánus|vegetarianus)\b/i] },
-];
+const DETECTABLE_CHAT_LOCALES = ['it', 'en', 'de', 'fr', 'es', 'nl', 'ru', 'pt', 'hu'] as const;
+const MIN_DETECTION_CHARS = 8;
+const MIN_ACCURACY = 0.08;
 
 function normalizeFallback(locale: string): Locale {
   return SUPPORTED_LOCALES.has(locale) ? locale as Locale : 'en';
 }
 
 export function detectChatLocale(message: string, fallbackLocale: string): Locale {
+  const fallback = normalizeFallback(fallbackLocale);
   const trimmed = message.trim();
-  if (!trimmed) return normalizeFallback(fallbackLocale);
+  const letterCount = Array.from(trimmed).filter(char => /\p{L}/u.test(char)).length;
+  if (letterCount < MIN_DETECTION_CHARS) return fallback;
 
-  for (const candidate of LANGUAGE_PATTERNS) {
-    if (candidate.patterns.some((pattern) => pattern.test(trimmed))) return candidate.locale;
-  }
+  const candidates = detectAll(trimmed, { only: [...DETECTABLE_CHAT_LOCALES] });
+  const best = candidates[0];
+  if (!best || !SUPPORTED_LOCALES.has(best.lang)) return fallback;
+  if (best.accuracy < MIN_ACCURACY && candidates.length > 1) return fallback;
 
-  return normalizeFallback(fallbackLocale);
+  return best.lang as Locale;
 }

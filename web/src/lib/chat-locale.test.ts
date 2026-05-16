@@ -11,6 +11,10 @@ describe('detectChatLocale', () => {
     expect(detectChatLocale('Ich möchte ein vegetarisches Gericht ohne Milch', 'en')).toBe('de');
   });
 
+  it('uses n-gram detection beyond fixed German keywords', () => {
+    expect(detectChatLocale('Haben Sie eine Empfehlung?', 'it')).toBe('de');
+  });
+
   it('keeps the fallback locale for ambiguous messages', () => {
     expect(detectChatLocale('menu', 'en')).toBe('en');
   });
