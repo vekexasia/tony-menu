@@ -94,10 +94,13 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function Toggle({ on, onChange }: { on: boolean; onChange: () => void }) {
+function Toggle({ on, onChange, ariaLabel }: { on: boolean; onChange: () => void; ariaLabel: string }) {
   return (
     <button
       type="button"
+      role="switch"
+      aria-checked={on}
+      aria-label={ariaLabel}
       onClick={onChange}
       style={{
         position: "relative",
@@ -712,7 +715,7 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
                     <p style={{ fontSize: 13, fontWeight: 600, color: T.dark, margin: 0 }}>{t("settings.menuNotice.showInitialPopup")}</p>
                     <p style={{ fontSize: 11, color: T.off, margin: "2px 0 0" }}>{t("settings.menuNotice.popupDesc")}</p>
                   </div>
-                  <Toggle on={menuNoticeEnabled} onChange={() => setMenuNoticeEnabled((v) => !v)} />
+                  <Toggle on={menuNoticeEnabled} onChange={() => setMenuNoticeEnabled((v) => !v)} ariaLabel={t("settings.menuNotice.showInitialPopup")} />
                 </div>
                 <TranslationTabs
                   activeTab={menuNoticeTab}
@@ -1064,7 +1067,7 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
                     <p style={{ fontSize: 13, fontWeight: 600, color: T.dark, margin: 0 }}>{t("settings.chat.enable")}</p>
                     <p style={{ fontSize: 11, color: T.off, margin: "2px 0 0" }}>{t("settings.chat.enableDesc")}</p>
                   </div>
-                  <Toggle on={aiChatEnabled} onChange={() => setAiChatEnabled((v) => { if (v) setAiVoiceEnabled(false); return !v; })} />
+                  <Toggle on={aiChatEnabled} onChange={() => setAiChatEnabled((v) => { if (v) setAiVoiceEnabled(false); return !v; })} ariaLabel={t("settings.chat.enable")} />
                 </div>
                 {aiChatEnabled && (
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, marginLeft: 18, padding: "10px 12px", background: "#fff", borderRadius: 6, border: `1px solid ${T.border}` }}>
@@ -1072,7 +1075,7 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
                       <p style={{ fontSize: 13, fontWeight: 600, color: T.dark, margin: 0 }}>{t("settings.chat.voiceTitle")}</p>
                       <p style={{ fontSize: 11, color: T.off, margin: "2px 0 0" }}>{t("settings.chat.voiceDesc")}</p>
                     </div>
-                    <Toggle on={aiVoiceEnabled} onChange={() => setAiVoiceEnabled((v) => !v)} />
+                    <Toggle on={aiVoiceEnabled} onChange={() => setAiVoiceEnabled((v) => !v)} ariaLabel={t("settings.chat.voiceTitle")} />
                   </div>
                 )}
                 <Field label={t("settings.chat.promptLabel")}>
@@ -1100,7 +1103,7 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
                     <p style={{ fontSize: 13, fontWeight: 600, color: T.dark, margin: 0 }}>{t("settings.selection.title")}</p>
                     <p style={{ fontSize: 11, color: T.off, margin: "2px 0 0" }}>{t("settings.selection.desc")}</p>
                   </div>
-                  <Toggle on={selectionEnabled} onChange={() => setSelectionEnabled((v) => !v)} />
+                  <Toggle on={selectionEnabled} onChange={() => setSelectionEnabled((v) => !v)} ariaLabel={t("settings.selection.title")} />
                 </div>
                 {published === false && (
                   <div style={{ background: T.warnBg, border: `1px solid ${T.warnBorder}`, borderRadius: 6, padding: "10px 14px", color: T.warn, fontSize: 12, marginBottom: 14 }}>

@@ -14,6 +14,20 @@ export const MOCK_RESTAURANT_SLUG = 'demo-restaurant';
 export const MOCK_RESTAURANT = {
   id: MOCK_RESTAURANT_ID,
   name: 'Ristorante Test E2E',
+  features: { aiChat: false, aiVoice: false, selection: false },
+  menus: [{ id: 'menu-food', code: 'food', title: 'Food', published: true, sortOrder: 0 }],
+  openingSchedule: {
+    open: true,
+    schedule: [
+      [{ start: '10:00', end: '22:00' }],
+      [{ start: '10:00', end: '22:00' }],
+      [{ start: '10:00', end: '22:00' }],
+      [{ start: '10:00', end: '22:00' }],
+      [{ start: '10:00', end: '22:00' }],
+      [{ start: '10:00', end: '22:00' }],
+      [{ start: '10:00', end: '22:00' }],
+    ],
+  },
   categories: [
     {
       id: 'cat-antipasti',
@@ -36,6 +50,8 @@ export const MOCK_RESTAURANT = {
           containsFrozenIngredient: false,
           allergens: ['Glutine'],
           menuVisibility: ['all'],
+          menuIds: ['menu-food'],
+          hidden: false,
           i18n: { en: { name: 'Bruschetta', desc: 'Toasted bread with fresh tomatoes' } },
         },
       ],

@@ -94,9 +94,9 @@ describe('SelectionPageClient', () => {
 
     render(<SelectionPageClient />);
 
-    expect(await screen.findByText('Unavailable item')).toBeInTheDocument();
+    expect(await screen.findByText('selection.unavailableItem')).toBeInTheDocument();
     expect(screen.getByText('Sold out dish')).toBeInTheDocument();
-    expect(screen.getAllByText('Unavailable')).toHaveLength(2);
+    expect(screen.getAllByText('selection.unavailable')).toHaveLength(2);
   });
 
   it('updates quantities and removes at one', async () => {
@@ -105,10 +105,10 @@ describe('SelectionPageClient', () => {
     render(<SelectionPageClient />);
 
     expect(await screen.findByText('Bruschetta')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Increase Bruschetta quantity' }));
+    fireEvent.click(screen.getByRole('button', { name: 'selection.increaseItem' }));
     expect(useSelectionStore.getState().quantityFor('entry-bruschetta')).toBe(2);
-    fireEvent.click(screen.getByRole('button', { name: 'Decrease Bruschetta quantity' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Decrease Bruschetta quantity' }));
+    fireEvent.click(screen.getByRole('button', { name: 'selection.decreaseItem' }));
+    fireEvent.click(screen.getByRole('button', { name: 'selection.decreaseItem' }));
     expect(useSelectionStore.getState().quantityFor('entry-bruschetta')).toBe(0);
   });
 
@@ -118,9 +118,22 @@ describe('SelectionPageClient', () => {
 
     render(<SelectionPageClient />);
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Clear selection' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'selection.clear' }));
 
     expect(useSelectionStore.getState().lines).toEqual([]);
-    expect(screen.getByText('Your selection is empty.')).toBeInTheDocument();
+    expect(screen.getByText('selection.empty')).toBeInTheDocument();
+  });
+
+  it('does not show stored lines when menu selection is disabled', async () => {
+    storeSelection([{ entryId: 'entry-bruschetta', quantity: 1, addedAt: 1 }]);
+    useRestaurantStore.setState({
+      data: { ...menuData, features: { aiChat: true, selection: false } },
+      isLoading: false,
+    } as never);
+
+    render(<SelectionPageClient />);
+
+    expect(await screen.findByText('selection.disabledTitle')).toBeInTheDocument();
+    expect(screen.queryByText('Bruschetta')).not.toBeInTheDocument();
   });
 });

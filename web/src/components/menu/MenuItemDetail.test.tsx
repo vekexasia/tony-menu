@@ -51,13 +51,13 @@ describe('MenuItemDetail selection controls', () => {
   it('hides selection controls when menu selection is disabled', () => {
     render(<MenuItemDetail item={item} onClose={vi.fn()} locale="it" selectionEnabled={false} />);
 
-    expect(screen.queryByRole('button', { name: 'Add to selection' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'selection.add' })).not.toBeInTheDocument();
   });
 
   it('adds an available item and keeps the detail modal open with quantity controls', () => {
     render(<MenuItemDetail item={item} onClose={vi.fn()} locale="it" selectionEnabled />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Add to selection' }));
+    fireEvent.click(screen.getByRole('button', { name: 'selection.add' }));
 
     expect(screen.getByText('Bruschetta')).toBeInTheDocument();
     expect(screen.getByText('1')).toBeInTheDocument();
@@ -67,16 +67,16 @@ describe('MenuItemDetail selection controls', () => {
   it('removes the selected item when decrementing quantity one', () => {
     render(<MenuItemDetail item={item} onClose={vi.fn()} locale="it" selectionEnabled />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Add to selection' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Decrease quantity' }));
+    fireEvent.click(screen.getByRole('button', { name: 'selection.add' }));
+    fireEvent.click(screen.getByRole('button', { name: 'selection.decrease' }));
 
     expect(useSelectionStore.getState().quantityFor('entry-bruschetta')).toBe(0);
-    expect(screen.getByRole('button', { name: 'Add to selection' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'selection.add' })).toBeInTheDocument();
   });
 
   it('hides selection controls for out of stock items', () => {
     render(<MenuItemDetail item={{ ...item, outOfStock: true } as unknown as MenuEntry} onClose={vi.fn()} locale="it" selectionEnabled />);
 
-    expect(screen.queryByRole('button', { name: 'Add to selection' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'selection.add' })).not.toBeInTheDocument();
   });
 });

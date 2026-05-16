@@ -109,7 +109,7 @@ export function MenuItemDetail({ item, onClose, locale, hidePrice, selectionEnab
                     <button
                       type="button"
                       onClick={() => decrementSelection(item.id)}
-                      aria-label="Decrease quantity"
+                      aria-label={t('selection.decrease')}
                       className="w-12 h-12 rounded-full bg-gray-100 text-gray-700 text-2xl font-semibold flex items-center justify-center"
                     >
                       -
@@ -118,7 +118,7 @@ export function MenuItemDetail({ item, onClose, locale, hidePrice, selectionEnab
                     <button
                       type="button"
                       onClick={() => incrementSelection(item.id)}
-                      aria-label="Increase quantity"
+                      aria-label={t('selection.increase')}
                       className="w-12 h-12 rounded-full bg-primary text-white text-2xl font-semibold flex items-center justify-center"
                     >
                       +
@@ -130,7 +130,7 @@ export function MenuItemDetail({ item, onClose, locale, hidePrice, selectionEnab
                     onClick={() => addToSelection(item.id)}
                     className="w-full bg-primary text-white py-3 rounded-full font-semibold hover:opacity-90 transition-opacity"
                   >
-                    Add to selection
+                    {t('selection.add')}
                   </button>
                 )}
               </div>

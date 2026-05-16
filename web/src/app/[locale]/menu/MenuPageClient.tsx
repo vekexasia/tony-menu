@@ -226,6 +226,14 @@ export default function MenuPageClient() {
     field: "name" | "description" = "name"
   ): string => getLocalizedContentValue(item, field, locale);
 
+  const formatMessage = (key: string, values: Record<string, string | number>) => {
+    let value = t(key);
+    for (const [name, replacement] of Object.entries(values)) {
+      value = value.replace(`{${name}}`, String(replacement));
+    }
+    return value;
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -248,6 +256,8 @@ export default function MenuPageClient() {
   }
 
   if (!data) return null;
+
+  const selectionLabel = formatMessage("selection.link", { count: selectionCount });
 
   const getTodayHours = () => {
     if (!data.openingSchedule?.schedule) return t("closedToday");
@@ -277,10 +287,10 @@ export default function MenuPageClient() {
         {selectionEnabled && selectionCount > 0 && (
           <Link
             href={`/${locale}/selection`}
-            className="absolute top-4 right-4 z-20 rounded-full bg-primary text-white shadow-lg px-3 py-2 text-xs font-semibold"
-            aria-label={`My selection (${selectionCount})`}
+            className="fixed top-4 right-4 z-40 rounded-full bg-primary text-white shadow-lg px-3 py-2 text-xs font-semibold"
+            aria-label={selectionLabel}
           >
-            My selection ({selectionCount})
+            {selectionLabel}
           </Link>
         )}
         <div className="relative -mt-20 mx-3 z-20">

@@ -146,3 +146,5 @@ test\.local
 (?i)^hangdiktálás$
 (?i)^tétel( szerkesztése)?$
 (?i)^tony(-chat)?$
+# npm registry tarball URLs in package-lock files are public dependency metadata.
+registry[.]npmjs[.]org

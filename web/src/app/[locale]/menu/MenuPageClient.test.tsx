@@ -178,7 +178,7 @@ describe('MenuPageClient', () => {
 
     render(<MenuPageClient />);
 
-    expect(screen.queryByRole('link', { name: /My selection/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /selection.link/i })).not.toBeInTheDocument();
   });
 
   it('shows the selection header link when enabled and count is greater than zero', async () => {
@@ -192,7 +192,7 @@ describe('MenuPageClient', () => {
 
     render(<MenuPageClient />);
 
-    const selectionLink = await screen.findByRole('link', { name: /My selection \(2\)/i });
+    const selectionLink = await screen.findByRole('link', { name: /selection.link/i });
     expect(selectionLink).toHaveAttribute('href', '/it/selection');
   });
 });
