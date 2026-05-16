@@ -8,7 +8,7 @@
     "build": "next build",
     "build:cf": "next build",
     "preview:cf": "npx wrangler pages dev out",
-    "deploy:cf": "NEXT_PUBLIC_COMMIT_SHA=${NEXT_PUBLIC_COMMIT_SHA:-$(git rev-parse HEAD)} npm run build:cf && npx wrangler pages deploy out --project-name=${CF_PAGES_PROJECT:-menu}",
+    "deploy:cf": "set -a; [ -f .env.production.local ] && . ./.env.production.local; set +a; NEXT_PUBLIC_COMMIT_SHA=${NEXT_PUBLIC_COMMIT_SHA:-$(git rev-parse HEAD)} npm run build:cf && npx wrangler pages deploy out --project-name=${CF_PAGES_PROJECT:-menu} --branch=${CF_PAGES_BRANCH:-main}",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest",
