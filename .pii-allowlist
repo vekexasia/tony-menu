@@ -114,3 +114,35 @@ test\.local
 (?i)^003-teciada-di-pesce-in-guazzetto\tcon-crostini$
 (?i)^003-teciada-di-pesce-in-guazzetto%09con-crostini$
 (?i)teciada
+
+# ── Multi-language admin/allergen UI strings ──
+# These are public UI labels in web/messages/*.json that OPF can mistake for secrets or names.
+(?i)^sulfites?$
+(?i)^sulfitos$
+(?i)sulfit
+Сульфиты
+(?i)^sulfite$
+^Сульфиты$
+(?i)^negrito$
+(?i)^it[aá]lico$
+(?i)^ovos$
+(?i)^peixe$
+(?i)^amendoins$
+(?i)^soja$
+(?i)^leite e derivados$
+(?i)leche y derivados
+(?i)frutos de cáscara
+(?i)cacahuetes
+(?i)amendoins
+(?i)leite e derivados
+(?i)frutos de casca rija
+(?i)^frutos de casca rija$
+(?i)^aipo$
+(?i)^mostarda$
+(?i)^s[eé]samo$
+(?i)^tremoços$
+(?i)^moluscos$
+(?i)^sprachdiktat$
+(?i)^hangdiktálás$
+(?i)^tétel( szerkesztése)?$
+(?i)^tony(-chat)?$

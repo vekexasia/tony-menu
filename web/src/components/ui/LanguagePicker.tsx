@@ -10,6 +10,11 @@ const ALL_LANGUAGE_OPTIONS = [
   { code: "it", label: "Italiano" },
   { code: "en", label: "English" },
   { code: "de", label: "Deutsch" },
+  { code: "fr", label: "Français" },
+  { code: "es", label: "Español" },
+  { code: "nl", label: "Nederlands" },
+  { code: "ru", label: "Русский" },
+  { code: "pt", label: "Português" },
   { code: "hu", label: "Magyar" },
   { code: "vec", label: "Vèneto" },
 ] as const;

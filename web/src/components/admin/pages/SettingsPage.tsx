@@ -532,7 +532,7 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
               <Card title={t("settings.cards.headerImage")}>
                 {headerImage ? (
                   <div style={{ position: "relative", width: "100%", aspectRatio: "16/7", borderRadius: 6, overflow: "hidden", background: T.border }}>
-                    <Image src={headerImage} alt="Header" fill style={{ objectFit: "cover" }} unoptimized />
+                    <Image src={headerImage} alt={t("settings.headerImage.alt")} fill style={{ objectFit: "cover" }} unoptimized />
                     <button
                       type="button"
                       onClick={() => headerInputRef.current?.click()}
@@ -778,7 +778,7 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
                   <label style={labelStyle}>{t("settings.promo.imageLabel")}</label>
                   {promoUrl ? (
                     <div style={{ position: "relative", width: "100%", aspectRatio: "16/7", borderRadius: 6, overflow: "hidden", background: T.border }}>
-                      <Image src={promoUrl} alt="Promo" fill style={{ objectFit: "cover" }} unoptimized />
+                      <Image src={promoUrl} alt={t("settings.promo.imageAlt")} fill style={{ objectFit: "cover" }} unoptimized />
                       <button
                         type="button"
                         onClick={() => promoInputRef.current?.click()}
@@ -1069,8 +1069,8 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
                 {aiChatEnabled && (
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, marginLeft: 18, padding: "10px 12px", background: "#fff", borderRadius: 6, border: `1px solid ${T.border}` }}>
                     <div>
-                      <p style={{ fontSize: 13, fontWeight: 600, color: T.dark, margin: 0 }}>Voice dictation</p>
-                      <p style={{ fontSize: 11, color: T.off, margin: "2px 0 0" }}>Show the microphone and language picker inside Tony chat.</p>
+                      <p style={{ fontSize: 13, fontWeight: 600, color: T.dark, margin: 0 }}>{t("settings.chat.voiceTitle")}</p>
+                      <p style={{ fontSize: 11, color: T.off, margin: "2px 0 0" }}>{t("settings.chat.voiceDesc")}</p>
                     </div>
                     <Toggle on={aiVoiceEnabled} onChange={() => setAiVoiceEnabled((v) => !v)} />
                   </div>
@@ -1097,8 +1097,8 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
               <Card title={t("settings.cards.menuVisibility")}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, padding: "10px 12px", background: T.surface, borderRadius: 6, border: `1px solid ${T.border}` }}>
                   <div>
-                    <p style={{ fontSize: 13, fontWeight: 600, color: T.dark, margin: 0 }}>Menu selection</p>
-                    <p style={{ fontSize: 11, color: T.off, margin: "2px 0 0" }}>Let diners save items in a local list they can show to staff. This does not send orders or notifications.</p>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: T.dark, margin: 0 }}>{t("settings.selection.title")}</p>
+                    <p style={{ fontSize: 11, color: T.off, margin: "2px 0 0" }}>{t("settings.selection.desc")}</p>
                   </div>
                   <Toggle on={selectionEnabled} onChange={() => setSelectionEnabled((v) => !v)} />
                 </div>

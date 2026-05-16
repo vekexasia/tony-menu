@@ -20,7 +20,7 @@ export default function AdminLayout({
       <AdminI18nProvider>
         <Suspense fallback={
           <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-            <div className="text-gray-500">Loading...</div>
+            <div className="text-gray-500">…</div>
           </div>
         }>
           <AdminContent>{children}</AdminContent>

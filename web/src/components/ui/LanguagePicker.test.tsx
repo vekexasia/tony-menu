@@ -1,6 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LanguagePicker } from "./LanguagePicker";
+import { useRestaurantStore } from "@/stores/restaurantStore";
+import type { RestaurantData } from "@/lib/types";
 
 const pushMock = vi.fn();
 const usePathnameMock = vi.fn();
@@ -34,6 +36,7 @@ describe("LanguagePicker", () => {
     currentLocale = "it";
     window.localStorage.clear();
     window.sessionStorage.clear();
+    useRestaurantStore.setState({ data: null });
 
     Object.defineProperty(window, "scrollY", {
       configurable: true,
@@ -129,5 +132,34 @@ describe("LanguagePicker", () => {
 
     expect(window.scrollBy).toHaveBeenCalledWith(0, 150);
     expect(window.sessionStorage.getItem(LOCALE_SWITCH_SCROLL_KEY)).toBeNull();
+  });
+
+  it("shows every enabled standard locale from restaurant settings", () => {
+    useRestaurantStore.setState({
+      data: {
+        id: "test",
+        labels: [],
+        name: "Test",
+        payoff: "",
+        headerImage: "",
+        ownerID: "",
+        messages: undefined,
+        menus: [],
+        categories: [],
+        features: {
+          primaryLocale: "it",
+          enabledLocales: ["en", "de", "fr"],
+          disabledLocales: [],
+        },
+      } satisfies RestaurantData,
+    });
+
+    render(<LanguagePicker />);
+
+    fireEvent.click(screen.getByRole("button", { name: /select language/i }));
+
+    expect(screen.getByRole("button", { name: "English" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Deutsch" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Français" })).toBeInTheDocument();
   });
 });
