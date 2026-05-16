@@ -109,3 +109,8 @@ test\.local
 # "Vegano" (IT/ES) and "Vegan" (EN/DE) are diet labels, not personal names.
 (?i)^vegano?$
 (?i)vegan(o|label|tag)?
+
+ # Test entry id containing a tab; public fixture for path encoding tests.
+(?i)^003-teciada-di-pesce-in-guazzetto\tcon-crostini$
+(?i)^003-teciada-di-pesce-in-guazzetto%09con-crostini$
+(?i)teciada

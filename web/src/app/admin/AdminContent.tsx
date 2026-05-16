@@ -167,10 +167,7 @@ export default function AdminContent({
     { href: "/admin/settings", label: t("layout.nav.settings"), matchPrefix: "/admin/settings" },
   ];
 
-  const firstCategoryId = categories[0]?.id;
-  const entriesHref = firstCategoryId
-    ? `/admin/items?category=${firstCategoryId}`
-    : "/admin/items";
+  const entriesHref = "/admin/items";
 
   const gestioneItems: { href: string; icon: string; label: string; count?: number | string }[] = [
     { href: "/admin/menus", icon: "fa-book-open", label: t("layout.section.menus") },

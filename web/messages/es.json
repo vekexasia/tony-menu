@@ -187,6 +187,10 @@
     "categories.deleteFailed": "Failed to delete the category",
     "categories.saveFailed": "Save failed",
     "categories.loading": "Loading categories...",
+    "entries.allItemsTitle": "All items",
+    "entries.searchPlaceholder": "Search items...",
+    "entries.clearSearch": "Clear search",
+    "entries.noResults": "No items found",
     "entries.loadingEntries": "Loading items...",
     "entries.categoryNotFound": "Category not found",
     "entries.categoryNotSpecified": "Category not specified",
@@ -483,7 +487,9 @@
     "entries.preview.title": "Vista previa",
     "entries.preview.subtitle": "Cómo lo ven los clientes en el móvil",
     "labels.saveFailed": "Error al guardar la etiqueta",
-    "labels.nameLabel": "Nombre","labels.translateTitle": "Traducciones de etiqueta","labels.translatePrimaryHint": "Edita el nombre principal desde la lista de etiquetas."
+    "labels.nameLabel": "Nombre",
+    "labels.translateTitle": "Traducciones de etiqueta",
+    "labels.translatePrimaryHint": "Edita el nombre principal desde la lista de etiquetas."
   },
   "outOfStock": "AGOTADO"
 }

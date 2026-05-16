@@ -21,6 +21,8 @@ interface I18nData {
 
 interface MenuEntry {
   id: string;
+  categoryId: string;
+  categoryName: string;
   name: string;
   desc?: string;
   price: number;
@@ -68,6 +70,7 @@ export default function EntriesPage() {
   const [entries, setEntries] = useState<MenuEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
 
   // Reorder mode state
   const [reorderMode, setReorderMode] = useState(false);
@@ -97,49 +100,79 @@ export default function EntriesPage() {
     loadRestaurant();
   }, [loadRestaurant]);
 
-  // Load entries from the D1-backed store once it has data
+  // Load entries from the D1-backed store once it has data.
   useEffect(() => {
-    if (!categoryId) return;
     if (storeLoading) return;
     if (!restaurantData) return; // store hasn't loaded yet — wait
 
-    const catPath = `menuEntries/${categoryId}`;
-    const cachedCat = categoriesCache.get(catPath);
+    if (categoryId) {
+      const catPath = `menuEntries/${categoryId}`;
+      const cachedCat = categoriesCache.get(catPath);
 
-    if (!cachedCat) {
-      setError("entries.categoryNotFound");
+      if (!cachedCat) {
+        setError("entries.categoryNotFound");
+        setLoading(false);
+        return;
+      }
+
+      setError(null);
+      setCategory({ id: cachedCat.id, name: cachedCat.name });
+
+      const loadedEntries: MenuEntry[] = cachedCat.entries.map((e) => ({
+        id: e.id,
+        categoryId: cachedCat.id,
+        categoryName: cachedCat.name,
+        name: e.name,
+        desc: e.description || "",
+        price: e.price,
+        order: e.order,
+        outOfStock: e.outOfStock,
+        frozen: e.containsFrozenIngredient,
+        image: e.image,
+        allergens: (e.allergens || []) as string[],
+        priceUnit: e.priceUnit,
+        i18n: (e.i18n || {}) as I18nData,
+        menuIds: e.menuIds,
+        hidden: e.hidden,
+      }));
+
+      setEntries(loadedEntries);
       setLoading(false);
       return;
     }
 
     setError(null);
-    setCategory({ id: cachedCat.id, name: cachedCat.name });
+    setCategory(null);
 
-    const loadedEntries: MenuEntry[] = cachedCat.entries.map((e) => ({
-      id: e.id,
-      name: e.name,
-      desc: e.description || "",
-      price: e.price,
-      order: e.order,
-      outOfStock: e.outOfStock,
-      frozen: e.containsFrozenIngredient,
-      image: e.image,
-      allergens: (e.allergens || []) as string[],
-      priceUnit: e.priceUnit,
-      i18n: (e.i18n || {}) as I18nData,
-      menuIds: e.menuIds,
-      hidden: e.hidden,
-    }));
+    const loadedEntries: MenuEntry[] = restaurantData.categories
+      .flatMap((cat) =>
+        [...cat.entries]
+          .sort((a, b) => a.order - b.order)
+          .map((e) => ({
+            id: e.id,
+            categoryId: cat.id,
+            categoryName: cat.name,
+            name: e.name,
+            desc: e.description || "",
+            price: e.price,
+            order: e.order,
+            outOfStock: e.outOfStock,
+            frozen: e.containsFrozenIngredient,
+            image: e.image,
+            allergens: (e.allergens || []) as string[],
+            priceUnit: e.priceUnit,
+            i18n: (e.i18n || {}) as I18nData,
+            menuIds: e.menuIds,
+            hidden: e.hidden,
+          }))
+      );
 
     setEntries(loadedEntries);
     setLoading(false);
   }, [categoryId, categoriesCache, storeLoading, restaurantData]);
 
   useEffect(() => {
-    if (!categoryId) {
-      setError("entries.categoryNotSpecified");
-      setLoading(false);
-    }
+    if (!categoryId) setReorderMode(false);
   }, [categoryId]);
 
   const formatPrice = (price: number, priceUnit?: string) => {
@@ -157,15 +190,19 @@ export default function EntriesPage() {
   );
 
   const allMenus = restaurantData?.menus ?? [];
+  const normalizedQuery = query.trim().toLowerCase();
   const hiddenEntriesCount = entries.filter((e) => e.hidden || e.menuIds.length === 0).length;
   const filteredByMenu = menuFilter === "ALL"
     ? entries
     : menuFilter === "NONE"
       ? entries.filter((e) => e.menuIds.length === 0)
       : entries.filter((e) => e.menuIds.includes(menuFilter));
+  const filteredBySearch = normalizedQuery
+    ? filteredByMenu.filter((e) => e.name.toLowerCase().includes(normalizedQuery))
+    : filteredByMenu;
   const visibleEntries = (showHidden || reorderMode)
-    ? filteredByMenu
-    : filteredByMenu.filter((e) => !e.hidden && e.menuIds.length > 0);
+    ? filteredBySearch
+    : filteredBySearch.filter((e) => !e.hidden && e.menuIds.length > 0);
 
   const missingTranslationLocales = (entry: MenuEntry) =>
     adminTranslationLocales.filter((locale) => {
@@ -192,13 +229,14 @@ export default function EntriesPage() {
     `${item.entry.name} → ${item.locale.toUpperCase()} (${item.field === "name" ? t("entries.fieldNameLabel") : t("entries.fieldDescLabel")})`;
 
   // Navigation helpers — the dish form lives at /admin/items/edit
-  const openEntry = (entryId: string) => {
-    const params = new URLSearchParams({ entry: entryId, category: categoryId ?? "" });
+  const openEntry = (entryId: string, entryCategoryId: string) => {
+    const params = new URLSearchParams({ entry: entryId, category: entryCategoryId });
     router.push(`/admin/items/edit?${params.toString()}`);
   };
 
   const openNewEntry = () => {
-    const params = new URLSearchParams({ entry: "new", category: categoryId ?? "" });
+    if (!categoryId) return;
+    const params = new URLSearchParams({ entry: "new", category: categoryId });
     router.push(`/admin/items/edit?${params.toString()}`);
   };
 
@@ -407,7 +445,7 @@ export default function EntriesPage() {
             </svg>
           </Link>
           <h2 className="text-lg font-bold text-primary tracking-wider truncate">
-            {category?.name.toUpperCase()}
+            {(category?.name ?? t("entries.allItemsTitle")).toUpperCase()}
           </h2>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
@@ -437,49 +475,73 @@ export default function EntriesPage() {
               {showHidden ? t("entries.hideHiddenShort") : t("entries.showHiddenShort").replace("{count}", String(hiddenEntriesCount))}
             </button>
           )}
-          <button
-            onClick={() => setReorderMode(!reorderMode)}
-            className={`p-2 rounded-lg transition-colors ${
-              reorderMode ? "bg-primary text-white" : "hover:bg-gray-100 text-gray-600"
-            }`}
-            title={reorderMode ? t("entries.endReorder") : t("entries.reorder")}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              className="w-5 h-5"
+          {categoryId && (
+            <button
+              onClick={() => setReorderMode(!reorderMode)}
+              className={`p-2 rounded-lg transition-colors ${
+                reorderMode ? "bg-primary text-white" : "hover:bg-gray-100 text-gray-600"
+              }`}
+              title={reorderMode ? t("entries.endReorder") : t("entries.reorder")}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
-              />
-            </svg>
-          </button>
-          <button
-            onClick={openNewEntry}
-            className="p-2 bg-primary text-white rounded-lg hover:bg-primary/90"
-            title={t("entries.addEntry")}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              className="w-5 h-5"
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className="w-5 h-5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+                />
+              </svg>
+            </button>
+          )}
+          {categoryId && (
+            <button
+              onClick={openNewEntry}
+              className="p-2 bg-primary text-white rounded-lg hover:bg-primary/90"
+              title={t("entries.addEntry")}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 4.5v15m7.5-7.5h-15"
-              />
-            </svg>
-          </button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className="w-5 h-5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 4.5v15m7.5-7.5h-15"
+                />
+              </svg>
+            </button>
+          )}
         </div>
+      </div>
+
+      <div className="relative">
+        <i className="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none" />
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={t("entries.searchPlaceholder")}
+          className="w-full h-10 rounded-lg border border-gray-200 bg-white pl-9 pr-9 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+        />
+        {query && (
+          <button
+            type="button"
+            onClick={() => setQuery("")}
+            className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+            title={t("entries.clearSearch")}
+          >
+            <i className="fa-solid fa-xmark text-xs" />
+          </button>
+        )}
       </div>
 
       {/* Bulk translate bar */}
@@ -628,11 +690,14 @@ export default function EntriesPage() {
               className={`bg-white rounded-xl p-4 shadow-sm flex gap-4 ${
                 entry.outOfStock ? "opacity-50" : ""
               } cursor-pointer hover:shadow-md transition-shadow`}
-              onClick={() => openEntry(entry.id)}
+              onClick={() => openEntry(entry.id, entry.categoryId)}
             >
               <div className="flex-1 flex gap-4">
                 <div className="flex-1">
                   <h4 className="font-semibold text-gray-800">{entry.name}</h4>
+                  {!categoryId && (
+                    <p className="text-xs text-gray-400 mt-0.5">{entry.categoryName}</p>
+                  )}
                   {entry.desc && (
                     <p className="text-sm text-gray-500 mt-1 line-clamp-2">
                       <RichText html={entry.desc} />
@@ -693,9 +758,9 @@ export default function EntriesPage() {
         </div>
       )}
 
-      {entries.length === 0 && (
+      {visibleEntries.length === 0 && (
         <div className="text-center text-gray-500 py-8">
-          {t("entries.entryEmpty")}
+          {entries.length === 0 ? t("entries.entryEmpty") : t("entries.noResults")}
         </div>
       )}
 

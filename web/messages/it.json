@@ -187,6 +187,10 @@
     "categories.deleteFailed": "Errore nell'eliminazione della categoria",
     "categories.saveFailed": "Errore nel salvataggio",
     "categories.loading": "Caricamento categorie...",
+    "entries.allItemsTitle": "Tutti gli articoli",
+    "entries.searchPlaceholder": "Cerca articoli...",
+    "entries.clearSearch": "Cancella ricerca",
+    "entries.noResults": "Nessun articolo trovato",
     "entries.loadingEntries": "Caricamento piatti...",
     "entries.categoryNotFound": "Categoria non trovata",
     "entries.categoryNotSpecified": "Categoria non specificata",
@@ -483,7 +487,9 @@
     "entries.preview.title": "Anteprima",
     "entries.preview.subtitle": "Come lo vede il cliente sul telefono",
     "labels.saveFailed": "Errore nel salvataggio dell'etichetta",
-    "labels.nameLabel": "Nome","labels.translateTitle": "Traduzioni etichetta","labels.translatePrimaryHint": "Modifica il nome principale dalla lista etichette."
+    "labels.nameLabel": "Nome",
+    "labels.translateTitle": "Traduzioni etichetta",
+    "labels.translatePrimaryHint": "Modifica il nome principale dalla lista etichette."
   },
   "outOfStock": "ESAURITO"
 }

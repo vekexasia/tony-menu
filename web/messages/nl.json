@@ -187,6 +187,10 @@
     "categories.deleteFailed": "Failed to delete the category",
     "categories.saveFailed": "Save failed",
     "categories.loading": "Loading categories...",
+    "entries.allItemsTitle": "All items",
+    "entries.searchPlaceholder": "Search items...",
+    "entries.clearSearch": "Clear search",
+    "entries.noResults": "No items found",
     "entries.loadingEntries": "Loading items...",
     "entries.categoryNotFound": "Category not found",
     "entries.categoryNotSpecified": "Category not specified",
@@ -483,7 +487,9 @@
     "entries.preview.title": "Voorbeeld",
     "entries.preview.subtitle": "Zoals klanten het op hun telefoon zien",
     "labels.saveFailed": "Fout bij opslaan van label",
-    "labels.nameLabel": "Naam","labels.translateTitle": "Label vertalingen","labels.translatePrimaryHint": "Bewerk de primaire naam in de labellijst."
+    "labels.nameLabel": "Naam",
+    "labels.translateTitle": "Label vertalingen",
+    "labels.translatePrimaryHint": "Bewerk de primaire naam in de labellijst."
   },
   "outOfStock": "UITVERKOCHT"
 }
