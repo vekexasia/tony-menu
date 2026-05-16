@@ -265,7 +265,7 @@ export default function EditEntryPage() {
     return cachedCat?.name ?? "";
   }, [categoryId, categoriesCache]);
 
-  const backHref = `/admin/items?category=${categoryId ?? ""}`;
+  const backHref = `/admin/items?${new URLSearchParams({ category: categoryId ?? "" }).toString()}`;
 
   const navigateBackAfterMutation = () => {
     useRestaurantStore.getState().reset();
@@ -395,7 +395,7 @@ export default function EditEntryPage() {
       await moveEntry(editingEntry.id, targetCategoryId);
       useRestaurantStore.getState().reset();
       void loadRestaurant({ force: true });
-      router.push(`/admin/items?category=${targetCategoryId}`);
+      router.push(`/admin/items?${new URLSearchParams({ category: targetCategoryId }).toString()}`);
     } catch (err) {
       console.error("Error moving entry:", err);
       setSaveError(t("entries.moveFailed"));

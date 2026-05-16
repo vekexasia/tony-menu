@@ -218,10 +218,11 @@ export default function AnalyticsPage() {
     }
   };
 
-  const itemEditorHref = (item: ViewedItemRanked) =>
-    item.entryId && item.categoryId
-      ? `/admin/items/edit?entry=${item.entryId}&category=${item.categoryId}`
-      : null;
+  const itemEditorHref = (item: ViewedItemRanked) => {
+    if (!item.entryId || !item.categoryId) return null;
+    const params = new URLSearchParams({ entry: item.entryId, category: item.categoryId });
+    return `/admin/items/edit?${params.toString()}`;
+  };
 
   // ── Loading skeleton ──────────────────────────────────────────────
   if (loading) {

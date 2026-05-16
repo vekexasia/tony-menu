@@ -193,11 +193,13 @@ export default function EntriesPage() {
 
   // Navigation helpers — the dish form lives at /admin/items/edit
   const openEntry = (entryId: string) => {
-    router.push(`/admin/items/edit?entry=${entryId}&category=${categoryId ?? ""}`);
+    const params = new URLSearchParams({ entry: entryId, category: categoryId ?? "" });
+    router.push(`/admin/items/edit?${params.toString()}`);
   };
 
   const openNewEntry = () => {
-    router.push(`/admin/items/edit?entry=new&category=${categoryId ?? ""}`);
+    const params = new URLSearchParams({ entry: "new", category: categoryId ?? "" });
+    router.push(`/admin/items/edit?${params.toString()}`);
   };
 
   // Move entry up or down

@@ -318,7 +318,8 @@ export function createEntry(categoryId: string, data: CreateEntryBody) {
 }
 
 export function updateEntry(entryId: string, data: UpdateEntryBody) {
-  return apiFetch(`/admin/entries/${entryId}`, {
+  const encodedEntryId = encodeURIComponent(entryId);
+  return apiFetch(`/admin/entries/${encodedEntryId}`, {
     method: 'PUT',
     body: data,
     auth: true,
@@ -334,14 +335,16 @@ export function reorderEntries(items: { id: string; order: number }[]) {
 }
 
 export function deleteEntry(entryId: string) {
-  return apiFetch(`/admin/entries/${entryId}`, {
+  const encodedEntryId = encodeURIComponent(entryId);
+  return apiFetch(`/admin/entries/${encodedEntryId}`, {
     method: 'DELETE',
     auth: true,
   });
 }
 
 export function moveEntry(entryId: string, targetCategoryId: string) {
-  return apiFetch(`/admin/entries/${entryId}/move`, {
+  const encodedEntryId = encodeURIComponent(entryId);
+  return apiFetch(`/admin/entries/${encodedEntryId}/move`, {
     method: 'POST',
     body: { targetCategoryId },
     auth: true,
@@ -349,7 +352,8 @@ export function moveEntry(entryId: string, targetCategoryId: string) {
 }
 
 export function uploadEntryImage(entryId: string, imageData: ArrayBuffer) {
-  return apiFetch<ImageUploadResponse>(`/admin/entries/${entryId}/image`, {
+  const encodedEntryId = encodeURIComponent(entryId);
+  return apiFetch<ImageUploadResponse>(`/admin/entries/${encodedEntryId}/image`, {
     method: 'POST',
     body: imageData,
     headers: { 'Content-Type': 'image/jpeg' },
@@ -358,7 +362,8 @@ export function uploadEntryImage(entryId: string, imageData: ArrayBuffer) {
 }
 
 export function deleteEntryImage(entryId: string) {
-  return apiFetch(`/admin/entries/${entryId}/image`, {
+  const encodedEntryId = encodeURIComponent(entryId);
+  return apiFetch(`/admin/entries/${encodedEntryId}/image`, {
     method: 'DELETE',
     auth: true,
   });

@@ -234,3 +234,35 @@ describe('viewDedupeKey', () => {
     }
   });
 });
+
+describe('admin entry API paths', () => {
+  const ORIG_API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+  beforeEach(() => {
+    process.env.NEXT_PUBLIC_API_URL = 'https://api.test';
+    vi.stubGlobal('fetch', vi.fn().mockImplementation(() => Promise.resolve(new Response(JSON.stringify({ ok: true }), { status: 200 }))));
+  });
+
+  afterEach(() => {
+    process.env.NEXT_PUBLIC_API_URL = ORIG_API_URL;
+    vi.unstubAllGlobals();
+    vi.resetModules();
+  });
+
+  it('encodes entry ids in path segments', async () => {
+    const { updateEntry, deleteEntry, moveEntry, uploadEntryImage, deleteEntryImage } = await import('./api');
+    const entryId = '003-teciada-di-pesce-in-guazzetto\tcon-crostini';
+
+    await updateEntry(entryId, {} as never);
+    await deleteEntry(entryId);
+    await moveEntry(entryId, '013-secondi-di-pesce');
+    await uploadEntryImage(entryId, new ArrayBuffer(0));
+    await deleteEntryImage(entryId);
+
+    expect(fetch).toHaveBeenNthCalledWith(1, 'https://api.test/admin/entries/003-teciada-di-pesce-in-guazzetto%09con-crostini', expect.any(Object));
+    expect(fetch).toHaveBeenNthCalledWith(2, 'https://api.test/admin/entries/003-teciada-di-pesce-in-guazzetto%09con-crostini', expect.any(Object));
+    expect(fetch).toHaveBeenNthCalledWith(3, 'https://api.test/admin/entries/003-teciada-di-pesce-in-guazzetto%09con-crostini/move', expect.any(Object));
+    expect(fetch).toHaveBeenNthCalledWith(4, 'https://api.test/admin/entries/003-teciada-di-pesce-in-guazzetto%09con-crostini/image', expect.any(Object));
+    expect(fetch).toHaveBeenNthCalledWith(5, 'https://api.test/admin/entries/003-teciada-di-pesce-in-guazzetto%09con-crostini/image', expect.any(Object));
+  });
+});
