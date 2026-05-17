@@ -90,8 +90,8 @@ export default function CategoriesPage() {
     loadRestaurant();
   }, [loadRestaurant]);
 
-  const loading = isLoading || !data;
   const error = storeError;
+  const loading = isLoading || (!data && !error);
 
   const filteredCategories = categories.filter((c) => {
     if (query && !c.name.toLowerCase().includes(query.toLowerCase())) return false;

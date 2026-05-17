@@ -36,6 +36,7 @@ export type { CatalogResponse, MeResponse, AnalyticsResponse, ViewedItemRanked, 
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
 const WEB_COMMIT_SHA = process.env.NEXT_PUBLIC_COMMIT_SHA || 'dev';
+const API_TIMEOUT_MS = 8000;
 
 interface HealthResponse {
   commitSha?: string;
@@ -56,12 +57,16 @@ interface FetchOptions {
 async function apiFetch<T>(path: string, options: FetchOptions = {}): Promise<T> {
   const { method = 'GET', body, headers = {}, auth = false } = options;
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+
   const fetchOptions: RequestInit = {
     method,
     headers: { ...headers },
     // Send cookies cross-origin so the Cloudflare Access session rides along
     // for /admin/* routes. Public routes don't need it but it's harmless.
     credentials: auth ? 'include' : 'same-origin',
+    signal: controller.signal,
   };
 
   if (body !== undefined) {
@@ -79,7 +84,17 @@ async function apiFetch<T>(path: string, options: FetchOptions = {}): Promise<T>
 
   fetchOptions.headers = headers;
 
-  const resp = await fetch(`${API_BASE}${path}`, fetchOptions);
+  let resp: Response;
+  try {
+    resp = await fetch(`${API_BASE}${path}`, fetchOptions);
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new Error('Request timed out');
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!resp.ok) {
     const errorBody = await resp.json().catch(() => ({ error: resp.statusText }));

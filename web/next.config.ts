@@ -9,6 +9,10 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: workspaceRoot,
   },
+  allowedDevOrigins: [
+    "192.168.1.238",
+    "100.126.88.105",
+  ],
 
   // Image optimization - unoptimized for static export / Cloudflare Pages
   images: {

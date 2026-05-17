@@ -35,6 +35,36 @@ describe('getCatalog', () => {
   });
 });
 
+describe('apiFetch timeout', () => {
+  const ORIG_API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    process.env.NEXT_PUBLIC_API_URL = 'https://api.test';
+    vi.stubGlobal('fetch', vi.fn((_url: string, options: RequestInit) => {
+      return new Promise((_resolve, reject) => {
+        options.signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')));
+      });
+    }));
+  });
+
+  afterEach(() => {
+    process.env.NEXT_PUBLIC_API_URL = ORIG_API_URL;
+    vi.unstubAllGlobals();
+    vi.resetModules();
+    vi.useRealTimers();
+  });
+
+  it('rejects admin auth requests instead of hanging forever', async () => {
+    const { getMe } = await import('./api');
+
+    const assertion = expect(getMe()).rejects.toThrow('Request timed out');
+    await vi.advanceTimersByTimeAsync(10000);
+
+    await assertion;
+  });
+});
+
 // ── getDeploymentInfo ────────────────────────────────────────────────────────
 describe('getDeploymentInfo', () => {
   const ORIG_API_URL = process.env.NEXT_PUBLIC_API_URL;

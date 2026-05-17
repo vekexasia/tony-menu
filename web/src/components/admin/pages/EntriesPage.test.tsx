@@ -62,7 +62,7 @@ const categories = [
         containsFrozenIngredient: false,
         allergens: [],
         menuIds: ["menu-food"],
-        labelIds: [],
+        labelIds: ["label-special"],
         hidden: false,
       },
       {
@@ -130,6 +130,7 @@ const restaurantData = {
   id: "restaurant",
   name: "Restaurant",
   menus: [{ id: "menu-food", code: "food", title: "Food", published: true, sortOrder: 0 }],
+  labels: [{ id: "label-special", name: "Special", color: "green", sortOrder: 0 }],
   categories,
   features: { primaryLocale: "en" },
 } as RestaurantData;
@@ -158,6 +159,28 @@ describe("EntriesPage", () => {
     expect(await screen.findByText("Bruschetta")).toBeInTheDocument();
     expect(screen.getByText("Soup")).toBeInTheDocument();
     expect(screen.getByText("Tiramisu")).toBeInTheDocument();
+  });
+
+  it("shows item labels in the list", async () => {
+    render(<EntriesPage />);
+
+    expect(await screen.findByText("Bruschetta")).toBeInTheDocument();
+    expect(screen.getByText("Special")).toBeInTheDocument();
+  });
+
+  it("shows catalog load errors instead of staying on loading", async () => {
+    useRestaurantStore.setState({
+      data: null,
+      categoriesCache: new Map(),
+      isLoading: false,
+      error: "Failed to load restaurant",
+      loadRestaurant: loadRestaurantMock,
+    } as never);
+
+    render(<EntriesPage />);
+
+    expect(await screen.findByText("Failed to load restaurant")).toBeInTheDocument();
+    expect(screen.queryByText("entries.loadingEntries")).not.toBeInTheDocument();
   });
 
   it("filters all items by item name", async () => {

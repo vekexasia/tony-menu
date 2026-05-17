@@ -5,9 +5,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
 import { ApiError, updateEntry, reorderEntries, deleteEntry, translateText } from "@/lib/api";
-import { useRestaurantStore } from "@/stores/restaurantStore";
+import { useLabels, useRestaurantStore } from "@/stores/restaurantStore";
 import { SortableList, DragHandle } from "@/components/admin/SortableList";
 import { useTranslations } from "@/lib/i18n";
+import { LABEL_COLOR_STYLES, resolveLabel } from "@/lib/label-colors";
+import { useAdminLocale } from "@/app/admin/AdminI18nProvider";
 
 const STANDARD_TRANSLATION_LOCALES = ["it", "en", "de", "fr", "es", "nl", "ru", "pt", "hu"];
 const TRANSLATE_THROTTLE_MS = 2200; // Gentle pacing: ~27 requests/min, below backend's 30/min limit.
@@ -34,6 +36,7 @@ interface MenuEntry {
   priceUnit?: string;
   i18n?: I18nData;
   menuIds: string[];
+  labelIds: string[];
   hidden: boolean;
 }
 
@@ -93,8 +96,10 @@ export default function EntriesPage() {
   } | null>(null);
 
   // Load all categories for the move dropdown (also loads entries when API is enabled)
-  const { loadRestaurant, categoriesCache, isLoading: storeLoading, data: restaurantData } = useRestaurantStore();
+  const { loadRestaurant, categoriesCache, isLoading: storeLoading, data: restaurantData, error: storeError } = useRestaurantStore();
   const primaryLocale = restaurantData?.features?.primaryLocale ?? "it";
+  const allLabels = useLabels();
+  const { locale: adminLocale } = useAdminLocale();
 
   useEffect(() => {
     loadRestaurant();
@@ -103,7 +108,13 @@ export default function EntriesPage() {
   // Load entries from the D1-backed store once it has data.
   useEffect(() => {
     if (storeLoading) return;
-    if (!restaurantData) return; // store hasn't loaded yet — wait
+    if (!restaurantData) {
+      if (storeError) {
+        setError(storeError);
+        setLoading(false);
+      }
+      return;
+    } // store hasn't loaded yet — wait
 
     if (categoryId) {
       const catPath = `menuEntries/${categoryId}`;
@@ -133,6 +144,7 @@ export default function EntriesPage() {
         priceUnit: e.priceUnit,
         i18n: (e.i18n || {}) as I18nData,
         menuIds: e.menuIds,
+        labelIds: (e.labelIds || []) as string[],
         hidden: e.hidden,
       }));
 
@@ -163,13 +175,14 @@ export default function EntriesPage() {
             priceUnit: e.priceUnit,
             i18n: (e.i18n || {}) as I18nData,
             menuIds: e.menuIds,
+            labelIds: (e.labelIds || []) as string[],
             hidden: e.hidden,
           }))
       );
 
     setEntries(loadedEntries);
     setLoading(false);
-  }, [categoryId, categoriesCache, storeLoading, restaurantData]);
+  }, [categoryId, categoriesCache, storeLoading, restaurantData, storeError]);
 
   useEffect(() => {
     if (!categoryId) setReorderMode(false);
@@ -684,6 +697,9 @@ export default function EntriesPage() {
         <div className="space-y-3">
           {visibleEntries.map((entry) => {
             const missingLocales = missingTranslationLocales(entry);
+            const entryLabels = entry.labelIds.length
+              ? allLabels.filter((label) => entry.labelIds.includes(label.id)).map((label) => resolveLabel(label, adminLocale))
+              : [];
             return (
             <div
               key={entry.id}
@@ -695,6 +711,22 @@ export default function EntriesPage() {
               <div className="flex-1 flex gap-4">
                 <div className="flex-1">
                   <h4 className="font-semibold text-gray-800">{entry.name}</h4>
+                  {entryLabels.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {entryLabels.map((label) => {
+                        const cs = LABEL_COLOR_STYLES[label.color] ?? LABEL_COLOR_STYLES.primary;
+                        return (
+                          <span
+                            key={label.id}
+                            className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
+                            style={{ backgroundColor: cs.background, color: cs.color }}
+                          >
+                            {label.name}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
                   {!categoryId && (
                     <p className="text-xs text-gray-400 mt-0.5">{entry.categoryName}</p>
                   )}
