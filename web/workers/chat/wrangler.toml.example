@@ -12,7 +12,7 @@ id = "00000000000000000000000000000000"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "risto-db"
+database_name = "menu-db"
 # Same D1 database the backend uses (see backend/wrangler.toml).
 database_id = "00000000-0000-0000-0000-000000000000"
 migrations_dir = "../../../backend/drizzle"
@@ -23,9 +23,10 @@ LLM_PROVIDER = "openai"
 # Comma-separated list of explicit origins allowed to call the chat worker.
 # Localhost dev origins are allowed by default; do not list them here.
 # Add your production frontend(s).
-ALLOWED_ORIGINS = "https://your-domain.example"
+ALLOWED_ORIGINS = "http://localhost:3000"
 
 # Comma-separated list of hostname suffixes allowed over HTTPS.
 # Useful for Cloudflare Pages preview deployments (e.g. ".your-pages-project.pages.dev").
 # Leave empty to disable suffix matching.
+# For miravalle: "ristorantemiravalle.com"
 ALLOWED_HOST_SUFFIXES = ""

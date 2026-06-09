@@ -18,7 +18,6 @@ interface WranglerJsonResult<T> {
 
 interface ChatSessionRow {
   id: string;
-  restaurant_id: string;
   uid: string;
   locale: string;
   duration_ms: number;
@@ -99,10 +98,12 @@ function sqlString(value: string): string {
 }
 
 function buildQuery(args: Args): string {
-  const where = args.restaurant ? `where restaurant_id = ${sqlString(args.restaurant)}` : '';
+  // menu-db.chat_sessions has no restaurant_id column — filter is not supported
+  if (args.restaurant) {
+    console.warn('--restaurant filter is not supported for menu-db (no restaurant_id column)');
+  }
   return `select
     id,
-    restaurant_id,
     uid,
     locale,
     duration_ms,
@@ -111,13 +112,12 @@ function buildQuery(args: Args): string {
     messages,
     tool_calls
   from chat_sessions
-  ${where}
   order by created_at desc
   limit ${args.limit};`;
 }
 
 function runWranglerQuery<T>(query: string, local: boolean): T[] {
-  const wranglerArgs = ['wrangler', 'd1', 'execute', 'risto-db', '--json', '--command', query];
+  const wranglerArgs = ['wrangler', 'd1', 'execute', 'menu-db', '--json', '--command', query];
   if (!local) wranglerArgs.splice(4, 0, '--remote');
 
   const result = spawnSync('npx', wranglerArgs, {
@@ -160,7 +160,7 @@ function renderMarkdown(sessions: ChatSessionExport[]): string {
   const lines: string[] = ['# Chat sessions', ''];
 
   for (const session of sessions) {
-    lines.push(`## ${session.created_at_iso} — ${session.restaurant_id}`);
+    lines.push(`## ${session.created_at_iso} — ${session.uid}`);
     lines.push('');
     lines.push(`- id: \`${session.id}\``);
     lines.push(`- uid: \`${session.uid}\``);
