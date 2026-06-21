@@ -51,6 +51,68 @@ jobs:
           NEXT_PUBLIC_CHAT_WORKER_URL: http://localhost:8788
           NEXT_PUBLIC_DEFAULT_LOCALE: it
 
+  e2e-test:
+    name: E2E tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Migrate local D1
+        run: |
+          rm -rf backend/.wrangler/e2e
+          cat > backend/wrangler.toml <<'EOF'
+          name = "menu-backend-e2e"
+          main = "src/index.ts"
+          compatibility_date = "2025-04-11"
+
+          [vars]
+          APP_ENV = "development"
+          API_VERSION = "v1"
+          SERVICE_NAME = "menu-backend"
+          DEMO_MODE = "true"
+
+          [[d1_databases]]
+          binding = "DB"
+          database_name = "menu-db"
+          database_id = "00000000-0000-0000-0000-000000000000"
+          migrations_dir = "drizzle"
+          EOF
+          cd backend
+          npx wrangler d1 migrations apply menu-db --local --persist-to .wrangler/e2e
+      - name: Start backend and seed demo data
+        run: |
+          cd backend
+          npx wrangler dev --port 8787 --persist-to .wrangler/e2e > ../backend-e2e.log 2>&1 &
+          echo $! > ../backend-e2e.pid
+          for i in {1..60}; do
+            curl -fsS http://localhost:8787/ready && break
+            sleep 1
+          done
+          curl -fsS -X POST http://localhost:8787/admin/demo/reset
+          curl -fsS http://localhost:8787/catalog | node -e "let s='';process.stdin.on('data',c=>s+=c).on('end',()=>{const c=JSON.parse(s); const entries=c.categories.flatMap(x=>x.entries); if (!entries.length) throw new Error('seed produced no entries'); console.log(`seeded ${entries.length} entries`)})"
+      - name: Run D1-backed Playwright E2E
+        run: npm --workspace web run test:e2e -- d1-catalog.spec.ts --project=chromium
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:8787
+          NEXT_PUBLIC_CHAT_WORKER_URL: http://localhost:8788
+          NEXT_PUBLIC_DEFAULT_LOCALE: it
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: web/playwright-report/
+          if-no-files-found: ignore
+      - name: Show backend log on failure
+        if: failure()
+        run: cat backend-e2e.log || true
+
   demo-frontend-build:
     name: Demo frontend build
     runs-on: ubuntu-latest
