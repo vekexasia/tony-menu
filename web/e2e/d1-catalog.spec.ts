@@ -6,18 +6,18 @@
  * - Categories and entries render
  * - No JS console errors from the API layer
  *
- * Requires: wrangler dev --remote on port 8787 + Next.js dev on port 3000
- * with NEXT_PUBLIC_API_URL=http://localhost:8787 in .env.local
+ * Requires: wrangler dev on port 8787 + Next.js dev on port 3000
+ * with NEXT_PUBLIC_API_URL=http://localhost:8787.
  */
 
 import { test, expect } from "@playwright/test";
 
 const BACKEND = "http://localhost:8787";
-const RESTAURANT_ID = "demo-restaurant";
+const CATALOG_URL = `${BACKEND}/catalog`;
 
 test.describe("D1 catalog — backend API", () => {
   test("catalog endpoint returns 200 with menu data", async ({ request }) => {
-    const resp = await request.get(`${BACKEND}/catalog/${RESTAURANT_ID}`);
+    const resp = await request.get(CATALOG_URL);
     expect(resp.status()).toBe(200);
 
     const body = await resp.json();
@@ -27,12 +27,11 @@ test.describe("D1 catalog — backend API", () => {
   });
 
   test("all prices are euros not integer cents", async ({ request }) => {
-    const resp = await request.get(`${BACKEND}/catalog/${RESTAURANT_ID}`);
+    const resp = await request.get(CATALOG_URL);
     const body = await resp.json();
 
-    const allEntries = body.menus.flatMap(
-      (m: { categories: { entries: { name: string; price: number }[] }[] }) =>
-        m.categories.flatMap((c) => c.entries)
+    const allEntries = body.categories.flatMap(
+      (c: { entries: { name: string; price: number }[] }) => c.entries
     );
 
     expect(allEntries.length).toBeGreaterThan(0);
@@ -47,9 +46,9 @@ test.describe("D1 catalog — backend API", () => {
   test("catalog source header is live-db or r2-snapshot", async ({
     request,
   }) => {
-    const resp = await request.get(`${BACKEND}/catalog/${RESTAURANT_ID}`);
+    const resp = await request.get(CATALOG_URL);
     const source = resp.headers()["x-catalog-source"];
-    expect(["live-db", "r2-snapshot"]).toContain(source);
+    expect(["live-db", "r2-snapshot", "cache-api"]).toContain(source);
   });
 
   test("health endpoint reports D1 database configured", async ({
@@ -101,7 +100,7 @@ test.describe("D1 catalog — frontend", () => {
     // Give React a moment to fire the catalog fetch
     await page.waitForTimeout(3000);
 
-    const catalogHits = apiRequests.filter((u) => u.includes("/catalog/"));
+    const catalogHits = apiRequests.filter((u) => u.includes("/catalog"));
     expect(catalogHits.length).toBeGreaterThan(0);
   });
 
