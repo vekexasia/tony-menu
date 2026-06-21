@@ -52,6 +52,8 @@ export function serializeMenuForPrompt(data: MenuDataCache, locale: string): str
   if (data.restaurant.payoff) lines.push(data.restaurant.payoff);
   lines.push('');
 
+  const labelsById = new Map((data.labels ?? []).map(label => [label.id, label]));
+
   for (const cat of data.categories) {
     // Collect visible entries first
     const visibleEntries = cat.entries.filter(e => e.menuVisibility.length > 0);
@@ -66,6 +68,11 @@ export function serializeMenuForPrompt(data: MenuDataCache, locale: string): str
       const desc = getLocalizedEntry(entry, 'description', locale);
 
       let line = `- **${name}** [id:${entry.id}]`;
+      const labels = (entry.labelIds ?? [])
+        .map(id => labelsById.get(id))
+        .filter((label): label is NonNullable<ReturnType<typeof labelsById.get>> => Boolean(label))
+        .map(label => getLocalized(label, 'name', locale));
+      if (labels.length > 0) line += ` [labels:${labels.join(', ')}]`;
       if (entry.outOfStock) line += ' (OUT OF STOCK)';
       if (entry.containsFrozenIngredient) line += ' *contains frozen ingredients*';
       if (desc) {

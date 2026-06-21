@@ -45,6 +45,16 @@ function makeEnv() {
         { entry_id: 'entry-visible', menu_id: 'menu-food' },
       ],
     },
+    {
+      results: [
+        { id: 'label-new', name: 'Novità', color: 'amber', sort_order: 0, i18n: '{"en":{"name":"New"}}' },
+      ],
+    },
+    {
+      results: [
+        { entry_id: 'entry-visible', label_id: 'label-new' },
+      ],
+    },
     { results: [] },
     { results: [] },
   ];
@@ -72,5 +82,16 @@ describe('fetchMenuFromD1', () => {
       { id: 'entry-visible', menuVisibility: ['menu-food'], allergens: ['Glutine'] },
       { id: 'entry-hidden', menuVisibility: [] },
     ]);
+  });
+
+  it('includes custom labels and entry label assignments for Tony prompt context', async () => {
+    const { env } = makeEnv();
+
+    const data = await fetchMenuFromD1(env);
+
+    expect((data as { labels?: Array<{ id: string; name: string; i18n?: unknown }> }).labels).toMatchObject([
+      { id: 'label-new', name: 'Novità', i18n: { en: { name: 'New' } } },
+    ]);
+    expect((data.categories[0].entries[0] as { labelIds?: string[] }).labelIds).toEqual(['label-new']);
   });
 });

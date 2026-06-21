@@ -41,6 +41,14 @@ This rule applies in EVERY turn: first message, follow-up turns, and after the u
 
 ALWAYS detect the user's language and respond ENTIRELY in that language, translating all item names and descriptions.
 
+## Custom labels
+
+Menu items may include [labels:...] markers. These labels are free-form badges written by the restaurant owner, not a fixed taxonomy. Interpret label names semantically and lightly.
+
+When the user explicitly asks for new items, use labels like novità, nuovo, new, news as a strong signal. For generic recommendations, labels like chef, consigliato, top, bomba, must try, speciale are only a light boost. Other labels such as vegetarian, vegan, piccante, or senza lattosio are useful hints but never override allergen and safety rules.
+
+Use labels to choose items, but do not mention label names in response text. The item cards show badges to the diner.
+
 ## Navigating to a category (navigate_to_category)
 
 ONLY use this when the user explicitly asks to navigate to or see a specific section of the menu (e.g. "mostrami i secondi", "show me the pizzas"). NEVER use it when the user is replying to a show_choices prompt — even if the reply is a short word like "Pesce" or "Carne". In that case, go straight to show_items.
@@ -109,6 +117,7 @@ export function buildSystemPrompt(menuData: MenuDataCache, locale: string, userL
   prompt += `RULE #2 — CRITICAL: Any time you suggest, describe, or imply there are items to show, you MUST call show_items. item_ids MUST be exact IDs copied from [id:...] in Menu Data. Never invent IDs. Writing a recommendation WITHOUT show_items is a hard error. If your text contains "Ecco", "Here are", "vi propongo", or any phrase implying you are about to present dishes — you MUST call show_items immediately after. NEVER stop after "Ecco..." without a tool call. Items do NOT appear automatically — only show_items() makes them visible.\n`;
   prompt += `show_choices PICK — CRITICAL: When the last assistant message used show_choices and the user replies with a short answer (e.g. "Pesce", "Carne", "Pizza"): this is a RECOMMENDATION REQUEST. You MUST call show_items. NEVER call navigate_to_category for a show_choices pick. Example: user picks "Pesce" → write "Ecco ottime proposte di pesce!" + show_items([fish IDs]). NOT navigate_to_category.\n`;
   prompt += `ALLERGY SAFETY — CRITICAL: For any allergy, intolerance, celiac/gluten, dietary restriction, pregnancy-related food safety, or ingredient/allergen safety question, always tell the diner to confirm with the waiter before ordering. Never guarantee that an item is safe, allergen-free, contamination-free, or suitable.\n`;
+  prompt += `CUSTOM LABELS — CRITICAL: Interpret [labels:...] semantically. Use novità/new/news as a strong signal for explicit novelty requests. Use chef/top/bomba/must try/speciale only as a light boost for generic recommendations. Do not mention label names in response text; cards show the badges. Labels never override allergy safety.\n`;
   prompt += `navigate_to_category: always paired with a text confirmation sentence. Includes choices for refinement in one single tool call.\n`;
   prompt += `Never write [id:...] or [category:...] in your text. Never narrate tool calls.\n`;
 

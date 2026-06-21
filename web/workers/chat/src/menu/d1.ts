@@ -1,4 +1,4 @@
-import type { Env, MenuDataCache, CachedCategory, CachedEntry, CachedVariant, CachedExtra } from '../types';
+import type { Env, MenuDataCache, CachedCategory, CachedEntry, CachedVariant, CachedExtra, CachedLabel } from '../types';
 
 // ── Raw row types returned by D1 ─────────────────────────────────────────────
 
@@ -62,11 +62,24 @@ interface MembershipRow {
   menu_id: string;
 }
 
+interface LabelRow {
+  id: string;
+  name: string;
+  color: string;
+  sort_order: number;
+  i18n: string | null;
+}
+
+interface EntryLabelRow {
+  entry_id: string;
+  label_id: string;
+}
+
 // ── Main fetch ────────────────────────────────────────────────────────────────
 
 export async function fetchMenuFromD1(env: Env): Promise<MenuDataCache> {
   // Fire all queries in parallel for minimum latency.
-  const [settingsResult, categoriesResult, entriesResult, membershipsResult, variantsResult, extrasResult] = await Promise.all([
+  const [settingsResult, categoriesResult, entriesResult, membershipsResult, labelsResult, entryLabelsResult, variantsResult, extrasResult] = await Promise.all([
     env.DB.prepare(
       'SELECT name, payoff, chat_agent_prompt FROM settings WHERE id = 1'
     ).first<SettingsRow>(),
@@ -85,6 +98,14 @@ export async function fetchMenuFromD1(env: Env): Promise<MenuDataCache> {
        INNER JOIN menus m ON m.id = mem.menu_id
        WHERE m.published = 1`
     ).all<MembershipRow>(),
+
+    env.DB.prepare(
+      'SELECT id, name, color, sort_order, i18n FROM labels ORDER BY sort_order ASC'
+    ).all<LabelRow>(),
+
+    env.DB.prepare(
+      'SELECT entry_id, label_id FROM entry_labels'
+    ).all<EntryLabelRow>(),
 
     env.DB.prepare(
       'SELECT id, name, description, selections, i18n FROM menu_variants ORDER BY sort_order ASC'
@@ -110,6 +131,16 @@ export async function fetchMenuFromD1(env: Env): Promise<MenuDataCache> {
     }
   }
 
+  const labelIdsByEntry = new Map<string, string[]>();
+  for (const row of entryLabelsResult.results) {
+    const labelIds = labelIdsByEntry.get(row.entry_id);
+    if (labelIds) {
+      labelIds.push(row.label_id);
+    } else {
+      labelIdsByEntry.set(row.entry_id, [row.label_id]);
+    }
+  }
+
   const entriesByCategory = new Map<string, CachedEntry[]>();
   for (const row of entriesResult.results) {
     const entry: CachedEntry = {
@@ -123,6 +154,7 @@ export async function fetchMenuFromD1(env: Env): Promise<MenuDataCache> {
       containsFrozenIngredient: row.frozen === 1,
       allergens: parseJson<string[]>(row.allergens) ?? [],
       menuVisibility: row.hidden === 1 ? [] : menuIdsByEntry.get(row.id) ?? [],
+      labelIds: labelIdsByEntry.get(row.id) ?? [],
       i18n: parseJson<Record<string, Record<string, string>>>(row.i18n) ?? undefined,
     };
 
@@ -178,6 +210,14 @@ export async function fetchMenuFromD1(env: Env): Promise<MenuDataCache> {
     i18n: parseJson<Record<string, Record<string, string>>>(row.i18n) ?? undefined,
   }));
 
+  const labels: CachedLabel[] = labelsResult.results.map(row => ({
+    id: row.id,
+    name: row.name,
+    color: row.color as CachedLabel['color'],
+    sortOrder: row.sort_order,
+    i18n: parseJson<Record<string, Record<string, string>>>(row.i18n) ?? undefined,
+  }));
+
   return {
     restaurant: {
       name: settingsResult.name,
@@ -186,6 +226,7 @@ export async function fetchMenuFromD1(env: Env): Promise<MenuDataCache> {
     categories,
     variants,
     extras,
+    labels,
     chatAgentPrompt: settingsResult.chat_agent_prompt ?? undefined,
   };
 }

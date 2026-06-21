@@ -60,6 +60,7 @@ export interface MenuDataCache {
   categories: CachedCategory[];
   variants: CachedVariant[];
   extras: CachedExtra[];
+  labels?: CachedLabel[];
   chatAgentPrompt?: string;
 }
 
@@ -89,8 +90,19 @@ export interface CachedEntry {
   containsFrozenIngredient: boolean;
   allergens: string[];
   menuVisibility: string[];
+  labelIds?: string[];
   overriddenVariantPaths?: string[];
   overriddenExtraPaths?: string[];
+  i18n?: Record<string, Record<string, string>>;
+}
+
+export type CachedLabelColor = 'primary' | 'green' | 'amber' | 'red' | 'gray';
+
+export interface CachedLabel {
+  id: string;
+  name: string;
+  color: CachedLabelColor;
+  sortOrder: number;
   i18n?: Record<string, Record<string, string>>;
 }
 

@@ -7,6 +7,7 @@ import { useRestaurantStore } from '@/stores/restaurantStore';
 import type { MenuEntry } from '@/lib/types';
 import { getContentDisplayText, getLocalizedContentValue } from '@/lib/content-presentation';
 import { useTranslations } from '@/lib/i18n';
+import { LABEL_COLOR_STYLES, resolveLabel } from '@/lib/label-colors';
 
 interface ChatBubbleProps {
   message: ChatMessage;
@@ -58,6 +59,9 @@ function ItemCard({ itemId, locale, onClick }: { itemId: string; locale: string;
     restaurantId: data.id,
   });
   const desc = getLocalized({ description: entry.description, i18n: entry.i18n }, 'description', locale) || entry.description;
+  const labels = entry.labelIds?.length
+    ? (data.labels ?? []).filter(label => entry.labelIds!.includes(label.id)).map(label => resolveLabel(label, locale))
+    : [];
 
   return (
     <button
@@ -90,6 +94,22 @@ function ItemCard({ itemId, locale, onClick }: { itemId: string; locale: string;
             <span className="font-mono text-[10px] font-normal text-gray-400 shrink-0">{entry.internalCode}</span>
           )}
         </p>
+        {labels.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-1">
+            {labels.map(label => {
+              const style = LABEL_COLOR_STYLES[label.color] ?? LABEL_COLOR_STYLES.primary;
+              return (
+                <span
+                  key={label.id}
+                  className="inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide"
+                  style={style}
+                >
+                  {label.name}
+                </span>
+              );
+            })}
+          </div>
+        )}
         {desc && <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-1">{desc}</p>}
       </div>
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-gray-400 flex-shrink-0 self-center">
