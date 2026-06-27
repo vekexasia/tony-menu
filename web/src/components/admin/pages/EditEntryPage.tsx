@@ -6,8 +6,11 @@ import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
 import { uploadEntryImage, deleteEntryImage } from "@/lib/imageUpload";
 import { updateEntry, createEntry, deleteEntry, moveEntry } from "@/lib/api";
+import { sanitizeI18nData } from "@/lib/i18n-admin";
 import { useRestaurantStore, useCategories, useLabels } from "@/stores/restaurantStore";
 import { LABEL_COLOR_STYLES, resolveLabel } from "@/lib/label-colors";
+import { ConfirmDeleteModal } from "@/components/admin/ConfirmDeleteModal";
+import { LOCALE_LABELS } from "@/lib/locale-flags";
 import { TranslationTabs } from "@/components/admin/TranslationTabs";
 import { MenuItemListView, type MenuItemView } from "@/components/menu/views/MenuItemListView";
 import { MenuItemDetailView } from "@/components/menu/views/MenuItemDetailView";
@@ -131,17 +134,7 @@ function RichTextEditor({
   );
 }
 
-const PRIMARY_LOCALE_LABELS: Record<string, string> = {
-  it: "Italiano",
-  en: "English",
-  de: "Deutsch",
-  fr: "Français",
-  es: "Español",
-  nl: "Nederlands",
-  ru: "Русский",
-  pt: "Português",
-  hu: "Magyar",
-};
+
 
 export default function EditEntryPage() {
   const t = useTranslations("admin");
@@ -158,7 +151,7 @@ export default function EditEntryPage() {
 
   const primaryLocale = restaurantData?.features?.primaryLocale ?? "it";
   const primaryLocaleLabel =
-    PRIMARY_LOCALE_LABELS[primaryLocale]
+    LOCALE_LABELS[primaryLocale]
     ?? (restaurantData?.features?.customLocales ?? []).find((c) => c.code === primaryLocale)?.name
     ?? primaryLocale;
 
@@ -273,16 +266,7 @@ export default function EditEntryPage() {
     router.push(backHref);
   };
 
-  const sanitizeI18nData = (i18n?: I18nData | null): Record<string, Record<string, string>> => {
-    const sanitized: Record<string, Record<string, string>> = {};
-    for (const [locale, fields] of Object.entries(i18n || {})) {
-      const localeData: Record<string, string> = {};
-      if (typeof fields?.name === "string" && fields.name.trim()) localeData.name = fields.name;
-      if (typeof fields?.desc === "string" && fields.desc.trim()) localeData.desc = fields.desc;
-      if (Object.keys(localeData).length > 0) sanitized[locale] = localeData;
-    }
-    return sanitized;
-  };
+
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.[0] || !editingEntry || !categoryId) return;
@@ -1000,56 +984,13 @@ export default function EditEntryPage() {
 
       {/* Delete confirmation */}
       {deleteConfirm && !isNewEntry && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-6">
-            <div className="text-center">
-              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
-                  stroke="currentColor"
-                  className="w-6 h-6 text-red-600"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">{t("entries.delete.title")}</h3>
-              <p className="text-gray-500 mb-6">
-                {(() => {
-                  const parts = t("entries.delete.confirm").split("{name}");
-                  return parts.map((part, i) => (
-                    <span key={i}>
-                      {part}
-                      {i < parts.length - 1 && <strong>{editingEntry.name}</strong>}
-                    </span>
-                  ));
-                })()}
-              </p>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setDeleteConfirm(false)}
-                  disabled={deleting}
-                  className="flex-1 py-2 px-4 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 disabled:opacity-50"
-                >
-                  {t("common.cancel")}
-                </button>
-                <button
-                  onClick={handleDelete}
-                  disabled={deleting}
-                  className="flex-1 py-2 px-4 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 disabled:opacity-50"
-                >
-                  {deleting ? t("common.deleting") : t("common.delete")}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ConfirmDeleteModal
+          name={editingEntry.name}
+          deleting={deleting}
+          onCancel={() => setDeleteConfirm(false)}
+          onConfirm={handleDelete}
+          t={t}
+        />
       )}
     </div>
   );

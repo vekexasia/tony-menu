@@ -187,4 +187,23 @@ describe('DELETE /admin/locale-flag/:code', () => {
     const body = await settings.json() as { customLocales?: { code: string; flagUrl?: string | null }[] };
     expect(body.customLocales?.find((l) => l.code === 'vec')?.flagUrl ?? null).toBeNull();
   });
+
+  it('returns 200 and changes nothing when the locale has no flag', async () => {
+    const { env, headers, bucket } = await adminEnv();
+    await setCustomLocales(env, headers, [{ code: 'vec', name: 'Veneto' }]);
+
+    const del = await fetchApp('/admin/locale-flag/vec', { method: 'DELETE', headers }, env);
+    expect(del.status).toBe(200);
+    expect(flagKeys(bucket)).toHaveLength(0);
+
+    const settings = await fetchApp('/admin/settings', { method: 'GET', headers }, env);
+    const body = await settings.json() as { customLocales?: { code: string; flagUrl?: string | null }[] };
+    expect(body.customLocales?.find((l) => l.code === 'vec')?.flagUrl ?? null).toBeNull();
+  });
+
+  it('rejects an invalid locale code with 400', async () => {
+    const { env, headers } = await adminEnv();
+    const res = await fetchApp('/admin/locale-flag/UPPER', { method: 'DELETE', headers }, env);
+    expect(res.status).toBe(400);
+  });
 });

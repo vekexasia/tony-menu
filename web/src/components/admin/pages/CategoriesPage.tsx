@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ApiError, createCategory, deleteCategory, updateCategory, reorderCategories, translateText } from "@/lib/api";
+import { createCategory, deleteCategory, updateCategory, reorderCategories, translateText } from "@/lib/api";
+import { runBulkTranslate } from "@/lib/bulk-translate";
 import { useRestaurantStore, useCategories } from "@/stores/restaurantStore";
 import { SortableList } from "@/components/admin/SortableList";
 import { TranslationTabs } from "@/components/admin/TranslationTabs";
@@ -24,7 +25,7 @@ interface Category {
 
 const STANDARD_TRANSLATION_LOCALES = ["it", "en", "de", "fr", "es", "nl", "ru", "pt", "hu"];
 const TRANSLATE_THROTTLE_MS = 2200;
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 
 type CategoryFilter = "all" | "visible" | "featured" | "incomplete";
 
@@ -225,35 +226,20 @@ export default function CategoriesPage() {
       i18nByCategory[cat.id] = JSON.parse(JSON.stringify(cat.i18n || {}));
     }
 
-    let done = 0;
-    let success = 0;
-    let failed = 0;
-    for (const item of workItems) {
-      const current = `${item.category.name} → ${item.locale.toUpperCase()}`;
-      setBulkProgress({ done, total: workItems.length, success, failed, current });
-      try {
-        const { translatedText } = await translateText(item.sourceText, item.locale, "name");
-        if (translatedText) {
-          if (!i18nByCategory[item.category.id][item.locale]) {
-            i18nByCategory[item.category.id][item.locale] = {};
-          }
-          i18nByCategory[item.category.id][item.locale].name = translatedText;
-          success++;
-        } else {
-          failed++;
+    await runBulkTranslate(workItems, {
+      translate: (item) => translateText(item.sourceText, item.locale, "name").then((r) => r.translatedText),
+      onSuccess: (item, translatedText) => {
+        if (!i18nByCategory[item.category.id][item.locale]) {
+          i18nByCategory[item.category.id][item.locale] = {};
         }
-      } catch (err) {
-        failed++;
-        if (err instanceof ApiError && err.status === 429) {
-          setBulkProgress({ done, total: workItems.length, success, failed, current, status: t("categories.bulk.autoPause") });
-          await sleep(60_000);
-        }
-      }
-      done++;
-      const hasMore = done < workItems.length;
-      setBulkProgress({ done, total: workItems.length, success, failed, current, status: hasMore ? t("categories.bulk.translationInProgress") : undefined });
-      if (hasMore) await sleep(TRANSLATE_THROTTLE_MS);
-    }
+        i18nByCategory[item.category.id][item.locale].name = translatedText;
+      },
+      describe: (item) => `${item.category.name} → ${item.locale.toUpperCase()}`,
+      onProgress: setBulkProgress,
+      inProgressStatus: t("categories.bulk.translationInProgress"),
+      autoPauseStatus: t("categories.bulk.autoPause"),
+      throttleMs: TRANSLATE_THROTTLE_MS,
+    });
 
     for (const cat of categories) {
       const updated = i18nByCategory[cat.id] as Record<string, Record<string, string>>;
@@ -262,7 +248,6 @@ export default function CategoriesPage() {
       try {
         await updateCategory(cat.id, { i18n: updated });
       } catch (err) {
-        failed++;
         console.error("Bulk translate save error:", err);
       }
     }

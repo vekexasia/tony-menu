@@ -11,6 +11,7 @@ import { RestaurantInfoModal } from "@/components/menu/RestaurantInfoModal";
 import { PromotionPopup } from "@/components/menu/PromotionPopup";
 import { MenuIcon } from "@/components/menu/MenuIcon";
 import { LanguagePicker } from "@/components/ui/LanguagePicker";
+import { LoadingScreen, ErrorScreen } from "@/components/ui/StatusScreen";
 import { getContentDisplayText } from "@/lib/content-presentation";
 
 export default function HomePage() {
@@ -59,27 +60,11 @@ export default function HomePage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="text-center p-8">
-          <p className="text-red-500 mb-4">{error}</p>
-          <button
-            onClick={() => loadRestaurant()}
-            className="px-4 py-2 bg-primary text-white rounded-lg"
-          >
-            {t("retry")}
-          </button>
-        </div>
-      </div>
-    );
+    return <ErrorScreen message={error} retryLabel={t("retry")} onRetry={() => loadRestaurant()} />;
   }
 
   if (!data) return null;

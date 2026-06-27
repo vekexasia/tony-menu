@@ -8,6 +8,8 @@ import { useTranslations } from "@/lib/i18n";
 import type { MenuCategory, MenuEntry } from "@/lib/types";
 import { useRestaurantStore } from "@/stores/restaurantStore";
 import { useSelectionStore, type SelectionLine } from "@/stores/selectionStore";
+import { LoadingScreen, ErrorScreen } from "@/components/ui/StatusScreen";
+import { formatMessage as fmt } from "@/lib/utils";
 
 type ResolvedLine = {
   line: SelectionLine;
@@ -27,13 +29,7 @@ export function SelectionPageClient() {
   const increment = useSelectionStore((state) => state.increment);
   const decrement = useSelectionStore((state) => state.decrement);
   const clear = useSelectionStore((state) => state.clear);
-  const formatMessage = (key: string, values: Record<string, string | number>) => {
-    let value = t(key);
-    for (const [name, replacement] of Object.entries(values)) {
-      value = value.replace(`{${name}}`, String(replacement));
-    }
-    return value;
-  };
+  const formatMessage = (key: string, values: Record<string, string | number>) => fmt(t, key, values);
 
   useEffect(() => {
     loadRestaurant();
@@ -95,24 +91,11 @@ export function SelectionPageClient() {
   }, [data?.id, locale, resolvedLines, t]);
 
   if (isLoading) {
-    return (
-      <main className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent" />
-      </main>
-    );
+    return <LoadingScreen as="main" />;
   }
 
   if (error) {
-    return (
-      <main className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
-        <div className="text-center">
-          <p className="text-red-500 mb-4">{error}</p>
-          <button onClick={() => loadRestaurant({ force: true })} className="px-4 py-2 bg-primary text-white rounded-lg">
-            {t("retry")}
-          </button>
-        </div>
-      </main>
-    );
+    return <ErrorScreen as="main" message={error} retryLabel={t("retry")} onRetry={() => loadRestaurant({ force: true })} />;
   }
 
   if (data && data.features?.ordering?.enabled !== true) {

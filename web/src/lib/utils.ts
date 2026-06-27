@@ -1,6 +1,5 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import type { I18nMap } from './types';
 
 /**
  * Utility function to merge Tailwind CSS classes.
@@ -14,40 +13,19 @@ export function cn(...inputs: ClassValue[]): string {
 }
 
 /**
- * Get a localized field value from an entity with i18n support.
- * Falls back to the default field value if no translation is found.
- *
- * @param entity - The entity containing the field and optional i18n map
- * @param fieldName - The name of the field to localize
- * @param language - The target language code (e.g., 'it', 'en', 'de')
- * @param defaultValue - Optional fallback value if field doesn't exist
- * @returns The localized string or the default field value
- *
- * @example
- * // For a menu entry with i18n: { en: { name: 'Pizza' }, de: { name: 'Pizza' } }
- * getLocalizedField(entry, 'name', 'en') // Returns 'Pizza' (translated)
- * getLocalizedField(entry, 'name', 'it') // Returns entry.name (default)
+ * Resolve a translation key and interpolate {name} placeholders.
+ * @example formatMessage(t, 'selection.link', { count: 3 })
  */
-export function getLocalizedField<T extends { i18n?: I18nMap }>(
-  entity: T,
-  fieldName: keyof T & string,
-  language: string,
-  defaultValue?: string
+export function formatMessage(
+  t: (key: string) => string,
+  key: string,
+  values: Record<string, string | number>,
 ): string {
-  // Try to get the translated value from i18n map
-  const translatedValue = entity.i18n?.[language]?.[fieldName];
-  if (translatedValue !== undefined && translatedValue !== '') {
-    return translatedValue;
+  let value = t(key);
+  for (const [name, replacement] of Object.entries(values)) {
+    value = value.replace(`{${name}}`, String(replacement));
   }
-
-  // Fall back to the default field value
-  const fieldValue = entity[fieldName];
-  if (typeof fieldValue === 'string') {
-    return fieldValue;
-  }
-
-  // Return default value or empty string
-  return defaultValue ?? '';
+  return value;
 }
 
 /**

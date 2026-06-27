@@ -1,26 +1,14 @@
-import type { MenuDataCache, CachedEntry, CachedVariant, CachedExtra } from '../types';
+import type { MenuDataCache, CachedVariant, CachedExtra } from '../types';
 
 function getLocalized(
-  item: { name: string; i18n?: Record<string, Record<string, string>> },
+  item: { i18n?: Record<string, Record<string, string>> },
   field: string,
   locale: string
 ): string {
   const translated = item.i18n?.[locale]?.[field];
   if (translated) return translated;
-  if (field === 'name') return item.name;
-  return '';
-}
-
-function getLocalizedEntry(
-  entry: CachedEntry,
-  field: string,
-  locale: string
-): string {
-  const translated = entry.i18n?.[locale]?.[field];
-  if (translated) return translated;
-  if (field === 'name') return entry.name;
-  if (field === 'description') return entry.description ?? '';
-  return '';
+  const base = (item as Record<string, unknown>)[field];
+  return typeof base === 'string' ? base : '';
 }
 
 // Allergen id -> human-readable name
@@ -64,8 +52,8 @@ export function serializeMenuForPrompt(data: MenuDataCache, locale: string): str
     lines.push('');
 
     for (const entry of visibleEntries) {
-      const name = getLocalizedEntry(entry, 'name', locale);
-      const desc = getLocalizedEntry(entry, 'description', locale);
+      const name = getLocalized(entry, 'name', locale);
+      const desc = getLocalized(entry, 'description', locale);
 
       let line = `- **${name}** [id:${entry.id}]`;
       const labels = (entry.labelIds ?? [])
@@ -103,8 +91,8 @@ export function getItemDetail(
     for (const entry of cat.entries) {
       if (entry.id !== itemId) continue;
 
-      const name = getLocalizedEntry(entry, 'name', locale);
-      const desc = getLocalizedEntry(entry, 'description', locale);
+      const name = getLocalized(entry, 'name', locale);
+      const desc = getLocalized(entry, 'description', locale);
       const allergenNames = entry.allergens.map(a => ALLERGEN_NAMES[a] || a);
 
       const result: Record<string, unknown> = {
@@ -181,7 +169,7 @@ export function searchByAllergens(
       const hasExcluded = entry.allergens.some(a => excludeSet.has(a));
       if (hasExcluded) continue;
 
-      const name = getLocalizedEntry(entry, 'name', locale);
+      const name = getLocalized(entry, 'name', locale);
       const allergenNames = entry.allergens.map(a => ALLERGEN_NAMES[a] || a);
 
       results.push({

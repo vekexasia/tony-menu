@@ -121,16 +121,12 @@ admin.put('/modules', ...base, async (c) => {
   if (!row) return c.json({ error: 'Not found' }, 404);
 
   const modules = normalizeModulesConfig({ ...normalizeModulesConfig(row.modules, row), ...body });
-  await c.get('db')
-    .update(schema.settings)
-    .set({
-      modules,
-      selectionEnabled: modules.ordering.enabled,
-      aiChatEnabled: modules.ai.enabled,
-      aiVoiceEnabled: modules.ai.enabled && modules.ai.voiceEnabled,
-      updatedAt: Date.now(),
-    })
-    .where(eq(schema.settings.id, 1));
+  await updateSettings(c.get('db'), {
+    modules,
+    selectionEnabled: modules.ordering.enabled,
+    aiChatEnabled: modules.ai.enabled,
+    aiVoiceEnabled: modules.ai.enabled && modules.ai.voiceEnabled,
+  });
 
   await refreshPublicCatalog(c);
   return c.json({ ok: true, modules });
@@ -170,10 +166,7 @@ admin.put('/settings', ...base, async (c) => {
   if (body.disabledLocales !== undefined) updates.disabledLocales = body.disabledLocales;
   if (body.customLocales !== undefined) updates.customLocales = body.customLocales;
 
-  await c.get('db')
-    .update(schema.settings)
-    .set(updates)
-    .where(eq(schema.settings.id, 1));
+  await updateSettings(c.get('db'), updates);
 
   await refreshPublicCatalog(c);
   return c.json({ ok: true });
@@ -183,13 +176,9 @@ admin.put('/settings', ...base, async (c) => {
 
 admin.put('/publication', ...base, async (c) => {
   const body = await c.req.json<{ published: boolean }>();
-  await c.get('db')
-    .update(schema.settings)
-    .set({
-      publicationState: body.published ? 'published' : 'draft',
-      updatedAt: Date.now(),
-    })
-    .where(eq(schema.settings.id, 1));
+  await updateSettings(c.get('db'), {
+    publicationState: body.published ? 'published' : 'draft',
+  });
 
   await refreshPublicCatalog(c);
   return c.json({ ok: true });
@@ -201,13 +190,9 @@ admin.put('/hours', ...base, async (c) => {
   const body = await parseBody(c, UpdateHoursBodySchema);
   if (body instanceof Response) return body;
 
-  await c.get('db')
-    .update(schema.settings)
-    .set({
-      openingSchedule: body.openingSchedule,
-      updatedAt: Date.now(),
-    })
-    .where(eq(schema.settings.id, 1));
+  await updateSettings(c.get('db'), {
+    openingSchedule: body.openingSchedule,
+  });
 
   await refreshPublicCatalog(c);
   return c.json({ ok: true });
@@ -270,21 +255,7 @@ admin.post('/menus', ...base, async (c) => {
 });
 
 // /menus/reorder must be registered BEFORE /menus/:menuId to avoid the param matching "reorder".
-admin.patch('/menus/reorder', ...base, async (c) => {
-  const body = await parseBody(c, ReorderItemsBodySchema);
-  if (body instanceof Response) return body;
-  const db = c.get('db');
-
-  for (const item of body.items) {
-    await db
-      .update(schema.menus)
-      .set({ sortOrder: item.order, updatedAt: Date.now() })
-      .where(eq(schema.menus.id, item.id));
-  }
-
-  await refreshPublicCatalog(c);
-  return c.json({ ok: true });
-});
+admin.patch('/menus/reorder', ...base, (c) => applyReorder(c, schema.menus));
 
 admin.patch('/menus/:menuId', ...base, async (c) => {
   const menuId = c.req.param('menuId');
@@ -368,17 +339,7 @@ admin.post('/labels', ...base, async (c) => {
 });
 
 // /labels/reorder must be before /labels/:labelId
-admin.patch('/labels/reorder', ...base, async (c) => {
-  const body = await parseBody(c, ReorderItemsBodySchema);
-  if (body instanceof Response) return body;
-  const db = c.get('db');
-  for (const item of body.items) {
-    await db.update(schema.labels).set({ sortOrder: item.order, updatedAt: Date.now() })
-      .where(eq(schema.labels.id, item.id));
-  }
-  await refreshPublicCatalog(c);
-  return c.json({ ok: true });
-});
+admin.patch('/labels/reorder', ...base, (c) => applyReorder(c, schema.labels));
 
 admin.patch('/labels/:labelId', ...base, async (c) => {
   const labelId = c.req.param('labelId');
@@ -473,21 +434,7 @@ admin.delete('/categories/:categoryId', ...base, async (c) => {
   return c.json({ ok: true });
 });
 
-admin.patch('/categories/reorder', ...base, async (c) => {
-  const body = await parseBody(c, ReorderItemsBodySchema);
-  if (body instanceof Response) return body;
-  const db = c.get('db');
-
-  for (const item of body.items) {
-    await db
-      .update(schema.menuCategories)
-      .set({ sortOrder: item.order, updatedAt: Date.now() })
-      .where(eq(schema.menuCategories.id, item.id));
-  }
-
-  await refreshPublicCatalog(c);
-  return c.json({ ok: true });
-});
+admin.patch('/categories/reorder', ...base, (c) => applyReorder(c, schema.menuCategories));
 
 // ── Menu Entries ─────────────────────────────────────────────────────
 
@@ -572,21 +519,7 @@ admin.put('/entries/:entryId', ...base, async (c) => {
   return c.json({ ok: true });
 });
 
-admin.patch('/entries/reorder', ...base, async (c) => {
-  const body = await parseBody(c, ReorderItemsBodySchema);
-  if (body instanceof Response) return body;
-  const db = c.get('db');
-
-  for (const item of body.items) {
-    await db
-      .update(schema.menuEntries)
-      .set({ sortOrder: item.order, updatedAt: Date.now() })
-      .where(eq(schema.menuEntries.id, item.id));
-  }
-
-  await refreshPublicCatalog(c);
-  return c.json({ ok: true });
-});
+admin.patch('/entries/reorder', ...base, (c) => applyReorder(c, schema.menuEntries));
 
 admin.delete('/entries/:entryId', ...base, async (c) => {
   const entryId = c.req.param('entryId');
@@ -712,10 +645,7 @@ admin.post('/header-image', ...base, async (c) => {
     headerImage: upload.imageUrl,
   };
 
-  await db
-    .update(schema.settings)
-    .set({ info: updatedInfo, updatedAt: Date.now() })
-    .where(eq(schema.settings.id, 1));
+  await updateSettings(db, { info: updatedInfo });
 
   await refreshPublicCatalog(c);
   return c.json({ ok: true, imageUrl: upload.imageUrl });
@@ -737,79 +667,28 @@ admin.post('/promotion-image', ...base, async (c) => {
     url: upload.imageUrl,
   };
 
-  await db
-    .update(schema.settings)
-    .set({ promotionAlert: updatedPromotionAlert, updatedAt: Date.now() })
-    .where(eq(schema.settings.id, 1));
+  await updateSettings(db, { promotionAlert: updatedPromotionAlert });
 
   await refreshPublicCatalog(c);
   return c.json({ ok: true, imageUrl: upload.imageUrl });
 });
 
 admin.post('/locale-flag/:code', ...base, async (c) => {
-  const code = c.req.param('code');
-  if (!/^[a-z0-9-]{2,10}$/.test(code)) {
-    return c.json({ error: 'Invalid locale code' }, 400);
-  }
+  const loaded = await loadCustomLocale(c);
+  if (loaded instanceof Response) return loaded;
 
-  const db = c.get('db');
-  const [row] = await db
-    .select({ customLocales: schema.settings.customLocales })
-    .from(schema.settings)
-    .where(eq(schema.settings.id, 1))
-    .limit(1);
-  const list = row?.customLocales ?? [];
-  const target = list.find((l) => l.code === code);
-  if (!target) return c.json({ error: 'Custom locale not found' }, 404);
-
-  const upload = await uploadSettingsImage(c, `flag-${code}`);
+  const upload = await uploadSettingsImage(c, `flag-${loaded.code}`);
   if ('response' in upload) return upload.response;
 
-  const bucket = c.env.PUBLIC_MENU_BUCKET;
-  if (target.flagUrl && bucket) {
-    const oldKey = r2KeyFromUrl(target.flagUrl);
-    if (oldKey) await bucket.delete(oldKey);
-  }
-
-  const updated = list.map((l) => l.code === code ? { ...l, flagUrl: upload.imageUrl } : l);
-  await db
-    .update(schema.settings)
-    .set({ customLocales: updated, updatedAt: Date.now() })
-    .where(eq(schema.settings.id, 1));
-
-  await refreshPublicCatalog(c);
+  await setLocaleFlag(c, loaded, upload.imageUrl);
   return c.json({ ok: true, flagUrl: upload.imageUrl });
 });
 
 admin.delete('/locale-flag/:code', ...base, async (c) => {
-  const code = c.req.param('code');
-  if (!/^[a-z0-9-]{2,10}$/.test(code)) {
-    return c.json({ error: 'Invalid locale code' }, 400);
-  }
+  const loaded = await loadCustomLocale(c);
+  if (loaded instanceof Response) return loaded;
 
-  const db = c.get('db');
-  const [row] = await db
-    .select({ customLocales: schema.settings.customLocales })
-    .from(schema.settings)
-    .where(eq(schema.settings.id, 1))
-    .limit(1);
-  const list = row?.customLocales ?? [];
-  const target = list.find((l) => l.code === code);
-  if (!target) return c.json({ error: 'Custom locale not found' }, 404);
-
-  const bucket = c.env.PUBLIC_MENU_BUCKET;
-  if (target.flagUrl && bucket) {
-    const oldKey = r2KeyFromUrl(target.flagUrl);
-    if (oldKey) await bucket.delete(oldKey);
-  }
-
-  const updated = list.map((l) => l.code === code ? { ...l, flagUrl: null } : l);
-  await db
-    .update(schema.settings)
-    .set({ customLocales: updated, updatedAt: Date.now() })
-    .where(eq(schema.settings.id, 1));
-
-  await refreshPublicCatalog(c);
+  await setLocaleFlag(c, loaded, null);
   return c.json({ ok: true });
 });
 
@@ -1128,6 +1007,75 @@ admin.post('/translate', ...base, async (c) => {
 });
 
 // ── Helpers ──────────────────────────────────────────────────────────
+
+// Reorderable tables share id/sortOrder/updatedAt columns.
+type ReorderableTable =
+  | typeof schema.menus
+  | typeof schema.labels
+  | typeof schema.menuCategories
+  | typeof schema.menuEntries;
+
+async function applyReorder(c: Context<AppBindings>, table: ReorderableTable): Promise<Response> {
+  const body = await parseBody(c, ReorderItemsBodySchema);
+  if (body instanceof Response) return body;
+  const db = c.get('db');
+  for (const item of body.items) {
+    await db
+      .update(table)
+      .set({ sortOrder: item.order, updatedAt: Date.now() })
+      .where(eq(table.id, item.id));
+  }
+  await refreshPublicCatalog(c);
+  return c.json({ ok: true });
+}
+
+// Single-row settings update: always targets id=1 and bumps updatedAt.
+async function updateSettings(
+  db: DbInstance,
+  set: Partial<typeof schema.settings.$inferInsert>,
+): Promise<void> {
+  await db
+    .update(schema.settings)
+    .set({ ...set, updatedAt: Date.now() })
+    .where(eq(schema.settings.id, 1));
+}
+
+type CustomLocale = { code: string; name: string; flagUrl?: string | null };
+type LoadedLocale = { code: string; list: CustomLocale[]; target: CustomLocale };
+
+// Validates :code, loads the custom locale list, and finds the target.
+// Returns a 400/404 Response on failure so callers can short-circuit.
+async function loadCustomLocale(c: Context<AppBindings>): Promise<LoadedLocale | Response> {
+  const code = c.req.param('code');
+  if (!code || !/^[a-z0-9-]{2,10}$/.test(code)) {
+    return c.json({ error: 'Invalid locale code' }, 400);
+  }
+  const [row] = await c.get('db')
+    .select({ customLocales: schema.settings.customLocales })
+    .from(schema.settings)
+    .where(eq(schema.settings.id, 1))
+    .limit(1);
+  const list = row?.customLocales ?? [];
+  const target = list.find((l) => l.code === code);
+  if (!target) return c.json({ error: 'Custom locale not found' }, 404);
+  return { code, list, target };
+}
+
+// Deletes the previous flag R2 object (if any), then persists the new flagUrl.
+async function setLocaleFlag(
+  c: Context<AppBindings>,
+  { code, list, target }: LoadedLocale,
+  flagUrl: string | null,
+): Promise<void> {
+  const bucket = c.env.PUBLIC_MENU_BUCKET;
+  if (target.flagUrl && bucket) {
+    const oldKey = r2KeyFromUrl(target.flagUrl);
+    if (oldKey) await bucket.delete(oldKey);
+  }
+  const updated = list.map((l) => (l.code === code ? { ...l, flagUrl } : l));
+  await updateSettings(c.get('db'), { customLocales: updated });
+  await refreshPublicCatalog(c);
+}
 
 async function refreshPublicCatalog(c: Context<AppBindings>): Promise<void> {
   try {

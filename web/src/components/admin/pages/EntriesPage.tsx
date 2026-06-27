@@ -4,8 +4,11 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
-import { ApiError, updateEntry, reorderEntries, deleteEntry, translateText } from "@/lib/api";
+import { updateEntry, reorderEntries, deleteEntry, translateText } from "@/lib/api";
+import { runBulkTranslate } from "@/lib/bulk-translate";
+import { sanitizeI18nData } from "@/lib/i18n-admin";
 import { useLabels, useRestaurantStore } from "@/stores/restaurantStore";
+import { ConfirmDeleteModal } from "@/components/admin/ConfirmDeleteModal";
 import { SortableList, DragHandle } from "@/components/admin/SortableList";
 import { useTranslations } from "@/lib/i18n";
 import { LABEL_COLOR_STYLES, resolveLabel } from "@/lib/label-colors";
@@ -225,18 +228,6 @@ export default function EntriesPage() {
       return missingName || missingDesc;
     });
 
-  const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-  const sanitizeI18nData = (i18n?: I18nData | null): Record<string, Record<string, string>> => {
-    const sanitized: Record<string, Record<string, string>> = {};
-    for (const [locale, fields] of Object.entries(i18n || {})) {
-      const localeData: Record<string, string> = {};
-      if (typeof fields?.name === "string" && fields.name.trim()) localeData.name = fields.name;
-      if (typeof fields?.desc === "string" && fields.desc.trim()) localeData.desc = fields.desc;
-      if (Object.keys(localeData).length > 0) sanitized[locale] = localeData;
-    }
-    return sanitized;
-  };
 
   const describeWorkItem = (item: { entry: MenuEntry; locale: string; field: "name" | "desc" }) =>
     `${item.entry.name} → ${item.locale.toUpperCase()} (${item.field === "name" ? t("entries.fieldNameLabel") : t("entries.fieldDescLabel")})`;
@@ -339,50 +330,20 @@ export default function EntriesPage() {
       i18nByEntry[entry.id] = JSON.parse(JSON.stringify(entry.i18n || {}));
     }
 
-    let done = 0;
-    let success = 0;
-    let failed = 0;
-    for (const item of workItems) {
-      const current = describeWorkItem(item);
-      setBulkProgress({ done, total: workItems.length, success, failed, current });
-
-      try {
-        const { translatedText } = await translateText(item.sourceText, item.locale, item.field);
-        if (translatedText) {
-          if (!i18nByEntry[item.entry.id][item.locale]) {
-            i18nByEntry[item.entry.id][item.locale] = {};
-          }
-          i18nByEntry[item.entry.id][item.locale][item.field] = translatedText;
-          success++;
-        } else {
-          failed++;
+    await runBulkTranslate(workItems, {
+      translate: (item) => translateText(item.sourceText, item.locale, item.field).then((r) => r.translatedText),
+      onSuccess: (item, translatedText) => {
+        if (!i18nByEntry[item.entry.id][item.locale]) {
+          i18nByEntry[item.entry.id][item.locale] = {};
         }
-      } catch (err) {
-        failed++;
-        if (err instanceof ApiError && err.status === 429) {
-          setBulkProgress({
-            done,
-            total: workItems.length,
-            success,
-            failed,
-            current,
-            status: t("entries.bulk.autoPause"),
-          });
-          await sleep(60_000);
-        }
-      }
-      done++;
-      const hasMore = done < workItems.length;
-      setBulkProgress({
-        done,
-        total: workItems.length,
-        success,
-        failed,
-        current,
-        status: hasMore ? t("entries.bulk.translationInProgress") : undefined,
-      });
-      if (hasMore) await sleep(TRANSLATE_THROTTLE_MS);
-    }
+        i18nByEntry[item.entry.id][item.locale][item.field] = translatedText;
+      },
+      describe: describeWorkItem,
+      onProgress: setBulkProgress,
+      inProgressStatus: t("entries.bulk.translationInProgress"),
+      autoPauseStatus: t("entries.bulk.autoPause"),
+      throttleMs: TRANSLATE_THROTTLE_MS,
+    });
 
     // Persist each entry that changed. Sanitize first because old imported data can contain null i18n fields.
     const savedI18nByEntry: Record<string, Record<string, Record<string, string>>> = {};
@@ -394,7 +355,6 @@ export default function EntriesPage() {
         await updateEntry(entry.id, { i18n: updatedI18n });
         savedI18nByEntry[entry.id] = updatedI18n;
       } catch (err) {
-        failed++;
         console.error("Bulk translate save error:", err);
       }
     }
@@ -798,45 +758,13 @@ export default function EntriesPage() {
 
       {/* Delete Confirmation Modal */}
       {deleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-6">
-            <div className="text-center">
-              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 text-red-600">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">{t("entries.delete.title")}</h3>
-              <p className="text-gray-500 mb-6">
-                {(() => {
-                  const parts = t("entries.delete.confirm").split("{name}");
-                  return parts.map((part, i) => (
-                    <span key={i}>
-                      {part}
-                      {i < parts.length - 1 && <strong>{deleteConfirm.name}</strong>}
-                    </span>
-                  ));
-                })()}
-              </p>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setDeleteConfirm(null)}
-                  disabled={deleting}
-                  className="flex-1 py-2 px-4 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 disabled:opacity-50"
-                >
-                  {t("common.cancel")}
-                </button>
-                <button
-                  onClick={handleDeleteEntry}
-                  disabled={deleting}
-                  className="flex-1 py-2 px-4 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 disabled:opacity-50"
-                >
-                  {deleting ? t("common.deleting") : t("common.delete")}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ConfirmDeleteModal
+          name={deleteConfirm.name}
+          deleting={deleting}
+          onCancel={() => setDeleteConfirm(null)}
+          onConfirm={handleDeleteEntry}
+          t={t}
+        />
       )}
     </div>
   );

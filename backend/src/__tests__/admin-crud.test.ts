@@ -191,6 +191,60 @@ describe('PATCH /admin/categories/reorder', () => {
   });
 });
 
+describe('PATCH /admin/entries/reorder', () => {
+  it('updates sort_order on the entries table (not categories)', async () => {
+    const { db, env, headers } = await adminEnv();
+    seedMenu(db, 'menu-1');
+    seedCategory(db, 'cat-1', 'A', 0);
+    seedEntry(db, 'e-1', 'cat-1', { sortOrder: 0 });
+    seedEntry(db, 'e-2', 'cat-1', { sortOrder: 1 });
+    seedEntry(db, 'e-3', 'cat-1', { sortOrder: 2 });
+
+    const res = await testRequest('/admin/entries/reorder', {
+      method: 'PATCH', headers, env,
+      body: { items: [{ id: 'e-3', order: 0 }, { id: 'e-1', order: 1 }, { id: 'e-2', order: 2 }] },
+    });
+    expect(res.status).toBe(200);
+
+    const orders = db.raw.prepare('SELECT id, sort_order FROM menu_entries ORDER BY sort_order').all();
+    expect(orders).toEqual([
+      { id: 'e-3', sort_order: 0 },
+      { id: 'e-1', sort_order: 1 },
+      { id: 'e-2', sort_order: 2 },
+    ]);
+    // The shared helper must not touch the categories table.
+    const cat = db.raw.prepare('SELECT sort_order FROM menu_categories WHERE id = ?').get('cat-1') as { sort_order: number };
+    expect(cat.sort_order).toBe(0);
+  });
+
+  it('is a no-op 200 for an empty items list', async () => {
+    const { db, env, headers } = await adminEnv();
+    seedMenu(db, 'menu-1');
+    seedCategory(db, 'cat-1', 'A', 0);
+    seedEntry(db, 'e-1', 'cat-1', { sortOrder: 5 });
+
+    const res = await testRequest('/admin/entries/reorder', {
+      method: 'PATCH', headers, env, body: { items: [] },
+    });
+    expect(res.status).toBe(200);
+    const row = db.raw.prepare('SELECT sort_order FROM menu_entries WHERE id = ?').get('e-1') as { sort_order: number };
+    expect(row.sort_order).toBe(5);
+  });
+
+  it('ignores unknown ids without error', async () => {
+    const { db, env, headers } = await adminEnv();
+    seedMenu(db, 'menu-1');
+    seedCategory(db, 'cat-1', 'A', 0);
+    seedEntry(db, 'e-1', 'cat-1', { sortOrder: 0 });
+
+    const res = await testRequest('/admin/entries/reorder', {
+      method: 'PATCH', headers, env,
+      body: { items: [{ id: 'does-not-exist', order: 9 }] },
+    });
+    expect(res.status).toBe(200);
+  });
+});
+
 describe('POST /admin/categories/:id/entries', () => {
   it('creates an entry under the category and converts price to cents', async () => {
     const { db, env, headers } = await adminEnv();

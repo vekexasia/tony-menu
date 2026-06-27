@@ -1,7 +1,7 @@
 import type { Env, ChatRequest } from '../types';
 import { getMenuData } from '../menu/cache';
 import { buildSystemPrompt } from './system-prompt';
-import { TOOLS } from './tools';
+import { TOOLS, toJsonSchemaParams } from './tools';
 
 /**
  * Debug endpoint: returns the full context that would be sent to the LLM.
@@ -35,18 +35,7 @@ export async function handleChatDebug(request: Request, env: Env, corsHeaders: R
     function: {
       name: t.name,
       description: t.description,
-      parameters: {
-        type: 'object',
-        properties: Object.fromEntries(
-          t.parameters.map(p => [
-            p.name,
-            p.type === 'string[]'
-              ? { type: 'array', items: { type: 'string' }, description: p.description }
-              : { type: 'string', description: p.description },
-          ])
-        ),
-        required: t.parameters.filter(p => p.required).map(p => p.name),
-      },
+      parameters: toJsonSchemaParams(t.parameters),
     },
   }));
 

@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import type { LLMProvider } from './provider';
 import type { ChatMessage, ToolDefinition, ChatToolCall } from '../types';
+import { toJsonSchemaParams } from './tools';
 
 function toOpenAITools(tools: ToolDefinition[]): OpenAI.ChatCompletionTool[] {
   return tools.map(t => ({
@@ -8,18 +9,7 @@ function toOpenAITools(tools: ToolDefinition[]): OpenAI.ChatCompletionTool[] {
     function: {
       name: t.name,
       description: t.description,
-      parameters: {
-        type: 'object',
-        properties: Object.fromEntries(
-          t.parameters.map(p => [
-            p.name,
-            p.type === 'string[]'
-              ? { type: 'array', items: { type: 'string' }, description: p.description }
-              : { type: 'string', description: p.description },
-          ])
-        ),
-        required: t.parameters.filter(p => p.required).map(p => p.name),
-      },
+      parameters: toJsonSchemaParams(t.parameters),
     },
   }));
 }

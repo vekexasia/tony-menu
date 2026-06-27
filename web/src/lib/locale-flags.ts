@@ -20,6 +20,23 @@ export const LOCALE_FLAG_SVG: Record<string, string> = {
   hu: HU,
 };
 
+// Display name and short code for each standard (built-in) locale.
+export const LOCALE_LABELS: Record<string, string> = {
+  it: "Italiano",
+  en: "English",
+  de: "Deutsch",
+  fr: "Français",
+  es: "Español",
+  nl: "Nederlands",
+  ru: "Русский",
+  pt: "Português",
+  hu: "Magyar",
+};
+
+export const LOCALE_SHORT_CODES: Record<string, string> = {
+  it: "IT", en: "EN", de: "DE", fr: "FR", es: "ES", nl: "NL", ru: "RU", pt: "PT", hu: "HU",
+};
+
 export function getBundledFlagSvg(locale: string): string | null {
   return LOCALE_FLAG_SVG[locale] ?? null;
 }

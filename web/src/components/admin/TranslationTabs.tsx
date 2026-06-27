@@ -4,29 +4,20 @@ import { useState } from "react";
 import { locales, type Locale } from "@/lib/i18n-config";
 import { translateText } from "@/lib/api";
 import { Flag } from "@/components/ui/Flag";
+import { LOCALE_LABELS } from "@/lib/locale-flags";
 import { useTranslations } from "@/lib/i18n";
 
-const STANDARD_LOCALE_META: Record<string, { label: string }> = {
-  it: { label: "Italiano" },
-  en: { label: "English" },
-  de: { label: "Deutsch" },
-  fr: { label: "Français" },
-  es: { label: "Español" },
-  nl: { label: "Nederlands" },
-  ru: { label: "Русский" },
-  pt: { label: "Português" },
-  hu: { label: "Magyar" },
-};
+
 
 const STANDARD_LOCALES: Locale[] = (locales as readonly string[]).filter(
-  (l): l is Locale => l in STANDARD_LOCALE_META
+  (l): l is Locale => l in LOCALE_LABELS
 );
 
 const labelForLocale = (
   code: string,
   customLocales?: { code: string; name: string }[] | null,
 ): string =>
-  STANDARD_LOCALE_META[code]?.label
+  LOCALE_LABELS[code]
     ?? customLocales?.find((c) => c.code === code)?.name
     ?? code;
 
@@ -84,7 +75,7 @@ export function TranslationTabs({
   // Filter out disabled locales and the primary locale — they are not shown as translation tabs.
   const disabledSet = new Set(disabledLocales ?? []);
   const allLocales: { code: string; label: string; customFlagUrl?: string | null }[] = [
-    ...STANDARD_LOCALES.filter((l) => l !== primaryLocale).map((l) => ({ code: l, label: STANDARD_LOCALE_META[l].label })),
+    ...STANDARD_LOCALES.filter((l) => l !== primaryLocale).map((l) => ({ code: l, label: LOCALE_LABELS[l] })),
     ...(customLocales ?? []).filter((cl) => cl.code !== primaryLocale).map((cl) => ({ code: cl.code, label: cl.name, customFlagUrl: cl.flagUrl ?? null })),
   ].filter((l) => !disabledSet.has(l.code));
   const primaryLabel = labelForLocale(primaryLocale, customLocales);

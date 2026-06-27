@@ -1,23 +1,13 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { LLMProvider } from './provider';
 import type { ChatMessage, ToolDefinition, ChatToolCall } from '../types';
+import { toJsonSchemaParams } from './tools';
 
 function toAnthropicTools(tools: ToolDefinition[]): Anthropic.Tool[] {
   return tools.map(t => ({
     name: t.name,
     description: t.description,
-    input_schema: {
-      type: 'object' as const,
-      properties: Object.fromEntries(
-        t.parameters.map(p => [
-          p.name,
-          p.type === 'string[]'
-            ? { type: 'array', items: { type: 'string' }, description: p.description }
-            : { type: 'string', description: p.description },
-        ])
-      ),
-      required: t.parameters.filter(p => p.required).map(p => p.name),
-    },
+    input_schema: toJsonSchemaParams(t.parameters) as Anthropic.Tool.InputSchema,
   }));
 }
 

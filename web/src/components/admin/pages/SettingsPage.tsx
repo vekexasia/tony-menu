@@ -6,6 +6,7 @@ import Image from "next/image";
 import { updateRestaurantSettings, setMenuPublished, fetchRestaurantSettings, downloadMenuExport, fetchLabels, createLabel, updateLabel, deleteLabel, type AdminLabel } from "@/lib/api";
 import { PALETTES, type PaletteKey, DEFAULT_PALETTE, applyPalette } from "@/lib/palettes";
 import { LABEL_COLOR_STYLES, resolveLabel } from "@/lib/label-colors";
+import { LOCALE_LABELS, LOCALE_SHORT_CODES } from "@/lib/locale-flags";
 import { uploadHeaderImage, uploadPromotionalImage, uploadLocaleFlag } from "@/lib/imageUpload";
 import { deleteLocaleFlag } from "@/lib/api";
 import { TranslationTabs } from "@/components/admin/TranslationTabs";
@@ -830,8 +831,7 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
                     style={{ height: 32, borderRadius: 6, border: `1px solid ${T.border}`, padding: "0 8px", fontSize: 13, background: "#fff", flexShrink: 0 }}
                   >
                     {(["it", "en", "de", "fr", "es", "nl", "ru", "pt", "hu"] as const).map((code) => {
-                      const label: Record<string, string> = { it: "Italiano", en: "English", de: "Deutsch", fr: "Français", es: "Español", nl: "Nederlands", ru: "Русский", pt: "Português", hu: "Magyar" };
-                      return <option key={code} value={code}>{label[code]}</option>;
+                      return <option key={code} value={code}>{LOCALE_LABELS[code]}</option>;
                     })}
                     {customLocales.map((cl) => (
                       <option key={cl.code} value={cl.code}>{cl.name}</option>
@@ -842,8 +842,7 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
                 {/* Standard locales */}
                 <p style={{ fontSize: 10, fontWeight: 700, color: T.off, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 6 }}>{t("settings.languages.standard")}</p>
                 {STANDARD_NON_PRIMARY.map((locale: string) => {
-                  const LABEL: Record<string, string> = { it: "Italiano", en: "English", de: "Deutsch", fr: "Français", es: "Español", nl: "Nederlands", ru: "Русский", pt: "Português", hu: "Magyar" };
-                  const CODE: Record<string, string> = { it: "IT", en: "EN", de: "DE", fr: "FR", es: "ES", nl: "NL", ru: "RU", pt: "PT", hu: "HU" };
+
                   const state: "off" | "hidden" | "live" = disabledLocales.includes(locale) ? "off" : enabledLocales.includes(locale) ? "live" : "hidden";
                   const setState = (s: "off" | "hidden" | "live") => {
                     setEnabledLocales((prev) => s === "live" ? [...prev.filter((l) => l !== locale), locale] : prev.filter((l) => l !== locale));
@@ -852,9 +851,9 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
                   return (
                     <div key={locale} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap", padding: "8px 0", borderBottom: `1px solid ${T.border}` }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <Flag code={locale} label={LABEL[locale]} />
-                        <span style={{ fontSize: 11, fontWeight: 700, color: T.off, background: T.offBg, borderRadius: 4, padding: "1px 5px" }}>{CODE[locale]}</span>
-                        <span style={{ fontSize: 13, color: T.text }}>{LABEL[locale]}</span>
+                        <Flag code={locale} label={LOCALE_LABELS[locale]} />
+                        <span style={{ fontSize: 11, fontWeight: 700, color: T.off, background: T.offBg, borderRadius: 4, padding: "1px 5px" }}>{LOCALE_SHORT_CODES[locale]}</span>
+                        <span style={{ fontSize: 13, color: T.text }}>{LOCALE_LABELS[locale]}</span>
                       </div>
                       <div style={{ display: "flex", gap: 4 }}>
                         {(["off", "hidden", "live"] as const).map((s) => (

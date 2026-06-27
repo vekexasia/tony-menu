@@ -1,4 +1,21 @@
-import type { ToolDefinition } from '../types';
+import type { ToolDefinition, ToolParameter } from '../types';
+
+// JSON-Schema `{type:object, properties, required}` shared by every provider.
+// Each provider wraps this in its own envelope (function:{} / input_schema / parameters).
+export function toJsonSchemaParams(parameters: ToolParameter[]) {
+  return {
+    type: 'object' as const,
+    properties: Object.fromEntries(
+      parameters.map(p => [
+        p.name,
+        p.type === 'string[]'
+          ? { type: 'array', items: { type: 'string' }, description: p.description }
+          : { type: 'string', description: p.description },
+      ])
+    ),
+    required: parameters.filter(p => p.required).map(p => p.name),
+  };
+}
 
 export const TOOLS: ToolDefinition[] = [
   // --- Client-side tools (emitted to browser via SSE) ---

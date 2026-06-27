@@ -1,6 +1,7 @@
 import type { ChatMessage, ToolDefinition, ChatToolCall, Env } from '../types';
 import { AnthropicProvider } from './anthropic';
 import { OpenAIProvider } from './openai';
+import { toJsonSchemaParams } from './tools';
 
 export interface LLMProvider {
   chat(params: {
@@ -28,18 +29,7 @@ function toWorkersAITools(tools: ToolDefinition[]) {
   return tools.map(t => ({
     name: t.name,
     description: t.description,
-    parameters: {
-      type: 'object',
-      properties: Object.fromEntries(
-        t.parameters.map(p => [
-          p.name,
-          p.type === 'string[]'
-            ? { type: 'array', items: { type: 'string' }, description: p.description }
-            : { type: 'string', description: p.description },
-        ]),
-      ),
-      required: t.parameters.filter(p => p.required).map(p => p.name),
-    },
+    parameters: toJsonSchemaParams(t.parameters),
   }));
 }
 

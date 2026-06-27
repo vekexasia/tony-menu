@@ -15,10 +15,12 @@ import { useChatActionsStore, useScrollToCategoryId, useChatFilterCriteria } fro
 import { useSelectionStore } from "@/stores/selectionStore";
 import type { MenuEntry } from "@/lib/types";
 import { recordView } from "@/lib/api";
-import { viewDedupeKey } from "@/lib/utils";
+import { viewDedupeKey, formatMessage as fmt } from "@/lib/utils";
 import { getContentDisplayText, getLocalizedContentValue, getSearchableContentTexts } from "@/lib/content-presentation";
 import { isMenuAvailableNow } from "@/lib/menu-schedule";
 import { resolveLabel } from "@/lib/label-colors";
+import { LoadingScreen, ErrorScreen } from "@/components/ui/StatusScreen";
+
 
 // Client-side dedup: skip redundant network calls for items already viewed in this
 // page session. The backend deduplicates via UNIQUE constraint too — this is a
@@ -226,33 +228,14 @@ export default function MenuPageClient() {
     field: "name" | "description" = "name"
   ): string => getLocalizedContentValue(item, field, locale);
 
-  const formatMessage = (key: string, values: Record<string, string | number>) => {
-    let value = t(key);
-    for (const [name, replacement] of Object.entries(values)) {
-      value = value.replace(`{${name}}`, String(replacement));
-    }
-    return value;
-  };
+  const formatMessage = (key: string, values: Record<string, string | number>) => fmt(t, key, values);
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="text-center p-8">
-          <p className="text-red-500 mb-4">{error}</p>
-          <button onClick={() => loadRestaurant()} className="px-4 py-2 bg-primary text-white rounded-lg">
-            {t("retry")}
-          </button>
-        </div>
-      </div>
-    );
+    return <ErrorScreen message={error} retryLabel={t("retry")} onRetry={() => loadRestaurant()} />;
   }
 
   if (!data) return null;

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { cn, getLocalizedField, formatPrice, hexToHSL, generateColorVariables } from './utils';
+import { cn, formatPrice, hexToHSL, generateColorVariables } from './utils';
 
 describe('cn', () => {
   describe('merging multiple classes', () => {
@@ -51,105 +51,6 @@ describe('cn', () => {
 
     it('should not merge non-conflicting classes', () => {
       expect(cn('px-4', 'py-2', 'bg-primary')).toBe('px-4 py-2 bg-primary');
-    });
-  });
-});
-
-describe('getLocalizedField', () => {
-  describe('getting translated field when i18n exists', () => {
-    it('should return translated value when available', () => {
-      const entity = {
-        name: 'Pizza Margherita',
-        i18n: {
-          en: { name: 'Margherita Pizza' },
-          de: { name: 'Pizza Margherita' },
-        },
-      };
-      expect(getLocalizedField(entity, 'name', 'en')).toBe('Margherita Pizza');
-    });
-
-    it('should return translated value for different languages', () => {
-      const entity = {
-        name: 'Acqua',
-        description: 'Acqua naturale',
-        i18n: {
-          en: { name: 'Water', description: 'Still water' },
-          de: { name: 'Wasser', description: 'Stilles Wasser' },
-        },
-      };
-      expect(getLocalizedField(entity, 'name', 'de')).toBe('Wasser');
-      expect(getLocalizedField(entity, 'description', 'en')).toBe('Still water');
-    });
-  });
-
-  describe('falling back to default field when no translation', () => {
-    it('should return default field when language not in i18n', () => {
-      const entity = {
-        name: 'Pizza Margherita',
-        i18n: {
-          en: { name: 'Margherita Pizza' },
-        },
-      };
-      expect(getLocalizedField(entity, 'name', 'fr')).toBe('Pizza Margherita');
-    });
-
-    it('should return default field when field not translated', () => {
-      const entity = {
-        name: 'Pizza Margherita',
-        description: 'Con pomodoro e mozzarella',
-        i18n: {
-          en: { name: 'Margherita Pizza' },
-        },
-      };
-      expect(getLocalizedField(entity, 'description', 'en')).toBe('Con pomodoro e mozzarella');
-    });
-
-    it('should return default field when i18n is undefined', () => {
-      const entity: { name: string; i18n?: undefined } = {
-        name: 'Pizza Margherita',
-      };
-      expect(getLocalizedField(entity, 'name', 'en')).toBe('Pizza Margherita');
-    });
-
-    it('should return default field when translation is empty string', () => {
-      const entity = {
-        name: 'Pizza Margherita',
-        i18n: {
-          en: { name: '' },
-        },
-      };
-      expect(getLocalizedField(entity, 'name', 'en')).toBe('Pizza Margherita');
-    });
-  });
-
-  describe('returning default value when field does not exist', () => {
-    type RuntimeEntity = {
-      i18n?: Record<string, Record<string, string>>;
-      name?: string;
-      price?: unknown;
-    };
-
-    it('should return provided default value when field is not a string', () => {
-      const entity: RuntimeEntity = {
-        name: 'Pizza',
-        price: 10,
-        i18n: {},
-      };
-      expect(getLocalizedField(entity, 'price', 'en', 'N/A')).toBe('N/A');
-    });
-
-    it('should return empty string when no default value provided and field missing', () => {
-      const entity: RuntimeEntity = {
-        i18n: {},
-      };
-      expect(getLocalizedField(entity, 'name', 'en')).toBe('');
-    });
-
-    it('should use provided default value', () => {
-      const entity: RuntimeEntity = {
-        i18n: {},
-      };
-      expect(getLocalizedField(entity, 'name', 'en', 'Unknown')).toBe('Unknown');
     });
   });
 });
