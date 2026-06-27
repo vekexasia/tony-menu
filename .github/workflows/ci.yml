@@ -96,8 +96,12 @@ jobs:
           done
           curl -fsS -X POST http://localhost:8787/admin/demo/reset
           curl -fsS http://localhost:8787/catalog | node -e "let s='';process.stdin.on('data',c=>s+=c).on('end',()=>{const c=JSON.parse(s); const entries=c.categories.flatMap(x=>x.entries); if (!entries.length) throw new Error('seed produced no entries'); console.log(`seeded ${entries.length} entries`)})"
-      - name: Run D1-backed Playwright E2E
-        run: npm --workspace web run test:e2e -- d1-catalog.spec.ts --project=chromium
+      - name: Run Playwright E2E (full non-live suite)
+        # The chat specs mock /session and /chat at the browser level, so no chat
+        # worker process is needed — NEXT_PUBLIC_CHAT_WORKER_URL only has to be set
+        # for the chat FAB to mount. chat-live and auth-setup are excluded via the
+        # playwright config testIgnore.
+        run: npm --workspace web run test:e2e -- --project=chromium
         env:
           NEXT_PUBLIC_API_URL: http://localhost:8787
           NEXT_PUBLIC_CHAT_WORKER_URL: http://localhost:8788
