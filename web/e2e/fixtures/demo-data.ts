@@ -10,6 +10,14 @@ export const DEMO = {
   nameUpper: settings.name.toUpperCase(),
   payoff: settings.payoff,
   primaryLocale: settings.primaryLocale,
+  /** Address fields rendered by the /info page and the info modal. */
+  addressLine1: settings.info.addressLine1,
+  city: settings.info.city,
+  zip: settings.info.zip,
+  region: settings.info.region,
+  phone: settings.info.phone,
+  /** A weekday with no slots in the seed schedule renders as "closed". */
+  hasClosedDay: settings.openingSchedule.schedule.some((slots) => slots.length === 0),
 } as const;
 
 /** Published menu codes from the seed (home renders one selection card per menu). */

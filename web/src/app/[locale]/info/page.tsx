@@ -1,14 +1,40 @@
 "use client";
 
+import { useEffect } from "react";
 import { useTranslations } from "@/lib/i18n";
 import Link from "next/link";
+import { useRestaurantStore } from "@/stores/restaurantStore";
+import { LoadingScreen, ErrorScreen } from "@/components/ui/StatusScreen";
+import type { TimeSlot } from "@/lib/types";
+
+const DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] as const;
 
 export default function InfoPage() {
   const t = useTranslations();
+  const { data, isLoading, error, loadRestaurant } = useRestaurantStore();
+
+  useEffect(() => {
+    loadRestaurant();
+  }, [loadRestaurant]);
+
+  if (isLoading) return <LoadingScreen as="main" />;
+  if (error) return <ErrorScreen as="main" message={error} retryLabel={t("retry")} onRetry={() => loadRestaurant({ force: true })} />;
+  if (!data) return null;
+
+  const { info, socials, openingSchedule, messages } = data;
+  const todayIndex = (new Date().getDay() + 6) % 7;
+
+  const formatTimeSlots = (slots: TimeSlot[] | undefined): string => {
+    if (!slots || slots.length === 0) return t("closed");
+    return slots.map((slot) => `${slot.start} - ${slot.end}`).join(", ");
+  };
+
+  const mapHref = info?.latlong
+    ? `https://www.google.com/maps/place/${info.latlong.latitude},${info.latlong.longitude}/@${info.latlong.latitude},${info.latlong.longitude},14z`
+    : undefined;
 
   return (
     <main className="min-h-screen bg-gray-100">
-      {/* Header */}
       <header className="bg-primary text-white p-4">
         <div className="flex items-center gap-4">
           <Link href="/" className="text-white">
@@ -20,11 +46,7 @@ export default function InfoPage() {
               stroke="currentColor"
               className="w-6 h-6"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15.75 19.5L8.25 12l7.5-7.5"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
             </svg>
           </Link>
           <h1 className="text-xl font-bold">{t("restaurantInfo")}</h1>
@@ -32,108 +54,69 @@ export default function InfoPage() {
       </header>
 
       <div className="p-4 space-y-6">
-        {/* Restaurant section */}
-        <section className="bg-white rounded-lg p-4 shadow-sm">
-          <h2 className="text-lg font-bold text-primary mb-3">
-            {t("restaurant")}
-          </h2>
-          <p className="text-gray-600">
-            Benvenuti al Ristorante Miravalle, dove la tradizione incontra
-            l&apos;innovazione culinaria.
-          </p>
-        </section>
+        {/* Restaurant intro (only when configured) */}
+        {messages?.intro && (
+          <section className="bg-white rounded-lg p-4 shadow-sm">
+            <h2 className="text-lg font-bold text-primary mb-3">{t("restaurant")}</h2>
+            <p className="text-gray-600 leading-relaxed">{messages.intro}</p>
+          </section>
+        )}
 
-        {/* Location section */}
-        <section className="bg-white rounded-lg p-4 shadow-sm">
-          <h2 className="text-lg font-bold text-primary mb-3">
-            {t("location")}
-          </h2>
-          <p className="text-gray-600">Via Example, 123</p>
-          <p className="text-gray-600">30016 Jesolo (VE)</p>
-          <button className="mt-3 text-primary font-medium flex items-center gap-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-5 h-5"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"
-              />
-            </svg>
-            {t("seeMap")}
-          </button>
-        </section>
+        {/* Location */}
+        {info && (info.addressLine1 || info.city) && (
+          <section className="bg-white rounded-lg p-4 shadow-sm">
+            <h2 className="text-lg font-bold text-primary mb-3">{t("location")}</h2>
+            {info.addressLine1 && <p className="text-gray-600">{info.addressLine1}</p>}
+            {info.city && (
+              <p className="text-gray-600">
+                {info.zip ? `${info.zip} ` : ""}
+                {info.city}
+                {info.region ? ` (${info.region})` : ""}
+              </p>
+            )}
+            {mapHref && (
+              <a
+                href={mapHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-flex items-center gap-2 text-primary font-medium"
+              >
+                {t("seeMap")}
+              </a>
+            )}
+          </section>
+        )}
 
-        {/* Contacts section */}
-        <section className="bg-white rounded-lg p-4 shadow-sm">
-          <h2 className="text-lg font-bold text-primary mb-3">
-            {t("contacts")}
-          </h2>
-          <button className="text-primary font-medium flex items-center gap-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-5 h-5"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z"
-              />
-            </svg>
-            {t("call")}
-          </button>
-        </section>
+        {/* Contacts */}
+        {(info?.phone || socials?.whatsapp) && (
+          <section className="bg-white rounded-lg p-4 shadow-sm">
+            <h2 className="text-lg font-bold text-primary mb-3">{t("contacts")}</h2>
+            {info?.phone && (
+              <a href={`tel:${info.phone}`} className="text-primary font-medium flex items-center gap-2">
+                {t("call")}
+              </a>
+            )}
+            {info?.phone && <p className="mt-2 text-gray-600">T: {info.phone}</p>}
+          </section>
+        )}
 
-        {/* Opening hours section */}
-        <section className="bg-white rounded-lg p-4 shadow-sm">
-          <h2 className="text-lg font-bold text-primary mb-3">
-            {t("openingHours")}
-          </h2>
-          <div className="space-y-2 text-gray-600">
-            <div className="flex justify-between">
-              <span>{t("monday")}</span>
-              <span>12:00 - 22:00</span>
+        {/* Opening hours */}
+        {openingSchedule && (
+          <section className="bg-white rounded-lg p-4 shadow-sm">
+            <h2 className="text-lg font-bold text-primary mb-3">{t("openingHours")}</h2>
+            <div className="space-y-2 text-gray-600">
+              {DAYS.map((day, index) => (
+                <div
+                  key={day}
+                  className={`flex justify-between ${index === todayIndex ? "font-bold" : ""}`}
+                >
+                  <span>{t(day)}</span>
+                  <span>{formatTimeSlots(openingSchedule.schedule?.[index])}</span>
+                </div>
+              ))}
             </div>
-            <div className="flex justify-between">
-              <span>{t("tuesday")}</span>
-              <span>12:00 - 22:00</span>
-            </div>
-            <div className="flex justify-between">
-              <span>{t("wednesday")}</span>
-              <span>{t("closed")}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>{t("thursday")}</span>
-              <span>12:00 - 22:00</span>
-            </div>
-            <div className="flex justify-between">
-              <span>{t("friday")}</span>
-              <span>12:00 - 23:00</span>
-            </div>
-            <div className="flex justify-between">
-              <span>{t("saturday")}</span>
-              <span>12:00 - 23:00</span>
-            </div>
-            <div className="flex justify-between">
-              <span>{t("sunday")}</span>
-              <span>12:00 - 22:00</span>
-            </div>
-          </div>
-        </section>
+          </section>
+        )}
       </div>
     </main>
   );

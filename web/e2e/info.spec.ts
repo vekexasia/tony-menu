@@ -35,62 +35,38 @@ test.describe("Info Page", () => {
     await expect(backArrow).toBeVisible();
   });
 
-  test("should display restaurant section", async ({ page }) => {
-    // The restaurant section is a card with the IL RISTORANTE heading and a
-    // descriptive paragraph beneath it.
-    const restaurantSection = page.locator("section", {
-      has: page.getByRole("heading", { name: "IL RISTORANTE" }),
+  test("should display location section with the seeded address", async ({ page }) => {
+    const locationSection = page.locator("section", {
+      has: page.getByRole("heading", { name: "DOVE SIAMO" }),
     });
-    await expect(restaurantSection).toBeVisible();
-    await expect(restaurantSection.locator("p").first()).toBeVisible();
+    await expect(locationSection).toBeVisible();
+    await expect(locationSection.getByText(DEMO.addressLine1)).toBeVisible();
+    // City line includes zip and region, e.g. "30100 Venezia (VE)".
+    await expect(locationSection.getByText(new RegExp(`${DEMO.city}.*\\(${DEMO.region}\\)`))).toBeVisible();
   });
 
-  test("should display location section", async ({ page }) => {
-    // Check location section heading
-    const locationHeading = page.locator("section h2").filter({
-      hasText: "DOVE SIAMO",
+  test("should display contacts section with the seeded phone", async ({ page }) => {
+    const contactsSection = page.locator("section", {
+      has: page.getByRole("heading", { name: "CONTATTI" }),
     });
-    await expect(locationHeading).toBeVisible();
-
-    // Check address is displayed
-    await expect(page.getByText("Via Example, 123")).toBeVisible();
-    await expect(page.getByText("30016 Jesolo (VE)")).toBeVisible();
-
-    // Check "See Map" button exists
-    const seeMapButton = page.getByRole("button", { name: "Vedi Mappa" });
-    await expect(seeMapButton).toBeVisible();
+    await expect(contactsSection).toBeVisible();
+    // Call link points at the seeded phone number.
+    await expect(contactsSection.locator(`a[href="tel:${DEMO.phone}"]`)).toBeVisible();
+    await expect(contactsSection.getByText(DEMO.phone)).toBeVisible();
   });
 
-  test("should display contacts section", async ({ page }) => {
-    // Check contacts section heading
-    const contactsHeading = page.locator("section h2").filter({
-      hasText: "CONTATTI",
+  test("should display opening hours section with all days", async ({ page }) => {
+    const hoursSection = page.locator("section", {
+      has: page.getByRole("heading", { name: "ORARI DI APERTURA" }),
     });
-    await expect(contactsHeading).toBeVisible();
-
-    // Check call button exists
-    const callButton = page.getByRole("button", { name: "Chiama" });
-    await expect(callButton).toBeVisible();
-  });
-
-  test("should display opening hours section", async ({ page }) => {
-    // Check opening hours section heading
-    const hoursHeading = page.locator("section h2").filter({
-      hasText: "ORARI DI APERTURA",
-    });
-    await expect(hoursHeading).toBeVisible();
-
-    // Check days of the week are displayed
-    await expect(page.getByText("LUNEDÌ")).toBeVisible();
-    await expect(page.getByText("MARTEDÌ")).toBeVisible();
-    await expect(page.getByText("MERCOLEDÌ")).toBeVisible();
-    await expect(page.getByText("GIOVEDÌ")).toBeVisible();
-    await expect(page.getByText("VENERDÌ")).toBeVisible();
-    await expect(page.getByText("SABATO")).toBeVisible();
-    await expect(page.getByText("DOMENICA")).toBeVisible();
-
-    // Check that CHIUSO (closed) is displayed for some day
-    await expect(page.getByText("CHIUSO")).toBeVisible();
+    await expect(hoursSection).toBeVisible();
+    for (const day of ["LUNEDÌ", "MARTEDÌ", "MERCOLEDÌ", "GIOVEDÌ", "VENERDÌ", "SABATO", "DOMENICA"]) {
+      await expect(hoursSection.getByText(day)).toBeVisible();
+    }
+    // The seed leaves one weekday with no slots, which renders as "closed".
+    if (DEMO.hasClosedDay) {
+      await expect(hoursSection.getByText("CHIUSO")).toBeVisible();
+    }
   });
 
   test("should navigate back to home when clicking back button", async ({
@@ -107,25 +83,20 @@ test.describe("Info Page", () => {
     await expect(page.locator("header h1")).toContainText(DEMO.nameUpper);
   });
 
-  test("should have all sections in white cards with shadows", async ({
-    page,
-  }) => {
-    // Check that sections are styled as cards
+  test("should render the data-driven sections as white cards", async ({ page }) => {
+    // Wait for the store-backed content to mount before counting.
+    await expect(page.getByRole("heading", { name: "ORARI DI APERTURA" })).toBeVisible();
     const sections = page.locator("section.bg-white.rounded-lg.p-4.shadow-sm");
-    const count = await sections.count();
-
-    // There should be 4 main sections (restaurant, location, contacts, opening hours)
-    expect(count).toBeGreaterThanOrEqual(4);
+    // Demo data drives location + contacts + opening hours (no intro message).
+    expect(await sections.count()).toBeGreaterThanOrEqual(3);
   });
 
   test("should have proper page structure", async ({ page }) => {
-    // Check for semantic HTML elements
     await expect(page.locator("main")).toHaveCount(1);
     await expect(page.locator("header")).toBeVisible();
 
-    // Check sections exist
+    await expect(page.getByRole("heading", { name: "ORARI DI APERTURA" })).toBeVisible();
     const sections = page.locator("section");
-    const sectionCount = await sections.count();
-    expect(sectionCount).toBeGreaterThanOrEqual(4);
+    expect(await sections.count()).toBeGreaterThanOrEqual(3);
   });
 });
