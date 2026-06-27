@@ -48,7 +48,7 @@ export default defineConfig({
         "**/home.spec.ts",
         "**/chat.spec.ts",
         "**/i18n.spec.ts",
-        "**/multi-tenant-menu.spec.ts",
+        "**/menu-route.spec.ts",
       ],
     },
   ],
