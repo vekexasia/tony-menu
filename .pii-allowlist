@@ -148,3 +148,21 @@ test\.local
 (?i)^tony(-chat)?$
 # npm registry tarball URLs in package-lock files are public dependency metadata.
 registry[.]npmjs[.]org
+
+# ── Demo restaurant seed data (backend/src/lib/demo-seed-data.ts) ──
+# Placeholder contact details for the public "Trattoria Demo" — all fake.
+# Fake phone numbers (all-zero Venice placeholder, with/without spaces).
+\+?39 ?041 ?000 ?0000
+\+?390410000000
+# Bare social profile roots and the Google-maps URL template (interpolated vars).
+^https?://(www\.)?instagram\.com/?$
+^https?://(www\.)?facebook\.com/?$
+^https?://(www\.)?google\.com/maps/.*$
+# Far-future promotion expiry date in the demo seed.
+^2030-12-31T
+
+# ── Demo dish/UI strings the scanner mistakes for personal names ──
+(?i)^uova$
+(?i)^orari di apertura$
+(?i)^ravioli de$
+(?i)^hausgemacht$
