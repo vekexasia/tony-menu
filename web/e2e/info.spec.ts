@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { DEMO } from "./fixtures/demo-data";
 
 test.describe("Info Page", () => {
   test.beforeEach(async ({ page }) => {
@@ -35,17 +36,13 @@ test.describe("Info Page", () => {
   });
 
   test("should display restaurant section", async ({ page }) => {
-    // Check restaurant section heading
-    const restaurantHeading = page.locator("section h2").filter({
-      hasText: "IL RISTORANTE",
+    // The restaurant section is a card with the IL RISTORANTE heading and a
+    // descriptive paragraph beneath it.
+    const restaurantSection = page.locator("section", {
+      has: page.getByRole("heading", { name: "IL RISTORANTE" }),
     });
-    await expect(restaurantHeading).toBeVisible();
-
-    // Check restaurant description is present
-    const restaurantSection = page
-      .locator("section")
-      .filter({ has: restaurantHeading });
-    await expect(restaurantSection.locator("p")).toBeVisible();
+    await expect(restaurantSection).toBeVisible();
+    await expect(restaurantSection.locator("p").first()).toBeVisible();
   });
 
   test("should display location section", async ({ page }) => {
@@ -107,7 +104,7 @@ test.describe("Info Page", () => {
     await page.waitForURL(/\/it\/?$/);
 
     // Verify we're on the home page
-    await expect(page.locator("header h1")).toContainText("Ristorante Miravalle");
+    await expect(page.locator("header h1")).toContainText(DEMO.nameUpper);
   });
 
   test("should have all sections in white cards with shadows", async ({

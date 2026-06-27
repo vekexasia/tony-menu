@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { DEMO } from "./fixtures/demo-data";
 
 test.describe("Restaurant Info Modal", () => {
   test.beforeEach(async ({ page }) => {
@@ -17,46 +18,38 @@ test.describe("Restaurant Info Modal", () => {
     }
 
     // Wait for restaurant name to be visible (indicates page is loaded)
-    const restaurantName = page.locator("text=RISTORANTE MIRAVALLE");
+    const restaurantName = page.getByText(DEMO.nameUpper).first();
     await restaurantName.waitFor({ state: "visible", timeout: 15000 });
   });
 
   test("should open restaurant info modal when clicking header card", async ({
     page,
   }) => {
-    // Find and click the info card (contains "Maggiori informazioni")
     const infoCard = page.locator("button", { hasText: "Maggiori informazioni" });
     await expect(infoCard).toBeVisible();
     await infoCard.click();
-
-    // Wait for modal animation
     await page.waitForTimeout(300);
 
-    // Check that the modal opened with correct sections
-    await expect(page.locator("text=IL RISTORANTE")).toBeVisible();
-    await expect(page.locator("text=DOVE SIAMO")).toBeVisible();
-    await expect(page.locator("text=CONTATTI")).toBeVisible();
-    await expect(page.locator("text=ORARI DI APERTURA")).toBeVisible();
+    // Sections render conditionally on the restaurant data. The demo has info,
+    // phone and an opening schedule, so these three sections appear (it has no
+    // intro message, so IL RISTORANTE is intentionally absent).
+    await expect(page.getByText("DOVE SIAMO")).toBeVisible();
+    await expect(page.getByText("CONTATTI")).toBeVisible();
+    await expect(page.getByText("ORARI DI APERTURA")).toBeVisible();
   });
 
   test("should close modal when clicking X button", async ({ page }) => {
-    // Open modal
     const infoCard = page.locator("button", { hasText: "Maggiori informazioni" });
     await infoCard.click();
     await page.waitForTimeout(300);
+    await expect(page.getByText("DOVE SIAMO")).toBeVisible();
 
-    // Verify modal is open
-    await expect(page.locator("text=IL RISTORANTE")).toBeVisible();
-
-    // Click close button (X) - inside the dialog portal, top right corner
-    const closeButton = page.locator('[id^="headlessui-dialog-panel"] button').first();
+    // Close button (X) lives in the dialog panel.
+    const closeButton = page.locator('[role="dialog"] button').first();
     await closeButton.click();
-
-    // Wait for close animation
     await page.waitForTimeout(400);
 
-    // Check that modal is closed
-    await expect(page.locator("text=IL RISTORANTE")).not.toBeVisible();
+    await expect(page.getByText("DOVE SIAMO")).not.toBeVisible();
   });
 
   test("should display social icons when available", async ({ page }) => {
