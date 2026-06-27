@@ -4,10 +4,8 @@ import {
   ALLERGEN_NAMES,
   isAllergen,
   isMenuEntryVisibleOnMenu,
-  findApplicableServiceCost,
-  getDefaultVariantSelection,
 } from './types';
-import type { MenuEntry, Variant, ServiceCost } from './types';
+import type { MenuEntry } from './types';
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -74,56 +72,5 @@ describe('isMenuEntryVisibleOnMenu', () => {
 
   it('returns false for orphan (no memberships)', () => {
     expect(isMenuEntryVisibleOnMenu(makeEntry([]), 'm-food')).toBe(false);
-  });
-});
-
-// ── findApplicableServiceCost ──────────────────────────────────────────────────
-
-describe('findApplicableServiceCost', () => {
-  const costs: ServiceCost[] = [
-    { fromCart: 0, price: 2 },
-    { fromCart: 20, price: 1 },
-    { fromCart: 50, price: 0 },
-  ];
-
-  it('returns undefined for empty cost list', () => {
-    expect(findApplicableServiceCost([], 100)).toBeUndefined();
-  });
-
-  it('returns the matching tier for a cart value below the second threshold', () => {
-    expect(findApplicableServiceCost(costs, 10)?.price).toBe(2);
-  });
-
-  it('returns the highest matching tier', () => {
-    expect(findApplicableServiceCost(costs, 55)?.price).toBe(0);
-  });
-
-  it('returns the first tier for cart value = 0', () => {
-    expect(findApplicableServiceCost(costs, 0)?.price).toBe(2);
-  });
-});
-
-// ── getDefaultVariantSelection ─────────────────────────────────────────────────
-
-describe('getDefaultVariantSelection', () => {
-  const variant: Variant = {
-    id: 'v1',
-    path: 'p',
-    name: 'Size',
-    order: 0,
-    selections: [
-      { name: 'Small', price: 0, isDefault: false },
-      { name: 'Medium', price: 1, isDefault: true },
-      { name: 'Large', price: 2, isDefault: false },
-    ],
-  };
-
-  it('returns the default selection', () => {
-    expect(getDefaultVariantSelection(variant)?.name).toBe('Medium');
-  });
-
-  it('returns undefined when no selection is default', () => {
-    const v2: Variant = { ...variant, selections: [{ name: 'X', price: 0, isDefault: false }] };
-    expect(getDefaultVariantSelection(v2)).toBeUndefined();
   });
 });

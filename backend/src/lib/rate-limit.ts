@@ -48,7 +48,3 @@ export function checkRateLimit(
   entry.timestamps.push(now);
   return null;
 }
-
-export function clearRateLimitStore() {
-  store.clear();
-}

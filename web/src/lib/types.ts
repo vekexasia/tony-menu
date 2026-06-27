@@ -102,17 +102,6 @@ export interface RestaurantTheme {
 // Restaurant Localization
 // ============================================================================
 
-/**
- * Localization settings for the restaurant.
- * Corresponds to _RestaurantLocalization in Flutter.
- */
-export interface RestaurantLocalization {
-  /** List of supported language codes (default: ['it', 'en', 'de', 'ru', 'hu', 'ro']) */
-  supportedLanguages: string[];
-  /** Default language code (default: 'it') */
-  defaultLanguage: string;
-}
-
 // ============================================================================
 // Restaurant Messages
 // ============================================================================
@@ -196,30 +185,6 @@ export interface RestaurantInfo {
   latlong?: GeoPoint;
   /** Initial popup shown on the public menu. */
   menuNotice?: MenuNotice;
-}
-
-// ============================================================================
-// Service Costs
-// ============================================================================
-
-/**
- * A service cost tier based on cart value.
- * Corresponds to ServiceCost in Flutter.
- */
-export interface ServiceCost {
-  /** Minimum cart value for this tier to apply */
-  fromCart: number;
-  /** Service cost price for this tier */
-  price: number;
-}
-
-/**
- * Service costs configuration.
- * Corresponds to _ServiceCosts in Flutter.
- */
-export interface ServiceCosts {
-  /** Service costs for takeaway orders (tiered by cart value) */
-  takeaway: ServiceCost[];
 }
 
 // ============================================================================
@@ -311,36 +276,6 @@ export interface MenuLabel {
   color: 'primary' | 'green' | 'amber' | 'red' | 'gray';
   sortOrder: number;
   i18n?: Record<string, Record<string, string>> | null;
-}
-
-// ============================================================================
-// Seat Booking Types
-// ============================================================================
-
-/**
- * A zone/area for seat bookings.
- * Corresponds to BaseEntry in Flutter (used for zones).
- */
-export interface SeatBookingZone {
-  /** Display name of the zone */
-  name: string;
-  /** Internal code */
-  internalCode?: string;
-  /** Description */
-  desc?: string;
-}
-
-/**
- * Seat booking configuration.
- * Corresponds to _SeatBooking in Flutter.
- */
-export interface SeatBooking {
-  /** Minimum number of persons for a booking */
-  minPersons: number;
-  /** Maximum number of persons for a booking */
-  maxPersons: number;
-  /** Available zones/areas for booking */
-  zones: SeatBookingZone[];
 }
 
 // ============================================================================
@@ -579,43 +514,8 @@ export interface RestaurantData {
 }
 
 // ============================================================================
-// User Types
-// ============================================================================
-
-/**
- * Base user data structure.
- * Corresponds to BaseUser in Flutter.
- */
-export interface BaseUser {
-  /** Firebase user UID */
-  uid: string;
-  /** User's first name */
-  name?: string;
-  /** User's surname/last name */
-  surname?: string;
-  /** User's phone number */
-  phoneNumber?: string;
-}
-
-/**
- * Full user model with additional authentication state.
- * Corresponds to User in Flutter.
- */
-export interface User extends BaseUser {
-  /** Firebase Cloud Messaging tokens for push notifications */
-  fcmTokens: string[];
-  /** User's email address (from Firebase Auth) */
-  email?: string;
-}
-
-// ============================================================================
 // Utility Types and Functions
 // ============================================================================
-
-/**
- * Helper type for Firestore document references (just the path string in React).
- */
-export type DocumentPath = string;
 
 /**
  * Type guard to check if a value is a valid Allergen.
@@ -627,27 +527,5 @@ export function isAllergen(value: unknown): value is Allergen {
 /** Whether an entry is visible to public users on the given menu. */
 export function isMenuEntryVisibleOnMenu(entry: MenuEntry, menuId: string): boolean {
   return !entry.hidden && entry.menuIds.includes(menuId);
-}
-
-/**
- * Find the applicable service cost based on cart value.
- * Corresponds to ServiceCost.findLastMatching() in Flutter.
- */
-export function findApplicableServiceCost(costs: ServiceCost[], cartValue: number): ServiceCost | undefined {
-  let result: ServiceCost | undefined;
-  for (const cost of costs) {
-    if (cost.fromCart <= cartValue) {
-      result = cost;
-    }
-  }
-  return result;
-}
-
-/**
- * Get the default selection from a variant's selections.
- * Corresponds to MenuEntryVariant.defaultSelection in Flutter.
- */
-export function getDefaultVariantSelection(variant: Variant): VariantSelection | undefined {
-  return variant.selections.find(s => s.isDefault);
 }
 
