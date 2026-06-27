@@ -18,7 +18,32 @@ function buildSSE(
   );
 }
 
+async function mockChatSession(page: Page) {
+  await page.route("**/session", async (route: Route) => {
+    if (route.request().method() === "POST") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        headers: { "Access-Control-Allow-Origin": "*" },
+        body: JSON.stringify({ token: "e2e-test-token", expiresAt: Date.now() + 3600_000 }),
+      });
+    } else if (route.request().method() === "OPTIONS") {
+      await route.fulfill({
+        status: 204,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "POST, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        },
+      });
+    } else {
+      await route.continue();
+    }
+  });
+}
+
 async function mockChatEndpoint(page: Page) {
+  await mockChatSession(page);
   await page.route("**/chat", async (route: Route) => {
     if (route.request().method() === "POST") {
       await route.fulfill({
@@ -26,6 +51,15 @@ async function mockChatEndpoint(page: Page) {
         contentType: "text/event-stream",
         headers: { "Cache-Control": "no-cache", "Access-Control-Allow-Origin": "*" },
         body: buildSSE([{ event: "text", data: { text: "Risposta del menu." } }]),
+      });
+    } else if (route.request().method() === "OPTIONS") {
+      await route.fulfill({
+        status: 204,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "POST, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        },
       });
     } else {
       await route.continue();
@@ -37,7 +71,7 @@ async function openChat(page: Page) {
   const fab = page.locator('button[aria-label="Open chat"]');
   await expect(fab).toBeVisible({ timeout: 8000 });
   await fab.dispatchEvent("click");
-  await expect(page.locator("text=Tony")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Close" })).toBeVisible();
 }
 
 async function dismissOverlays(page: Page) {
@@ -69,7 +103,7 @@ test.describe("Chat intent chips", () => {
 
   test("chips are hidden after sending a message", async ({ page }) => {
     // Send a message via the text input
-    const input = page.getByPlaceholder("Scrivi un messaggio...");
+    const input = page.getByPlaceholder("Chiedi a Tony del menu...");
     await input.fill("Ciao");
     await page.keyboard.press("Enter");
 

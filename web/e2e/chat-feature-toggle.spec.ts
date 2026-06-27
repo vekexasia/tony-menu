@@ -46,7 +46,7 @@ test.describe("Chat feature toggle", () => {
 
     // Open
     await fab.dispatchEvent("click");
-    await expect(page.locator("text=Tony")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Close" })).toBeVisible();
 
     // Close — FAB re-appears
     await page.locator('button[aria-label="Close"]').dispatchEvent("click");

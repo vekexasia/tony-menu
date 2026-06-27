@@ -36,11 +36,11 @@ test.describe('Admin authenticated (test seam)', () => {
       await expect(page.locator(`text=${MOCK_RESTAURANT.name}`)).toBeVisible({ timeout: 10000 });
     });
 
-    test('shows "Categorie del menu" heading', async ({ page }) => {
+    test('shows the "Categorie menu" heading', async ({ page }) => {
       await page.goto(`${BASE}&s=categories`);
       await page.waitForLoadState('networkidle');
 
-      await expect(page.locator('text=Categorie del menu')).toBeVisible({ timeout: 10000 });
+      await expect(page.getByRole('heading', { name: 'Categorie menu' })).toBeVisible({ timeout: 10000 });
     });
 
     test('shows "Antipasti" and "Secondi Piatti" rows', async ({ page }) => {
@@ -80,10 +80,8 @@ test.describe('Admin authenticated (test seam)', () => {
       await page.locator('button', { hasText: /Nuova categoria/ }).click();
       await expect(page.locator('h3:has-text("Nuova categoria")')).toBeVisible({ timeout: 8000 });
 
-      // The close button is the first button in the modal header (it has no text — just an fa-xmark icon)
-      // The modal overlay has position:fixed and inset:0
-      const modalCloseBtn = page.locator('[style*="position: fixed"] [style*="border-radius: 12px"] button').first();
-      await modalCloseBtn.click();
+      // The header close button carries an fa-xmark icon (no text/label).
+      await page.locator('button:has(i.fa-xmark)').first().click();
 
       // Modal heading should disappear
       await expect(page.locator('h3:has-text("Nuova categoria")')).not.toBeVisible({ timeout: 5000 });
@@ -113,7 +111,7 @@ test.describe('Admin authenticated (test seam)', () => {
     });
 
     test('shows the category name or entries', async ({ page }) => {
-      await page.goto(`/admin?r=${MOCK_RESTAURANT_ID}&s=entries&category=cat-antipasti`);
+      await page.goto(`/admin/items?r=${MOCK_RESTAURANT_ID}&category=cat-antipasti`);
       await page.waitForLoadState('networkidle');
 
       // We just assert the page didn't crash (no error boundary)
@@ -121,19 +119,17 @@ test.describe('Admin authenticated (test seam)', () => {
     });
 
     test('page content area has overflow auto (scrollable)', async ({ page }) => {
-      await page.goto(`/admin?r=${MOCK_RESTAURANT_ID}&s=entries&category=cat-antipasti`);
+      await page.goto(`/admin/items?r=${MOCK_RESTAURANT_ID}&category=cat-antipasti`);
       await page.waitForLoadState('networkidle');
 
-      // The root div of EntriesPage has style overflowY: auto
+      // EntriesPage's root content div is an independent scroll area.
       const overflowY = await page.evaluate(() => {
-        // Find the main content div (flex child of the content area)
-        const contentArea = document.querySelector('[style*="overflow: hidden"]');
-        if (!contentArea) return null;
-        const child = contentArea.firstElementChild as HTMLElement | null;
-        return child ? getComputedStyle(child).overflowY : null;
+        const el = document.querySelector('main [style*="overflow-y: auto"], main [style*="overflowY"]')
+          ?? Array.from(document.querySelectorAll('div')).find(
+            (d) => getComputedStyle(d).overflowY === 'auto' || getComputedStyle(d).overflowY === 'scroll',
+          );
+        return el ? getComputedStyle(el as Element).overflowY : null;
       });
-
-      // overflowY should be 'auto' or 'scroll' — the style was added in PART 1
       expect(['auto', 'scroll']).toContain(overflowY ?? 'auto');
     });
   });
@@ -200,7 +196,7 @@ test.describe('Admin authenticated (test seam)', () => {
     });
 
     test('shows period selector', async ({ page }) => {
-      await page.goto(`${BASE}&s=analytics`);
+      await page.goto(`/admin/analytics?r=${MOCK_RESTAURANT_ID}`);
       await page.waitForLoadState('domcontentloaded');
 
       // Admin shell must be present
@@ -223,25 +219,25 @@ test.describe('Admin authenticated (test seam)', () => {
       // Wait for authenticated layout to render
       await expect(page.locator(`text=${MOCK_RESTAURANT.name}`)).toBeVisible({ timeout: 10000 });
 
-      // Check sidebar links exist
-      await expect(page.locator('a', { hasText: /Categorie/ }).first()).toBeVisible({ timeout: 5000 });
-      await expect(page.locator('a', { hasText: /Piatti/ }).first()).toBeVisible({ timeout: 5000 });
-      await expect(page.locator('a', { hasText: /Orari/ }).first()).toBeVisible({ timeout: 5000 });
-      await expect(page.locator('a', { hasText: /Impostazioni/ }).first()).toBeVisible({ timeout: 5000 });
-      await expect(page.locator('a', { hasText: /Analisi/ }).first()).toBeVisible({ timeout: 5000 });
+      // Sidebar links use real routes (href) with localized labels.
+      await expect(page.locator('a[href*="/admin/categories"]').first()).toBeVisible({ timeout: 5000 });
+      await expect(page.locator('a[href*="/admin/items"]').first()).toBeVisible({ timeout: 5000 });
+      await expect(page.locator('a[href*="/admin/hours"]').first()).toBeVisible({ timeout: 5000 });
+      await expect(page.locator('a[href*="/admin/settings"]').first()).toBeVisible({ timeout: 5000 });
+      await expect(page.locator('a[href*="/admin/analytics"]').first()).toBeVisible({ timeout: 5000 });
     });
 
-    test('clicking "Orari" navigates to /hours', async ({ page }) => {
+    test('clicking "Orari" navigates to the hours route', async ({ page }) => {
       await page.goto(`${BASE}&s=categories`);
       await page.waitForLoadState('networkidle');
 
       // Wait for authenticated layout
       await expect(page.locator(`text=${MOCK_RESTAURANT.name}`)).toBeVisible({ timeout: 10000 });
 
-      // Click the Orari sidebar link
-      await page.locator('a', { hasText: /Orari/ }).first().click();
+      // Click the Orari sidebar link (real route).
+      await page.locator('a[href*="/admin/hours"]').first().click();
 
-      await expect(page).toHaveURL(new RegExp(`/admin.*r=${MOCK_RESTAURANT_ID}.*s=hours`), { timeout: 8000 });
+      await expect(page).toHaveURL(/\/admin\/hours/, { timeout: 8000 });
     });
   });
 });

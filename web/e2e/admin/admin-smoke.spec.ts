@@ -3,32 +3,26 @@ import { test, expect } from "@playwright/test";
 /**
  * Admin area smoke tests.
  *
- * These run without authentication — they verify the admin gate (login card)
- * and the route structure (/admin → redirect → /admin/categories).
- *
- * Authenticated flows require Firebase Auth emulator or a test seam; that's
- * tracked separately and not in scope here.
+ * Auth model in this build is Cloudflare Access (production) plus a DEMO_MODE
+ * bypass on the backend used by e2e: there is no in-app Firebase/Google login
+ * card. Against the seeded DEMO_MODE backend, /me returns a demo admin, so
+ * /admin loads the admin shell directly (the Categories page).
  */
-test.describe("Admin smoke (unauthenticated)", () => {
-  test("/admin redirects to /admin/categories", async ({ page }) => {
+test.describe("Admin smoke", () => {
+  test("/admin loads the admin shell", async ({ page }) => {
     await page.goto("/admin");
-    await expect(page).toHaveURL(/\/admin\/categories/, { timeout: 5000 });
+    await expect(page).toHaveURL(/\/admin\/?$/, { timeout: 5000 });
+    await expect(page.locator("header")).toBeVisible({ timeout: 10000 });
   });
 
-  test("login card is shown when not authenticated", async ({ page }) => {
+  test("admin home renders the categories page heading", async ({ page }) => {
     await page.goto("/admin");
-
-    // The auth gate renders an h1 with "Admin" and a sign-in CTA
-    await expect(page.locator("h1")).toContainText("Admin", { timeout: 8000 });
-    await expect(page.locator("text=Accedi per gestire il ristorante")).toBeVisible();
+    await expect(page.locator("h1")).toContainText("Categorie", { timeout: 10000 });
   });
 
-  test("Google sign-in button is present on the login card", async ({
-    page,
-  }) => {
+  test("does not render a Firebase/Google login card", async ({ page }) => {
     await page.goto("/admin");
-    // The button contains "Google" text inside the sign-in card
-    const signInBtn = page.locator("button", { hasText: /Google/i });
-    await expect(signInBtn).toBeVisible({ timeout: 8000 });
+    // The legacy Google sign-in card was removed with the move to Cloudflare Access.
+    await expect(page.locator("button").filter({ hasText: /Google/i })).toHaveCount(0);
   });
 });

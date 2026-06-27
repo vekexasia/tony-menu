@@ -15,9 +15,38 @@ function buildSSE(
 }
 
 /**
+ * Mock POST /session so the client gets an anonymous token without the real
+ * worker. Must be installed before navigation (ChatPanel calls this on mount).
+ */
+async function mockChatSession(page: Page) {
+  await page.route("**/session", async (route: Route) => {
+    if (route.request().method() === "POST") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        headers: { "Access-Control-Allow-Origin": "*" },
+        body: JSON.stringify({ token: "e2e-test-token", expiresAt: Date.now() + 3600_000 }),
+      });
+    } else if (route.request().method() === "OPTIONS") {
+      await route.fulfill({
+        status: 204,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "POST, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        },
+      });
+    } else {
+      await route.continue();
+    }
+  });
+}
+
+/**
  * Mock the chat worker endpoint with a canned SSE response.
  */
 async function mockChatEndpoint(page: Page, sseBody: string) {
+  await mockChatSession(page);
   await page.route("**/chat", async (route: Route) => {
     if (route.request().method() === "POST") {
       await route.fulfill({
@@ -35,7 +64,7 @@ async function mockChatEndpoint(page: Page, sseBody: string) {
         headers: {
           "Access-Control-Allow-Origin": "*",
           "Access-Control-Allow-Methods": "POST, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization",
         },
       });
     } else {
@@ -65,14 +94,16 @@ async function openChat(page: Page) {
   await expect(fab).toBeVisible({ timeout: 5000 });
   // Use dispatchEvent because headlessui portal root may intercept pointer events
   await fab.dispatchEvent("click");
-  await expect(page.locator("text=Tony")).toBeVisible();
+  // The open panel has a Close control in its header; assert on that rather than
+  // the bot name, which now also appears in the footer ("Powered by TonyMenu").
+  await expect(page.getByRole("button", { name: "Close" })).toBeVisible();
 }
 
 /**
  * Send a chat message via the input.
  */
 async function sendMessage(page: Page, text: string) {
-  const input = page.getByPlaceholder("Scrivi un messaggio...");
+  const input = page.getByPlaceholder("Chiedi a Tony del menu...");
   await input.focus();
   await input.pressSequentially(text, { delay: 10 });
   await page.keyboard.press("Enter");
@@ -84,6 +115,11 @@ test.describe("Chat", () => {
     await page.addInitScript(() => {
       sessionStorage.setItem("promo_seen_demo-restaurant", "1");
     });
+    // Mock the anonymous session token BEFORE navigation: ChatPanel fires
+    // ensureChatSession() on mount and caches the in-flight promise in a
+    // module singleton, so the token must be mocked before the page loads or
+    // sendMessage will reuse a real (hanging) session call.
+    await mockChatSession(page);
     // Enable chat panel via dev override (?aiChat=1)
     await page.goto("/it/menu?aiChat=1");
     await dismissOverlays(page);
@@ -101,12 +137,12 @@ test.describe("Chat", () => {
 
     // Welcome text should be visible
     await expect(
-      page.locator("text=Chiedimi del menu, allergie, o consigli")
+      page.getByText(/Ciao, sono Tony/)
     ).toBeVisible();
 
     // Input should exist
     await expect(
-      page.getByPlaceholder("Scrivi un messaggio...")
+      page.getByPlaceholder("Chiedi a Tony del menu...")
     ).toBeVisible();
   });
 
@@ -162,7 +198,7 @@ test.describe("Chat", () => {
           data: {
             name: "show_items",
             params: {
-              item_ids: ["001-spaghetti-scogliera", "017-pizza-burrata"],
+              item_ids: ["demo-entry-spaghetti", "demo-entry-burrata"],
             },
           },
         },
@@ -181,7 +217,7 @@ test.describe("Chat", () => {
       page.locator("text=Ecco due piatti che ti consiglio!")
     ).toBeVisible();
 
-    // Item cards should render (loaded from Firestore)
+    // Item cards render by looking the IDs up in the loaded catalog.
     const cards = page.locator(
       'button[class*="bg-gray-50"][class*="rounded-xl"]'
     );
@@ -240,7 +276,7 @@ test.describe("Chat", () => {
     await sendMessage(page, "Test streaming");
 
     // Input should be disabled while waiting
-    const input = page.getByPlaceholder("Scrivi un messaggio...");
+    const input = page.getByPlaceholder("Chiedi a Tony del menu...");
     await expect(input).toBeDisabled();
 
     // Release the response

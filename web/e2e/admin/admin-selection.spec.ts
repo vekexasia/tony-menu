@@ -1,33 +1,56 @@
-import { test, expect } from '@playwright/test';
-import { setupAdminTestEnv } from '../fixtures/admin-mock';
-import { setupMockAdminSettingsRoutes } from '../fixtures/menu-selection';
+import { test, expect, type Page, type Route } from '@playwright/test';
+import { setupAdminTestEnv, MOCK_RESTAURANT_ID } from '../fixtures/admin-mock';
 
-const BASE = '/admin/settings/publishing/';
+/**
+ * The "menu selection" (ordering) feature is configured on the Modules page.
+ * Toggling the Ordering card saves immediately via PUT /admin/modules with the
+ * full modules config (no separate save button, no legacy selectionEnabled PUT).
+ */
+const DEFAULT_MODULES = {
+  ordering: { enabled: false, mode: 'summary' as const },
+  ai: { enabled: false, voiceEnabled: false },
+  analytics: { enabled: true },
+};
 
-test.describe('Admin menu selection setting', () => {
+async function mockModulesRoutes(page: Page) {
+  let current = { ...DEFAULT_MODULES };
+  await page.route('**/admin/modules', async (route: Route) => {
+    if (route.request().method() === 'GET') {
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ modules: current }) });
+    }
+    if (route.request().method() === 'PUT') {
+      const body = route.request().postDataJSON() as typeof DEFAULT_MODULES;
+      current = { ...current, ...body };
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, modules: current }) });
+    }
+    return route.continue();
+  });
+}
+
+test.describe('Admin modules — ordering setting', () => {
   test.beforeEach(async ({ page }) => {
     await setupAdminTestEnv(page);
-    await setupMockAdminSettingsRoutes(page, false);
-    await page.route('**/firestore.googleapis.com/**', (route) => route.abort());
+    await mockModulesRoutes(page);
   });
 
-  test('shows the menu selection setting and saves enabled state', async ({ page }) => {
-    await page.goto(BASE);
+  test('shows the ordering module and saves enabled state', async ({ page }) => {
+    await page.goto(`/admin/modules?r=${MOCK_RESTAURANT_ID}`);
     await page.waitForLoadState('domcontentloaded');
 
-    const toggle = page.getByRole('switch', { name: /menu selection|selezione menu/i });
-    await expect(toggle).toBeVisible({ timeout: 10000 });
-    await expect(toggle).toHaveAttribute('aria-checked', 'false');
+    // The Ordering card and its enable checkbox.
+    const orderingCard = page.locator('section', { has: page.getByRole('heading', { name: 'Ordering' }) });
+    await expect(orderingCard).toBeVisible({ timeout: 10000 });
+    const toggle = orderingCard.getByRole('checkbox');
+    await expect(toggle).not.toBeChecked();
 
-    const putRequest = page.waitForRequest((req) =>
-      req.url().includes('/admin/settings') && req.method() === 'PUT'
+    const putRequest = page.waitForRequest(
+      (req) => req.url().includes('/admin/modules') && req.method() === 'PUT',
     );
 
-    await toggle.click();
-    await page.getByRole('button', { name: /save changes|salva modifiche/i }).click();
+    await toggle.check();
 
     const request = await putRequest;
-    expect(request.postDataJSON()).toMatchObject({ selectionEnabled: true });
-    await expect(toggle).toHaveAttribute('aria-checked', 'true');
+    expect((request.postDataJSON() as { ordering: { enabled: boolean } }).ordering.enabled).toBe(true);
+    await expect(toggle).toBeChecked();
   });
 });
