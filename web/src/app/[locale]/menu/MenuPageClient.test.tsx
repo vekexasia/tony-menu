@@ -70,7 +70,7 @@ beforeEach(() => {
 const menuData = {
   id: 'demo-restaurant',
   name: 'Trattoria Demo',
-  features: { aiChat: true, selection: false },
+  features: { aiChat: true, ordering: { enabled: false, mode: 'summary' } },
   menus: [
     { id: 'menu-food', code: 'food', title: 'Food', published: true, sortOrder: 0 },
   ],
@@ -167,7 +167,7 @@ describe('MenuPageClient', () => {
     expect(credit).toHaveAttribute('rel', 'noopener noreferrer');
   });
 
-  it('hides the selection header link when menu selection is disabled', () => {
+  it('hides the selection header link when ordering is disabled', () => {
     localStorage.setItem(SELECTION_STORAGE_KEY, JSON.stringify({
       version: 1,
       restaurantId: 'demo-restaurant',
@@ -188,7 +188,7 @@ describe('MenuPageClient', () => {
       updatedAt: Date.now(),
       lines: [{ entryId: 'entry-bruschetta', quantity: 2, addedAt: Date.now() }],
     }));
-    useRestaurantStore.setState({ data: { ...menuData, features: { aiChat: true, selection: true } } as unknown as RestaurantData, isLoading: false });
+    useRestaurantStore.setState({ data: { ...menuData, features: { aiChat: true, ordering: { enabled: true, mode: 'summary' } } } as unknown as RestaurantData, isLoading: false });
 
     render(<MenuPageClient />);
 

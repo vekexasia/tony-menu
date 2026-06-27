@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { I18nMapSchema } from './common.js';
 import { RestaurantThemeSchema, RestaurantInfoSchema, RestaurantSocialsSchema, OpeningScheduleSchema } from './restaurant.js';
 import { VariantSelectionSchema, ExtraOptionSchema } from './menu.js';
+import { OrderingModuleConfigSchema } from './modules.js';
 
 export const LABEL_COLORS = ['primary', 'green', 'amber', 'red', 'gray'] as const;
 export const LabelColorSchema = z.enum(LABEL_COLORS);
@@ -122,7 +123,8 @@ export const CatalogRestaurantSchema = z.object({
   features: z.object({
     aiChat: z.boolean(),
     aiVoice: z.boolean(),
-    selection: z.boolean(),
+    analytics: z.boolean().optional(),
+    ordering: OrderingModuleConfigSchema.optional(),
     primaryLocale: z.string().optional(),
     enabledLocales: z.array(z.string()).nullable().optional(),
     disabledLocales: z.array(z.string()).nullable().optional(),

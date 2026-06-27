@@ -71,7 +71,8 @@ const restaurant = {
       ],
     },
   ],
-  features: { primaryLocale: 'it' },
+  openingSchedule: { open: true, minWaitSlot: 0, slotDuration: 30, maxDaysLookAhead: 0, schedule: [] },
+  features: { aiChat: false, aiVoice: false, ordering: { enabled: false, mode: 'summary' as const }, primaryLocale: 'it' },
 };
 
 test.describe('Admin items page', () => {
@@ -82,9 +83,10 @@ test.describe('Admin items page', () => {
         __playwright_restaurant__?: unknown;
       };
       testWindow.__playwright_admin__ = {
-        user: { uid: 'admin-user', email: 'admin@example.com', name: 'Admin User' },
+        user: { uid: 'admin-user', email: 'admin@example.com', displayName: 'Admin User' },
+        restaurantId: 'admin-items-all',
       };
-      testWindow.__playwright_restaurant__ = mockRestaurant;
+      testWindow.__playwright_restaurant__ = mockRestaurant as never;
     }, restaurant);
   });
 

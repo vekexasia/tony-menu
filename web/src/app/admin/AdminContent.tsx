@@ -161,9 +161,11 @@ export default function AdminContent({
   // pathname is normalized: trailing slashes stripped for comparison.
   const currentPath = (pathname ?? "/admin").replace(/\/+$/, "") || "/admin";
 
+  const analyticsEnabled = data?.features?.analytics !== false;
   const topNavItems: { href: string; label: string; matchPrefix?: string }[] = [
     { href: "/admin/categories", label: t("layout.nav.menu") },
-    { href: "/admin/analytics", label: t("layout.nav.analytics") },
+    ...(analyticsEnabled ? [{ href: "/admin/analytics", label: t("layout.nav.analytics") }] : []),
+    { href: "/admin/modules", label: "Modules" },
     { href: "/admin/settings", label: t("layout.nav.settings"), matchPrefix: "/admin/settings" },
   ];
 
@@ -174,7 +176,8 @@ export default function AdminContent({
     { href: "/admin/categories", icon: "fa-layer-group", label: t("layout.section.categories"), count: categories.length },
     { href: entriesHref, icon: "fa-utensils", label: t("layout.section.items"), count: totalEntries },
     { href: "/admin/hours", icon: "fa-clock", label: t("layout.section.hours") },
-    { href: "/admin/analytics", icon: "fa-chart-simple", label: t("layout.section.analytics") },
+    ...(analyticsEnabled ? [{ href: "/admin/analytics", icon: "fa-chart-simple", label: t("layout.section.analytics") }] : []),
+    { href: "/admin/modules", icon: "fa-puzzle-piece", label: "Modules" },
   ];
 
   const settingsItems: { href: string; icon: string; label: string }[] = [

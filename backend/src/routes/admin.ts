@@ -23,6 +23,8 @@ import {
   UpdateMenuBodySchema,
   CreateLabelBodySchema,
   UpdateLabelBodySchema,
+  ModulesConfigSchema,
+  normalizeModulesConfig,
 } from '@menu/schemas';
 import type { AppBindings } from '../types';
 import type { DbInstance } from '../db';
@@ -86,6 +88,54 @@ admin.get('/settings', ...base, async (c) => {
   });
 });
 
+// ── Modules ──────────────────────────────────────────────────────────
+
+admin.get('/modules', ...base, async (c) => {
+  const [row] = await c.get('db')
+    .select({
+      modules: schema.settings.modules,
+      selectionEnabled: schema.settings.selectionEnabled,
+      aiChatEnabled: schema.settings.aiChatEnabled,
+      aiVoiceEnabled: schema.settings.aiVoiceEnabled,
+    })
+    .from(schema.settings)
+    .where(eq(schema.settings.id, 1));
+
+  if (!row) return c.json({ error: 'Not found' }, 404);
+  return c.json({ modules: normalizeModulesConfig(row.modules, row) });
+});
+
+admin.put('/modules', ...base, async (c) => {
+  const body = await parseBody(c, ModulesConfigSchema);
+  if (body instanceof Response) return body;
+
+  const [row] = await c.get('db')
+    .select({
+      modules: schema.settings.modules,
+      selectionEnabled: schema.settings.selectionEnabled,
+      aiChatEnabled: schema.settings.aiChatEnabled,
+      aiVoiceEnabled: schema.settings.aiVoiceEnabled,
+    })
+    .from(schema.settings)
+    .where(eq(schema.settings.id, 1));
+  if (!row) return c.json({ error: 'Not found' }, 404);
+
+  const modules = normalizeModulesConfig({ ...normalizeModulesConfig(row.modules, row), ...body });
+  await c.get('db')
+    .update(schema.settings)
+    .set({
+      modules,
+      selectionEnabled: modules.ordering.enabled,
+      aiChatEnabled: modules.ai.enabled,
+      aiVoiceEnabled: modules.ai.enabled && modules.ai.voiceEnabled,
+      updatedAt: Date.now(),
+    })
+    .where(eq(schema.settings.id, 1));
+
+  await refreshPublicCatalog(c);
+  return c.json({ ok: true, modules });
+});
+
 admin.put('/settings', ...base, async (c) => {
   const body = await parseBody(c, UpdateSettingsBodySchema);
   if (body instanceof Response) return body;
@@ -101,6 +151,20 @@ admin.put('/settings', ...base, async (c) => {
   if (body.aiChatEnabled !== undefined) updates.aiChatEnabled = body.aiChatEnabled;
   if (body.aiVoiceEnabled !== undefined) updates.aiVoiceEnabled = body.aiChatEnabled === false ? false : body.aiVoiceEnabled;
   if (body.selectionEnabled !== undefined) updates.selectionEnabled = body.selectionEnabled;
+  if (body.aiChatEnabled !== undefined || body.aiVoiceEnabled !== undefined || body.selectionEnabled !== undefined) {
+    const [row] = await c.get('db')
+      .select({ modules: schema.settings.modules, selectionEnabled: schema.settings.selectionEnabled, aiChatEnabled: schema.settings.aiChatEnabled, aiVoiceEnabled: schema.settings.aiVoiceEnabled })
+      .from(schema.settings)
+      .where(eq(schema.settings.id, 1));
+    const modules = normalizeModulesConfig(row?.modules, row);
+    if (body.selectionEnabled !== undefined) modules.ordering.enabled = body.selectionEnabled;
+    if (body.aiChatEnabled !== undefined) {
+      modules.ai.enabled = body.aiChatEnabled;
+      if (!body.aiChatEnabled) modules.ai.voiceEnabled = false;
+    }
+    if (body.aiVoiceEnabled !== undefined) modules.ai.voiceEnabled = modules.ai.enabled && body.aiVoiceEnabled;
+    updates.modules = modules;
+  }
   if (body.primaryLocale !== undefined) updates.primaryLocale = body.primaryLocale;
   if (body.enabledLocales !== undefined) updates.enabledLocales = body.enabledLocales;
   if (body.disabledLocales !== undefined) updates.disabledLocales = body.disabledLocales;
@@ -753,6 +817,15 @@ admin.delete('/locale-flag/:code', ...base, async (c) => {
 
 admin.get('/analytics', ...base, async (c) => {
   const db = c.get('db');
+  const [settingsRow] = await db
+    .select({ modules: schema.settings.modules })
+    .from(schema.settings)
+    .where(eq(schema.settings.id, 1))
+    .limit(1);
+  if (!normalizeModulesConfig(settingsRow?.modules).analytics.enabled) {
+    return c.json({ error: 'Not Found' }, 404);
+  }
+
 
   const periodParam = c.req.query('period') ?? '7d';
   const ms = periodToMs(periodParam);

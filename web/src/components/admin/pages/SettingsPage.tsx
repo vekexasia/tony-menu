@@ -191,7 +191,6 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
   const [chatAgentPrompt, setChatAgentPrompt] = useState("");
   const [aiChatEnabled, setAiChatEnabled] = useState(false);
   const [aiVoiceEnabled, setAiVoiceEnabled] = useState(false);
-  const [selectionEnabled, setSelectionEnabled] = useState(false);
 
   const { data: restaurantStoreData, loadRestaurant } = useRestaurantStore();
   const primaryLocale = restaurantStoreData?.features?.primaryLocale ?? "it";
@@ -254,7 +253,6 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
         setChatAgentPrompt(settings.chatAgentPrompt || "");
         setAiChatEnabled(settings.aiChatEnabled ?? false);
         setAiVoiceEnabled((settings.aiChatEnabled && settings.aiVoiceEnabled) ?? false);
-        setSelectionEnabled(settings.selectionEnabled ?? false);
         setPublished(settings.publicationState === "published");
         if (settings.primaryLocale) setPrimaryLocaleDraft(settings.primaryLocale);
         if (settings.enabledLocales != null) setEnabledLocales(settings.enabledLocales);
@@ -327,7 +325,6 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
         chatAgentPrompt,
         aiChatEnabled,
         aiVoiceEnabled: aiChatEnabled && aiVoiceEnabled,
-        selectionEnabled,
         primaryLocale: primaryLocaleDraft,
         enabledLocales,
         disabledLocales,
@@ -1098,13 +1095,6 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
               {show("publishing") && <>
               {/* ── Visibilità Menu ── */}
               <Card title={t("settings.cards.menuVisibility")}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, padding: "10px 12px", background: T.surface, borderRadius: 6, border: `1px solid ${T.border}` }}>
-                  <div>
-                    <p style={{ fontSize: 13, fontWeight: 600, color: T.dark, margin: 0 }}>{t("settings.selection.title")}</p>
-                    <p style={{ fontSize: 11, color: T.off, margin: "2px 0 0" }}>{t("settings.selection.desc")}</p>
-                  </div>
-                  <Toggle on={selectionEnabled} onChange={() => setSelectionEnabled((v) => !v)} ariaLabel={t("settings.selection.title")} />
-                </div>
                 {published === false && (
                   <div style={{ background: T.warnBg, border: `1px solid ${T.warnBorder}`, borderRadius: 6, padding: "10px 14px", color: T.warn, fontSize: 12, marginBottom: 14 }}>
                     {t("settings.publishing.notPublicWarning")}

@@ -3,7 +3,7 @@ import { eq, asc } from 'drizzle-orm';
 import { requireDb } from '../middleware/db';
 import { requireAuth } from '../middleware/auth';
 import { attachDb, requireAdmin } from '../middleware/admin-guard';
-import { RecordViewBodySchema } from '@menu/schemas';
+import { RecordViewBodySchema, normalizeModulesConfig } from '@menu/schemas';
 import type { CatalogResponse } from '@menu/schemas';
 import * as schema from '../db/schema';
 import type { AppBindings, Env } from '../types';
@@ -64,6 +64,15 @@ export const catalogRoutes = new Hono<AppBindings>()
         return c.json({ ok: false }, 400);
       }
       const body = result.data;
+
+      const [settingsRow] = await db
+        .select({ modules: schema.settings.modules })
+        .from(schema.settings)
+        .where(eq(schema.settings.id, 1))
+        .limit(1);
+      if (!normalizeModulesConfig(settingsRow?.modules).analytics.enabled) {
+        return c.json({ error: 'Not Found' }, 404);
+      }
 
       const ip = c.req.header('cf-connecting-ip') || c.req.header('x-forwarded-for') || 'unknown';
       const now = new Date();
@@ -135,7 +144,7 @@ export const catalogRoutes = new Hono<AppBindings>()
 import type { DbInstance } from '../db';
 
 const CATALOG_CACHE_CONTROL = 'public, max-age=60, stale-while-revalidate=300';
-const PUBLIC_CATALOG_VERSION = 'public-v3';
+const PUBLIC_CATALOG_VERSION = 'public-v4';
 
 type BuildCatalogOptions = {
   /** Public responses must hide drafts/unpublished menus. */
@@ -363,6 +372,7 @@ export async function buildCatalogFromDb(
     entriesByCategory.set(entry.categoryId, list);
   }
 
+  const modules = normalizeModulesConfig(restaurant.modules, restaurant);
   return {
     restaurant: {
       id: 'singleton',
@@ -374,9 +384,10 @@ export async function buildCatalogFromDb(
       socials: restaurant.socials,
       openingSchedule: restaurant.openingSchedule,
       features: {
-        aiChat: restaurant.aiChatEnabled,
-        aiVoice: restaurant.aiChatEnabled && restaurant.aiVoiceEnabled,
-        selection: restaurant.selectionEnabled,
+        aiChat: modules.ai.enabled,
+        aiVoice: modules.ai.enabled && modules.ai.voiceEnabled,
+        analytics: modules.analytics.enabled,
+        ordering: modules.ordering,
         primaryLocale: restaurant.primaryLocale,
         enabledLocales: restaurant.enabledLocales,
         disabledLocales: restaurant.disabledLocales,

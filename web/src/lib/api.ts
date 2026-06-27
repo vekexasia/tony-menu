@@ -29,6 +29,8 @@ import type {
   HourlyTotal,
   TranslateResponse,
   CreatedEntryResponse,
+  NormalizedModulesConfig,
+  ModulesConfig,
   ImageUploadResponse,
 } from '@menu/schemas';
 
@@ -172,6 +174,18 @@ export function fetchRestaurantSettings() {
 
 export function updateRestaurantSettings(data: UpdateSettingsBody) {
   return apiFetch(`/admin/settings`, {
+    method: 'PUT',
+    body: data,
+    auth: true,
+  });
+}
+
+export function fetchModules() {
+  return apiFetch<{ modules: NormalizedModulesConfig }>(`/admin/modules`, { auth: true });
+}
+
+export function updateModules(data: ModulesConfig) {
+  return apiFetch<{ ok: boolean; modules: NormalizedModulesConfig }>(`/admin/modules`, {
     method: 'PUT',
     body: data,
     auth: true,

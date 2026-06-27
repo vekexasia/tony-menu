@@ -563,8 +563,10 @@ export interface RestaurantData {
     aiChat?: boolean;
     /** Enable browser voice dictation inside Tony chat. Defaults to false when missing. */
     aiVoice?: boolean;
-    /** Let diners save local menu selections to show staff. Defaults to false when missing. */
-    selection?: boolean;
+    /** Let diners use ordering features. Defaults to disabled when missing. */
+    ordering?: { enabled: boolean; mode: 'summary' | 'send' };
+    /** Track anonymous menu views and show analytics. Defaults to enabled. */
+    analytics?: boolean;
     /** Primary/source language for menu items. Defaults to 'it'. */
     primaryLocale?: string;
     /** Locales enabled for translation. null/undefined = all enabled. */

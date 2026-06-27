@@ -68,6 +68,53 @@ describe('PUT /admin/settings', () => {
   });
 });
 
+describe('GET /admin/modules', () => {
+  it('returns normalized module config migrated from legacy settings', async () => {
+    const { env, headers } = await adminEnv();
+    const res = await testRequest('/admin/modules', { headers, env });
+    expect(res.status).toBe(200);
+    const body = await res.json() as { modules: { ordering: { enabled: boolean; mode: string }; ai: { enabled: boolean; voiceEnabled: boolean }; analytics: { enabled: boolean } } };
+    expect(body.modules).toEqual({
+      ordering: { enabled: false, mode: 'summary' },
+      ai: { enabled: false, voiceEnabled: false },
+      analytics: { enabled: true },
+    });
+  });
+});
+
+describe('PUT /admin/modules', () => {
+  it('updates module config', async () => {
+    const { db, env, headers } = await adminEnv();
+    const modules = {
+      ordering: { enabled: true, mode: 'summary' },
+      ai: { enabled: true, voiceEnabled: false },
+      analytics: { enabled: false },
+    };
+    const res = await testRequest('/admin/modules', { method: 'PUT', headers, env, body: modules });
+    expect(res.status).toBe(200);
+    const row = db.raw.prepare('SELECT modules FROM settings WHERE id = 1').get() as { modules: string };
+    expect(JSON.parse(row.modules)).toEqual(modules);
+  });
+});
+
+describe('GET /admin/analytics', () => {
+  it('returns 404 when the analytics module is disabled', async () => {
+    const { env, headers } = await adminEnv();
+    const res = await testRequest('/admin/analytics', { headers, env });
+    expect(res.status).toBe(200);
+
+    await testRequest('/admin/modules', {
+      method: 'PUT',
+      headers,
+      env,
+      body: { analytics: { enabled: false } },
+    });
+
+    const disabled = await testRequest('/admin/analytics', { headers, env });
+    expect(disabled.status).toBe(404);
+  });
+});
+
 describe('PUT /admin/publication', () => {
   it('toggles publication state', async () => {
     const { db, env, headers } = await adminEnv();

@@ -21,7 +21,7 @@ vi.mock('@/lib/i18n', () => ({
 const menuData = {
   id: 'demo-restaurant',
   name: 'Trattoria Demo',
-  features: { aiChat: true, selection: true },
+  features: { aiChat: true, ordering: { enabled: true, mode: 'summary' } },
   menus: [{ id: 'menu-food', code: 'food', title: 'Food', published: true, sortOrder: 0 }],
   categories: [
     {
@@ -124,10 +124,10 @@ describe('SelectionPageClient', () => {
     expect(screen.getByText('selection.empty')).toBeInTheDocument();
   });
 
-  it('does not show stored lines when menu selection is disabled', async () => {
+  it('does not show stored lines when ordering is disabled', async () => {
     storeSelection([{ entryId: 'entry-bruschetta', quantity: 1, addedAt: 1 }]);
     useRestaurantStore.setState({
-      data: { ...menuData, features: { aiChat: true, selection: false } },
+      data: { ...(menuData as Record<string, unknown>), features: { aiChat: true, ordering: { enabled: false, mode: 'summary' } } },
       isLoading: false,
     } as never);
 

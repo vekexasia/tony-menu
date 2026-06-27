@@ -14,7 +14,7 @@ export const MOCK_RESTAURANT_SLUG = 'demo-restaurant';
 export const MOCK_RESTAURANT = {
   id: MOCK_RESTAURANT_ID,
   name: 'Ristorante Test E2E',
-  features: { aiChat: false, aiVoice: false, selection: false },
+  features: { aiChat: false, aiVoice: false, ordering: { enabled: false, mode: 'summary' as const } },
   menus: [{ id: 'menu-food', code: 'food', title: 'Food', published: true, sortOrder: 0 }],
   openingSchedule: {
     open: true,

@@ -3,7 +3,7 @@ import { testRequest } from './helpers';
 import { createTestDb, makeDbEnv, seedSettings, seedMenu, seedCategory, seedEntry, seedMembership, signTestJwt, installJwksMock } from './helpers/db';
 
 type CatalogBody = {
-  restaurant: { name: string; features?: { aiChat?: boolean; aiVoice?: boolean; selection?: boolean } };
+  restaurant: { name: string; features?: { aiChat?: boolean; aiVoice?: boolean; analytics?: boolean; ordering?: { enabled: boolean; mode: string } } };
   menus: Array<{ id: string; code: string; title: string; published: boolean }>;
   categories: Array<{ id: string; entries: Array<{ name: string; price: number; menuIds: string[]; hidden: boolean }> }>;
 };
@@ -34,7 +34,7 @@ describe('GET /catalog', () => {
     expect(res.status).toBe(200);
     const body = await res.json() as CatalogBody;
     expect(body.restaurant.name).toBe('Trattoria Test');
-    expect(body.restaurant.features?.selection).toBe(false);
+    expect(body.restaurant.features?.ordering).toEqual({ enabled: false, mode: 'summary' });
     expect(body.menus).toHaveLength(1);
     expect(body.menus[0].code).toBe('food');
     expect(body.menus[0].published).toBe(true);
@@ -100,25 +100,26 @@ describe('GET /catalog', () => {
   });
 });
 
-describe('menu selection feature flag', () => {
-  it('surfaces enabled selection in the catalog response', async () => {
+describe('module feature flags', () => {
+  it('surfaces ordering config in the catalog response', async () => {
     const db = createTestDb();
-    seedSettings(db, { selection_enabled: 1 });
+    seedSettings(db, { modules: JSON.stringify({ ordering: { enabled: true, mode: 'summary' } }) });
     const res = await testRequest('/catalog', { env: makeDbEnv(db) });
     expect(res.status).toBe(200);
     const body = await res.json() as CatalogBody;
-    expect(body.restaurant.features?.selection).toBe(true);
+    expect(body.restaurant.features?.ordering).toEqual({ enabled: true, mode: 'summary' });
+    expect(body.restaurant.features).not.toHaveProperty('selection');
   });
 
   it('surfaces voice dictation only when Tony chat is enabled too', async () => {
     const db = createTestDb();
-    seedSettings(db, { ai_chat_enabled: 0, ai_voice_enabled: 1 });
+    seedSettings(db, { modules: JSON.stringify({ ai: { enabled: false, voiceEnabled: true } }) });
     let res = await testRequest('/catalog', { env: makeDbEnv(db) });
     let body = await res.json() as CatalogBody;
     expect(body.restaurant.features?.aiChat).toBe(false);
     expect(body.restaurant.features?.aiVoice).toBe(false);
 
-    seedSettings(db, { ai_chat_enabled: 1, ai_voice_enabled: 1 });
+    seedSettings(db, { modules: JSON.stringify({ ai: { enabled: true, voiceEnabled: true } }) });
     res = await testRequest('/catalog', { env: makeDbEnv(db) });
     body = await res.json() as CatalogBody;
     expect(body.restaurant.features?.aiChat).toBe(true);
@@ -141,6 +142,22 @@ describe('POST /catalog/view', () => {
     expect(res.status).toBe(200);
     const count = db.raw.prepare('SELECT COUNT(*) AS n FROM catalog_views').get() as { n: number };
     expect(count.n).toBe(1);
+  });
+
+  it('returns 404 without recording views when analytics is disabled', async () => {
+    const db = createTestDb();
+    seedSettings(db, { modules: JSON.stringify({ analytics: { enabled: false } }) });
+    seedMenu(db, 'menu-1');
+    seedCategory(db, 'cat-1');
+    seedEntry(db, 'entry-1', 'cat-1');
+    const res = await testRequest('/catalog/view', {
+      method: 'POST',
+      body: { entryId: 'entry-1' },
+      env: makeDbEnv(db),
+    });
+    expect(res.status).toBe(404);
+    const count = db.raw.prepare('SELECT COUNT(*) AS n FROM catalog_views').get() as { n: number };
+    expect(count.n).toBe(0);
   });
 
   it('silently drops views for unknown entries (no row inserted)', async () => {

@@ -4,7 +4,7 @@ import { MOCK_RESTAURANT } from './admin-mock';
 export function restaurantWithSelection(selection: boolean) {
   return {
     ...MOCK_RESTAURANT,
-    features: { ...(MOCK_RESTAURANT.features ?? {}), selection, aiChat: false, aiVoice: false },
+    features: { ...(MOCK_RESTAURANT.features ?? {}), ordering: { enabled: selection, mode: 'summary' as const }, aiChat: false, aiVoice: false },
   };
 }
 

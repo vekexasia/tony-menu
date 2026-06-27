@@ -15,7 +15,7 @@ describe('restaurantStore catalog conversion', () => {
     useRestaurantStore.getState().reset();
   });
 
-  it('keeps the catalog menu selection feature flag', async () => {
+  it('keeps the catalog ordering feature flag', async () => {
     getCatalogMock.mockResolvedValue({
       restaurant: {
         id: 'singleton',
@@ -26,7 +26,7 @@ describe('restaurantStore catalog conversion', () => {
         info: null,
         socials: null,
         openingSchedule: null,
-        features: { aiChat: false, selection: true },
+        features: { aiChat: false, ordering: { enabled: true, mode: 'summary' } },
       },
       menus: [],
       categories: [],
@@ -38,6 +38,6 @@ describe('restaurantStore catalog conversion', () => {
 
     await useRestaurantStore.getState().loadRestaurant({ force: true });
 
-    expect(useRestaurantStore.getState().data?.features?.selection).toBe(true);
+    expect(useRestaurantStore.getState().data?.features?.ordering?.enabled).toBe(true);
   });
 });

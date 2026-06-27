@@ -130,7 +130,7 @@ export default function MenuPageClient() {
   const noticeEnabled = noticeConfig?.enabled !== false;
   const defaultNoticeText = `${t("allergyWarning")}\n\n${t("frozenIngredientsNote")}`;
   const noticeText = noticeConfig?.i18n?.[locale]?.text || noticeConfig?.text || defaultNoticeText;
-  const selectionEnabled = data?.features?.selection === true;
+  const selectionEnabled = data?.features?.ordering?.enabled === true;
 
   const filteredCategories = useMemo(() => {
     if (!currentMenu) return [];

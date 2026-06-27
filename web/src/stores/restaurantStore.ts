@@ -256,7 +256,7 @@ function catalogToStore(catalog: CatalogResponse) {
     openingSchedule,
     categories,
     promotion: undefined,
-    features: r.features ? { aiChat: r.features.aiChat, aiVoice: r.features.aiVoice, selection: r.features.selection, primaryLocale: r.features.primaryLocale, enabledLocales: r.features.enabledLocales, disabledLocales: r.features.disabledLocales, customLocales: r.features.customLocales } : undefined,
+    features: r.features ? { aiChat: r.features.aiChat, aiVoice: r.features.aiVoice, analytics: r.features.analytics, ordering: r.features.ordering, primaryLocale: r.features.primaryLocale, enabledLocales: r.features.enabledLocales, disabledLocales: r.features.disabledLocales, customLocales: r.features.customLocales } : undefined,
   };
 
   return { data, variantsCache, extrasCache, categoriesCache };

@@ -115,7 +115,7 @@ export function SelectionPageClient() {
     );
   }
 
-  if (data && data.features?.selection !== true) {
+  if (data && data.features?.ordering?.enabled !== true) {
     return (
       <main className="min-h-screen bg-gray-100 px-4 py-6">
         <div className="max-w-2xl mx-auto">
