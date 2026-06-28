@@ -31,8 +31,10 @@ export const requestLogger = createMiddleware<AppBindings>(async (c, next) => {
 /**
  * Simple rate limiter using Cloudflare's cf-connecting-ip.
  * Tracks request counts in a Map (per-isolate, not distributed).
- * For production, use Cloudflare Rate Limiting rules or Workers KV.
  */
+// ponytail: per-isolate counter, not distributed; effective limit scales with the
+// number of live isolates. Upgrade path: Cloudflare Rate Limiting rules, a Durable
+// Object, or Workers KV for a global limit.
 const requestCounts = new Map<string, { count: number; resetAt: number }>();
 
 export function rateLimit(maxRequests: number, windowMs: number) {

@@ -80,6 +80,7 @@ export function TranslationTabs({
   ].filter((l) => !disabledSet.has(l.code));
   const primaryLabel = labelForLocale(primaryLocale, customLocales);
   const [translating, setTranslating] = useState<Record<string, boolean>>({});
+  const [translateError, setTranslateError] = useState<string | null>(null);
 
   const getValue = (locale: string, fieldKey: string) =>
     i18n?.[locale]?.[fieldKey] || "";
@@ -103,12 +104,13 @@ export function TranslationTabs({
   const translateField = async (locale: string, field: TranslationField) => {
     if (!field.sourceValue.trim()) return;
     const stateKey = `${locale}.${field.key}`;
+    setTranslateError(null);
     setTranslating((t) => ({ ...t, [stateKey]: true }));
     try {
       const translated = await callTranslateApi(field.sourceValue, locale, field.key);
       setValue(locale, field.key, translated);
     } catch {
-      // user can retry manually
+      setTranslateError(t("translationTabs.translateFailed"));
     } finally {
       setTranslating((t) => ({ ...t, [stateKey]: false }));
     }
@@ -131,20 +133,25 @@ export function TranslationTabs({
     if (workItems.length === 0) return;
 
     setBulkRunning(true);
+    setTranslateError(null);
     setBulkProgress({ done: 0, total: workItems.length });
 
     const results: Record<string, Record<string, string>> = {};
     let done = 0;
+    let failed = 0;
     for (const item of workItems) {
       try {
         const translated = await callTranslateApi(item.field.sourceValue, item.locale, item.field.key);
         if (!results[item.locale]) results[item.locale] = {};
         results[item.locale][item.field.key] = translated;
       } catch {
-        // skip individual failures
+        failed++;
       }
       done++;
       setBulkProgress({ done, total: workItems.length });
+    }
+    if (failed > 0) {
+      setTranslateError(t("translationTabs.bulkFailed").replace("{failed}", String(failed)).replace("{total}", String(workItems.length)));
     }
 
     if (Object.keys(results).length > 0) {
@@ -159,6 +166,7 @@ export function TranslationTabs({
   };
 
   const translateAllFields = async (locale: string) => {
+    setTranslateError(null);
     // Collect all results before writing to avoid stale-closure overwrites.
     // If we called setValue after each await, each call would close over the
     // i18n from *this* render and the second write would erase the first.
@@ -170,7 +178,7 @@ export function TranslationTabs({
       try {
         results[field.key] = await callTranslateApi(field.sourceValue, locale, field.key);
       } catch {
-        // user can retry the individual field manually
+        setTranslateError(t("translationTabs.translateFailed"));
       } finally {
         setTranslating((t) => ({ ...t, [stateKey]: false }));
       }
@@ -205,6 +213,7 @@ export function TranslationTabs({
         </button>
         <button
           type="button"
+          // ponytail NOTE: retranslate is a bulk-action confirm, not a delete; ConfirmDeleteModal doesn't fit. Upgrade to a generic confirm modal if more of these appear.
           onClick={() => {
             if (window.confirm(t("translationTabs.retranslateConfirm"))) {
               translateBulkAcrossLocales(true);
@@ -223,6 +232,12 @@ export function TranslationTabs({
           </span>
         )}
       </div>
+
+      {translateError && (
+        <div className="mb-2 px-3 py-2 rounded bg-red-50 border border-red-200 text-red-700 text-xs">
+          {translateError}
+        </div>
+      )}
 
       {/* Tab row */}
       <div className="flex gap-1 mb-3 flex-wrap">

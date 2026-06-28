@@ -36,5 +36,10 @@ export async function consumeDailyAiRequest(env: Env, now = new Date()): Promise
     expirationTtl: secondsUntilTomorrow(now) + 86_400,
   });
 
+  // ponytail: this read-modify-write is NOT atomic. KV offers no atomic increment, so
+  // concurrent requests can read the same `current` and both write `current+1`, letting a
+  // burst slightly exceed `limit` (and under-count the stored total). Ceiling: over-admission
+  // bounded by concurrency, which is acceptable for a soft daily cap. Upgrade path: move the
+  // counter into a Durable Object (single-threaded, true atomic increment) if the cap must be hard.
   return { allowed: true, limit, used: next };
 }

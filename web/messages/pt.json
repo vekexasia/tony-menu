@@ -512,7 +512,11 @@
     "labels.saveFailed": "Falha ao guardar etiqueta",
     "labels.nameLabel": "Nome",
     "labels.translateTitle": "Traduções de etiquetas",
-    "labels.translatePrimaryHint": "Edite o nome principal na lista de etiquetas."
+    "labels.translatePrimaryHint": "Edite o nome principal na lista de etiquetas.",
+    "translationTabs.translateFailed": "Falha na tradução. Tente novamente.",
+    "translationTabs.bulkFailed": "{failed} de {total} traduções falharam.",
+    "categories.deleteTitle": "Eliminar categoria",
+    "labels.deleteTitle": "Eliminar etiqueta"
   },
   "outOfStock": "ESGOTADO"
 }

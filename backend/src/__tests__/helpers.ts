@@ -33,8 +33,12 @@ export async function testRequest(path: string, options: TestRequestOptions = {}
 
   const init: RequestInit = { method, headers };
   if (body !== undefined) {
-    init.body = typeof body === 'string' ? body : JSON.stringify(body);
-    init.headers = { 'Content-Type': 'application/json', ...headers };
+    if (body instanceof ArrayBuffer || ArrayBuffer.isView(body)) {
+      init.body = body as BodyInit;
+    } else {
+      init.body = typeof body === 'string' ? body : JSON.stringify(body);
+      init.headers = { 'Content-Type': 'application/json', ...headers };
+    }
   }
 
   const app = createApp();

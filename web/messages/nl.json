@@ -512,7 +512,11 @@
     "labels.saveFailed": "Label opslaan mislukt",
     "labels.nameLabel": "Naam",
     "labels.translateTitle": "Labelvertalingen",
-    "labels.translatePrimaryHint": "Bewerk de primaire naam in de labellijst."
+    "labels.translatePrimaryHint": "Bewerk de primaire naam in de labellijst.",
+    "translationTabs.translateFailed": "Vertaling mislukt. Probeer het opnieuw.",
+    "translationTabs.bulkFailed": "{failed} van {total} vertalingen mislukt.",
+    "categories.deleteTitle": "Categorie verwijderen",
+    "labels.deleteTitle": "Label verwijderen"
   },
   "outOfStock": "UITVERKOCHT"
 }

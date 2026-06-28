@@ -2,6 +2,7 @@ import OpenAI from 'openai';
 import type { LLMProvider } from './provider';
 import type { ChatMessage, ToolDefinition, ChatToolCall } from '../types';
 import { toJsonSchemaParams } from './tools';
+import { MAX_OUTPUT_TOKENS } from './limits';
 
 function toOpenAITools(tools: ToolDefinition[]): OpenAI.ChatCompletionTool[] {
   return tools.map(t => ({
@@ -51,7 +52,7 @@ export class OpenAIProvider implements LLMProvider {
     for (let iteration = 0; iteration < 5; iteration++) {
       const stream = await this.client.chat.completions.create({
         model: this.model,
-        max_completion_tokens: 4096,
+        max_completion_tokens: MAX_OUTPUT_TOKENS,
         messages,
         tools: openaiTools,
         tool_choice: 'auto',
@@ -138,8 +139,8 @@ export class OpenAIProvider implements LLMProvider {
         let parsedArgs: Record<string, unknown> = {};
         try {
           parsedArgs = JSON.parse(tc.function.arguments);
-        } catch {
-          // ignore parse errors
+        } catch (e) {
+          console.warn('[OpenAI] tool arguments JSON parse failed:', e);
         }
         const toolCall: ChatToolCall = {
           name: tc.function.name,

@@ -512,7 +512,11 @@
     "labels.saveFailed": "Échec de l'enregistrement de l'étiquette",
     "labels.nameLabel": "Nom",
     "labels.translateTitle": "Traductions de l'étiquette",
-    "labels.translatePrimaryHint": "Modifiez le nom principal depuis la liste des étiquettes."
+    "labels.translatePrimaryHint": "Modifiez le nom principal depuis la liste des étiquettes.",
+    "translationTabs.translateFailed": "Échec de la traduction. Veuillez réessayer.",
+    "translationTabs.bulkFailed": "{failed} traductions sur {total} ont échoué.",
+    "categories.deleteTitle": "Supprimer la catégorie",
+    "labels.deleteTitle": "Supprimer l'étiquette"
   },
   "outOfStock": "ÉPUISÉ"
 }

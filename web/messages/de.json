@@ -512,7 +512,11 @@
     "labels.saveFailed": "Etikett konnte nicht gespeichert werden",
     "labels.nameLabel": "Name",
     "labels.translateTitle": "Etikettenübersetzungen",
-    "labels.translatePrimaryHint": "Bearbeite den primären Namen in der Etikettenliste."
+    "labels.translatePrimaryHint": "Bearbeite den primären Namen in der Etikettenliste.",
+    "translationTabs.translateFailed": "Übersetzung fehlgeschlagen. Bitte erneut versuchen.",
+    "translationTabs.bulkFailed": "{failed} von {total} Übersetzungen fehlgeschlagen.",
+    "categories.deleteTitle": "Kategorie löschen",
+    "labels.deleteTitle": "Label löschen"
   },
   "outOfStock": "AUSVERKAUFT"
 }

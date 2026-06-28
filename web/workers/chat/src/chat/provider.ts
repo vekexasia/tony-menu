@@ -2,6 +2,11 @@ import type { ChatMessage, ToolDefinition, ChatToolCall, Env } from '../types';
 import { AnthropicProvider } from './anthropic';
 import { OpenAIProvider } from './openai';
 import { toJsonSchemaParams } from './tools';
+import { MAX_OUTPUT_TOKENS } from './limits';
+
+// ponytail: NOTE the tool-call loop is triplicated across openai.ts, anthropic.ts and
+// here. Deduping into one provider-neutral loop is a larger refactor; for now only the
+// max-tokens cap is shared (limits.ts) so allergen lists truncate identically.
 
 export interface LLMProvider {
   chat(params: {
@@ -33,14 +38,15 @@ function toWorkersAITools(tools: ToolDefinition[]) {
   }));
 }
 
-function parseWorkersAIToolCall(call: WorkersAIToolCall): ChatToolCall | null {
+export function parseWorkersAIToolCall(call: WorkersAIToolCall): ChatToolCall | null {
   if (!call.name) return null;
 
   let params: Record<string, unknown> = {};
   if (typeof call.arguments === 'string') {
     try {
       params = JSON.parse(call.arguments) as Record<string, unknown>;
-    } catch {
+    } catch (e) {
+      console.warn('[WorkersAI] tool arguments JSON parse failed:', e);
       params = {};
     }
   } else if (call.arguments && typeof call.arguments === 'object') {
@@ -50,12 +56,12 @@ function parseWorkersAIToolCall(call: WorkersAIToolCall): ChatToolCall | null {
   return { name: call.name, params };
 }
 
-function normalizeToolParams(name: string, params: unknown): Record<string, unknown> {
+export function normalizeToolParams(name: string, params: unknown): Record<string, unknown> {
   if (name === 'show_items' && Array.isArray(params)) return { item_ids: params };
   return params && typeof params === 'object' && !Array.isArray(params) ? params as Record<string, unknown> : {};
 }
 
-function extractTextToolCalls(text: string): { text: string; calls: ChatToolCall[] } {
+export function extractTextToolCalls(text: string): { text: string; calls: ChatToolCall[] } {
   const calls: ChatToolCall[] = [];
   let cleaned = text;
 
@@ -63,7 +69,8 @@ function extractTextToolCalls(text: string): { text: string; calls: ChatToolCall
     try {
       calls.push({ name, params: normalizeToolParams(name, JSON.parse(rawParams) as unknown) });
       return '';
-    } catch {
+    } catch (e) {
+      console.warn('[WorkersAI] inline tool-call JSON parse failed:', e);
       return match;
     }
   });
@@ -72,7 +79,8 @@ function extractTextToolCalls(text: string): { text: string; calls: ChatToolCall
     try {
       calls.push({ name, params: normalizeToolParams(name, JSON.parse(rawParams) as unknown) });
       return '';
-    } catch {
+    } catch (e) {
+      console.warn('[WorkersAI] inline tool-call JSON parse failed:', e);
       return match;
     }
   });
@@ -80,9 +88,23 @@ function extractTextToolCalls(text: string): { text: string; calls: ChatToolCall
   return { text: cleaned.trim(), calls };
 }
 
+// Neutralize user-supplied content before it is flattened into the "User:/Assistant:"
+// transcript. WorkersAI has no structured message API here, so a user message containing
+// role prefixes or tool-call syntax could otherwise spoof an assistant turn or a tool call
+// (the regex extractor in extractTextToolCalls parses those back out). We escape the
+// role-prefix and tool-call patterns so they survive as literal text and cannot be reparsed.
+export function sanitizeUserContent(content: string): string {
+  return content
+    .replace(/^(\s*)(User|Assistant)(\s*):/gim, '$1$2$3\u200b:')
+    .replace(/\b(show_items|show_choices|navigate_to_category|filter_menu)\s*\(/gi, '$1\u200b(')
+    .replace(/"type"\s*:\s*"function"/gi, '"type\u200b":"function"');
+}
+
 function toPrompt(systemPrompt: string, messages: ChatMessage[]): string {
   const conversation = messages
-    .map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
+    .map(m => m.role === 'user'
+      ? `User: ${sanitizeUserContent(m.content)}`
+      : `Assistant: ${m.content}`)
     .join('\n');
 
   return `${systemPrompt}\n\n## Conversation\n\n${conversation}\n\nAssistant:`;
@@ -98,7 +120,7 @@ class WorkersAIProvider implements LLMProvider {
       const result = await this.ai.run(this.model as keyof AiModels, {
         prompt: toPrompt(params.systemPrompt, messages),
         tools: toWorkersAITools(params.tools),
-        max_tokens: 700,
+        max_tokens: MAX_OUTPUT_TOKENS,
         temperature: 0.3,
       }) as WorkersAIResult;
 
@@ -136,6 +158,10 @@ class WorkersAIProvider implements LLMProvider {
       ];
     }
   }
+}
+
+export function buildWorkersAIPrompt(systemPrompt: string, messages: ChatMessage[]): string {
+  return toPrompt(systemPrompt, messages);
 }
 
 export function createProvider(env: Env): LLMProvider {

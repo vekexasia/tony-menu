@@ -2,6 +2,9 @@ interface RateLimitEntry {
   timestamps: number[];
 }
 
+// ponytail: per-isolate in-memory store, not distributed. Each Worker isolate keeps
+// its own counter, so the effective limit scales with isolate count. Upgrade path:
+// back this with a Durable Object or Workers KV if a global limit becomes required.
 const store = new Map<string, RateLimitEntry>();
 
 let lastCleanup = Date.now();

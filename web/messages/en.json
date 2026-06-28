@@ -150,6 +150,8 @@
     "translationTabs.translateAllIn": "✨ Translate everything to {label}",
     "translationTabs.autoTranslate": "Auto-translate",
     "translationTabs.autoLabel": "✨ Auto",
+    "translationTabs.translateFailed": "Translation failed. Please try again.",
+    "translationTabs.bulkFailed": "{failed} of {total} translations failed.",
     "translationTabs.translationPlaceholder": "Translation...",
     "categories.breadcrumb": "Categories",
     "categories.title": "Menu categories",
@@ -512,7 +514,9 @@
     "labels.saveFailed": "Failed to save label",
     "labels.nameLabel": "Name",
     "labels.translateTitle": "Label translations",
-    "labels.translatePrimaryHint": "Edit the primary name from the labels list."
+    "labels.translatePrimaryHint": "Edit the primary name from the labels list.",
+    "categories.deleteTitle": "Delete category",
+    "labels.deleteTitle": "Delete label"
   },
   "outOfStock": "OUT OF STOCK"
 }

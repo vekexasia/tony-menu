@@ -176,6 +176,7 @@ export function SelectionPageClient() {
 
             <button
               type="button"
+              // ponytail NOTE: this is a public-facing "clear selection" confirm, not an admin delete; ConfirmDeleteModal (admin-styled) doesn't fit here.
               onClick={() => {
                 if (confirm(t("selection.clearConfirm"))) clear();
               }}

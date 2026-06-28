@@ -512,7 +512,11 @@
     "labels.saveFailed": "No se ga podesto salvar l'eticheta",
     "labels.nameLabel": "Nome",
     "labels.translateTitle": "Tradussion de l'eticheta",
-    "labels.translatePrimaryHint": "Modifega el nome prinsipale da la lista de le etichete."
+    "labels.translatePrimaryHint": "Modifega el nome prinsipale da la lista de le etichete.",
+    "translationTabs.translateFailed": "Tradussion falìa. Prova da novo.",
+    "translationTabs.bulkFailed": "{failed} su {total} tradussion falìe.",
+    "categories.deleteTitle": "Cancela categoria",
+    "labels.deleteTitle": "Cancela marca"
   },
   "outOfStock": "FINIO"
 }

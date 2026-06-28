@@ -150,6 +150,8 @@
     "translationTabs.translateAllIn": "✨ Traduci tutto in {label}",
     "translationTabs.autoTranslate": "Traduci automaticamente",
     "translationTabs.autoLabel": "✨ Automatica",
+    "translationTabs.translateFailed": "Traduzione non riuscita. Riprova.",
+    "translationTabs.bulkFailed": "{failed} traduzioni su {total} non riuscite.",
     "translationTabs.translationPlaceholder": "Traduzione...",
     "categories.breadcrumb": "Categorie",
     "categories.title": "Categorie menu",
@@ -512,7 +514,9 @@
     "labels.saveFailed": "Errore nel salvataggio dell'etichetta",
     "labels.nameLabel": "Nome",
     "labels.translateTitle": "Traduzioni etichetta",
-    "labels.translatePrimaryHint": "Modifica il nome principale dalla lista etichette."
+    "labels.translatePrimaryHint": "Modifica il nome principale dalla lista etichette.",
+    "categories.deleteTitle": "Elimina categoria",
+    "labels.deleteTitle": "Elimina etichetta"
   },
   "outOfStock": "ESAURITO"
 }

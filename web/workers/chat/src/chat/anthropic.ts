@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import type { LLMProvider } from './provider';
 import type { ChatMessage, ToolDefinition, ChatToolCall } from '../types';
 import { toJsonSchemaParams } from './tools';
+import { MAX_OUTPUT_TOKENS } from './limits';
 
 function toAnthropicTools(tools: ToolDefinition[]): Anthropic.Tool[] {
   return tools.map(t => ({
@@ -51,7 +52,7 @@ export class AnthropicProvider implements LLMProvider {
       // Streaming: emit text tokens as they arrive, accumulate tool calls.
       const stream = await this.client.messages.create({
         model: this.model,
-        max_tokens: 1024,
+        max_tokens: MAX_OUTPUT_TOKENS,
         system,
         messages,
         tools: anthropicTools,
@@ -90,7 +91,7 @@ export class AnthropicProvider implements LLMProvider {
 
       const toolCalls = Array.from(toolCallsAcc.values()).map(tc => {
         let parsedInput: Record<string, unknown> = {};
-        try { parsedInput = JSON.parse(tc.input || '{}'); } catch { /* ok */ }
+        try { parsedInput = JSON.parse(tc.input || '{}'); } catch (e) { console.warn('[Anthropic] tool input JSON parse failed:', e); }
         return { id: tc.id, name: tc.name, parsedInput };
       });
 

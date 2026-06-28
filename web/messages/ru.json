@@ -512,7 +512,11 @@
     "labels.saveFailed": "Не удалось сохранить метку",
     "labels.nameLabel": "Название",
     "labels.translateTitle": "Переводы метки",
-    "labels.translatePrimaryHint": "Измените основное название в списке меток."
+    "labels.translatePrimaryHint": "Измените основное название в списке меток.",
+    "translationTabs.translateFailed": "Не удалось перевести. Попробуйте снова.",
+    "translationTabs.bulkFailed": "Не удалось перевести: {failed} из {total}.",
+    "categories.deleteTitle": "Удалить категорию",
+    "labels.deleteTitle": "Удалить метку"
   },
   "outOfStock": "НЕТ В НАЛИЧИИ"
 }

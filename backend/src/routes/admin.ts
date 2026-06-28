@@ -23,6 +23,7 @@ import {
   UpdateMenuBodySchema,
   CreateLabelBodySchema,
   UpdateLabelBodySchema,
+  SetPublishedBodySchema,
   ModulesConfigSchema,
   normalizeModulesConfig,
 } from '@menu/schemas';
@@ -175,7 +176,8 @@ admin.put('/settings', ...base, async (c) => {
 // ── Publish toggle ───────────────────────────────────────────────────
 
 admin.put('/publication', ...base, async (c) => {
-  const body = await c.req.json<{ published: boolean }>();
+  const body = await parseBody(c, SetPublishedBodySchema);
+  if (body instanceof Response) return body;
   await updateSettings(c.get('db'), {
     publicationState: body.published ? 'published' : 'draft',
   });
@@ -416,19 +418,14 @@ admin.delete('/categories/:categoryId', ...base, async (c) => {
     .where(eq(schema.menuEntries.categoryId, categoryId));
   const entryIds = entryRows.map((entry) => entry.id);
 
+  const delEntries = db.delete(schema.menuEntries).where(eq(schema.menuEntries.categoryId, categoryId));
+  const delCategory = db.delete(schema.menuCategories).where(eq(schema.menuCategories.id, categoryId));
   if (entryIds.length > 0) {
-    await db
-      .delete(schema.catalogViews)
-      .where(inArray(schema.catalogViews.entryId, entryIds));
+    const delViews = db.delete(schema.catalogViews).where(inArray(schema.catalogViews.entryId, entryIds));
+    await db.batch([delViews, delEntries, delCategory]);
+  } else {
+    await db.batch([delEntries, delCategory]);
   }
-
-  await db
-    .delete(schema.menuEntries)
-    .where(eq(schema.menuEntries.categoryId, categoryId));
-
-  await db
-    .delete(schema.menuCategories)
-    .where(eq(schema.menuCategories.id, categoryId));
 
   await refreshPublicCatalog(c);
   return c.json({ ok: true });
@@ -1092,20 +1089,30 @@ async function refreshPublicCatalog(c: Context<AppBindings>): Promise<void> {
 
 async function setEntryMemberships(db: DbInstance, entryId: string, menuIds: string[]): Promise<void> {
   const unique = Array.from(new Set(menuIds));
-  await db
+  const del = db
     .delete(schema.menuEntryMemberships)
     .where(eq(schema.menuEntryMemberships.entryId, entryId));
-  if (unique.length === 0) return;
-  await db
-    .insert(schema.menuEntryMemberships)
-    .values(unique.map((menuId) => ({ menuId, entryId })));
+  if (unique.length === 0) {
+    await del;
+    return;
+  }
+  await db.batch([
+    del,
+    db.insert(schema.menuEntryMemberships).values(unique.map((menuId) => ({ menuId, entryId }))),
+  ]);
 }
 
 async function setEntryLabelAssignments(db: DbInstance, entryId: string, labelIds: string[]): Promise<void> {
   const unique = Array.from(new Set(labelIds));
-  await db.delete(schema.entryLabels).where(eq(schema.entryLabels.entryId, entryId));
-  if (unique.length === 0) return;
-  await db.insert(schema.entryLabels).values(unique.map((labelId) => ({ entryId, labelId })));
+  const del = db.delete(schema.entryLabels).where(eq(schema.entryLabels.entryId, entryId));
+  if (unique.length === 0) {
+    await del;
+    return;
+  }
+  await db.batch([
+    del,
+    db.insert(schema.entryLabels).values(unique.map((labelId) => ({ entryId, labelId }))),
+  ]);
 }
 
 async function uploadSettingsImage(

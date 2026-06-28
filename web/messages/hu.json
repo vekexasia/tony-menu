@@ -512,7 +512,11 @@
     "labels.saveFailed": "Nem sikerült menteni a címkét",
     "labels.nameLabel": "Név",
     "labels.translateTitle": "Címke fordításai",
-    "labels.translatePrimaryHint": "Az elsődleges nevet a címkelistában szerkesztheted."
+    "labels.translatePrimaryHint": "Az elsődleges nevet a címkelistában szerkesztheted.",
+    "translationTabs.translateFailed": "A fordítás sikertelen. Próbáld újra.",
+    "translationTabs.bulkFailed": "{failed}/{total} fordítás sikertelen.",
+    "categories.deleteTitle": "Kategória törlése",
+    "labels.deleteTitle": "Címke törlése"
   },
   "outOfStock": "OUT OF STOCK"
 }

@@ -52,7 +52,8 @@ function parseJson<T>(raw: string | null): T | null {
   if (raw === null || raw === undefined) return null;
   try {
     return JSON.parse(raw) as T;
-  } catch {
+  } catch (e) {
+    console.warn('[D1] JSON parse failed, degrading to null:', e);
     return null;
   }
 }

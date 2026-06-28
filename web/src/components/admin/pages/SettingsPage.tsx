@@ -10,11 +10,17 @@ import { LOCALE_LABELS, LOCALE_SHORT_CODES } from "@/lib/locale-flags";
 import { uploadHeaderImage, uploadPromotionalImage, uploadLocaleFlag } from "@/lib/imageUpload";
 import { deleteLocaleFlag } from "@/lib/api";
 import { TranslationTabs } from "@/components/admin/TranslationTabs";
+import { ConfirmDeleteModal } from "@/components/admin/ConfirmDeleteModal";
 import { Flag } from "@/components/ui/Flag";
 import { useRestaurantStore } from "@/stores/restaurantStore";
 import { locales } from "@/lib/i18n-config";
 import { useTranslations } from "@/lib/i18n";
 import { useAdminLocale } from "@/app/admin/AdminI18nProvider";
+
+// Voice requires chat: aiVoice is only ever true when aiChat is too. Single source
+// of truth for the coupling so load (effect) and save (payload) can't drift.
+const effectiveAiVoice = (aiChat?: boolean | null, aiVoice?: boolean | null): boolean =>
+  !!(aiChat && aiVoice);
 
 // ── Design tokens (mirrors admin.css) ────────────────────────────
 const T = {
@@ -159,6 +165,8 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
   const [newLabelName, setNewLabelName] = useState("");
   const [newLabelColor, setNewLabelColor] = useState<AdminLabel['color']>('primary');
   const [creatingLabel, setCreatingLabel] = useState(false);
+  const [pendingDeleteLabel, setPendingDeleteLabel] = useState<AdminLabel | null>(null);
+  const [deletingLabel, setDeletingLabel] = useState(false);
   const [translatingLabel, setTranslatingLabel] = useState<AdminLabel | null>(null);
   const [translatingLabelName, setTranslatingLabelName] = useState("");
   const [translatingLabelColor, setTranslatingLabelColor] = useState<AdminLabel['color']>('primary');
@@ -253,7 +261,7 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
         const settings = await fetchRestaurantSettings();
         setChatAgentPrompt(settings.chatAgentPrompt || "");
         setAiChatEnabled(settings.aiChatEnabled ?? false);
-        setAiVoiceEnabled((settings.aiChatEnabled && settings.aiVoiceEnabled) ?? false);
+        setAiVoiceEnabled(effectiveAiVoice(settings.aiChatEnabled, settings.aiVoiceEnabled));
         setPublished(settings.publicationState === "published");
         if (settings.primaryLocale) setPrimaryLocaleDraft(settings.primaryLocale);
         if (settings.enabledLocales != null) setEnabledLocales(settings.enabledLocales);
@@ -325,7 +333,7 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
         socials: { facebook, instagram, whatsapp },
         chatAgentPrompt,
         aiChatEnabled,
-        aiVoiceEnabled: aiChatEnabled && aiVoiceEnabled,
+        aiVoiceEnabled: effectiveAiVoice(aiChatEnabled, aiVoiceEnabled),
         primaryLocale: primaryLocaleDraft,
         enabledLocales,
         disabledLocales,
@@ -419,12 +427,20 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
     } catch { setError(t('labels.saveFailed')); }
   };
 
-  const handleDeleteLabel = async (id: string) => {
-    if (!confirm(t('labels.deleteConfirm'))) return;
+  const handleDeleteLabel = async () => {
+    const label = pendingDeleteLabel;
+    if (!label) return;
+    setDeletingLabel(true);
+    setError(null);
     try {
-      await deleteLabel(id);
-      setLabelsList((prev) => prev.filter((l) => l.id !== id));
-    } catch { setError(t('labels.saveFailed')); }
+      await deleteLabel(label.id);
+      setLabelsList((prev) => prev.filter((l) => l.id !== label.id));
+      setPendingDeleteLabel(null);
+    } catch {
+      setError(t('labels.saveFailed'));
+    } finally {
+      setDeletingLabel(false);
+    }
   };
 
   const handlePublishToggle = async () => {
@@ -669,7 +685,7 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
                           <button type="button" onClick={() => openLabelModal(label, adminLocale)} style={{ fontSize: 11, color: T.accentDeep, background: "none", border: "none", cursor: "pointer", padding: 0 }} title={t("labels.translateTitle")}>
                             <i className="fa-solid fa-pen" />
                           </button>
-                          <button type="button" onClick={() => void handleDeleteLabel(label.id)} style={{ fontSize: 11, color: T.danger, background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+                          <button type="button" onClick={() => setPendingDeleteLabel(label)} style={{ fontSize: 11, color: T.danger, background: "none", border: "none", cursor: "pointer", padding: 0 }}>
                             <i className="fa-solid fa-trash" />
                           </button>
                         </div>
@@ -1228,6 +1244,18 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
             </div>
           </div>
         </div>
+      )}
+
+      {pendingDeleteLabel && (
+        <ConfirmDeleteModal
+          name={resolveLabel(pendingDeleteLabel as import('@/lib/types').MenuLabel, adminLocale).name}
+          deleting={deletingLabel}
+          onCancel={() => setPendingDeleteLabel(null)}
+          onConfirm={() => void handleDeleteLabel()}
+          t={t}
+          title={t("labels.deleteTitle")}
+          confirmText={t("labels.deleteConfirm")}
+        />
       )}
     </div>
   );

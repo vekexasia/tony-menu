@@ -80,15 +80,6 @@ export async function handleChat(request: Request, env: Env, corsHeaders: Record
     });
   }
 
-  const dailyCap = await consumeDailyAiRequest(env);
-  if (!dailyCap.allowed) {
-    console.log(`[CHAT] ${ip} | BLOCKED: daily AI request cap reached (${dailyCap.used}/${dailyCap.limit})`);
-    return new Response(
-      `${encodeTextEvent('The chat assistant has reached its daily request limit. Please try again tomorrow.')}\n${encodeDoneEvent()}`,
-      { headers: { ...sseHeaders(), ...corsHeaders } },
-    );
-  }
-
   const lastUserMsg = messages.filter(m => m.role === 'user').pop()?.content || '';
 
   // Limit message history
@@ -113,6 +104,16 @@ export async function handleChat(request: Request, env: Env, corsHeaders: Record
     });
   }
 
+  // Consume the daily quota only after the menu loaded successfully, so a menu-load failure
+  // does not burn the day's quota. (Refunding after a non-atomic KV write is unreliable.)
+  const dailyCap = await consumeDailyAiRequest(env);
+  if (!dailyCap.allowed) {
+    console.log(`[CHAT] ${ip} | BLOCKED: daily AI request cap reached (${dailyCap.used}/${dailyCap.limit})`);
+    return new Response(
+      `${encodeTextEvent('The chat assistant has reached its daily request limit. Please try again tomorrow.')}\n${encodeDoneEvent()}`,
+      { headers: { ...sseHeaders(), ...corsHeaders } },
+    );
+  }
 
   const systemPrompt = buildSystemPrompt(menuData, chatLocale, userLang);
   console.log(`[CHAT] ${ip} | system prompt: ${systemPrompt.length} chars, ~${Math.ceil(systemPrompt.length / 4)} tokens`);

@@ -288,6 +288,31 @@ export async function signTestJwt(email: string, extra: Record<string, unknown> 
   return `${signingInput}.${base64url(signature)}`;
 }
 
+/**
+ * Sign an arbitrary header + payload with the test RSA key. Used to exercise
+ * the verifyJwt failure paths (wrong alg, missing kid, etc.) that signTestJwt
+ * cannot produce because it always emits a well-formed RS256 header.
+ */
+export async function signTestJwtRaw(
+  header: Record<string, unknown>,
+  payload: Record<string, unknown>,
+): Promise<string> {
+  await ensureKeyPair();
+  const headerB64 = strToB64url(JSON.stringify(header));
+  const payloadB64 = strToB64url(JSON.stringify(payload));
+  const signingInput = `${headerB64}.${payloadB64}`;
+  const signature = await crypto.subtle.sign(
+    'RSASSA-PKCS1-v1_5',
+    _keyPair!.privateKey,
+    new TextEncoder().encode(signingInput),
+  );
+  return `${signingInput}.${base64url(signature)}`;
+}
+
+export const TEST_JWT_ISSUER = TEST_ISSUER;
+export const TEST_JWT_AUDIENCE = TEST_AUDIENCE;
+export const TEST_JWT_KID = TEST_KID;
+
 // ── Env factory ───────────────────────────────────────────────────────
 
 /**

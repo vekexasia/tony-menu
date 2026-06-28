@@ -552,6 +552,7 @@ export default function EntriesPage() {
               </button>
               <button
                 type="button"
+                // ponytail NOTE: retranslate is a bulk-action confirm, not a delete; ConfirmDeleteModal doesn't fit. Upgrade to a generic confirm modal if more of these appear.
                 onClick={() => {
                   if (window.confirm(t("entries.bulk.retranslateConfirm"))) {
                     handleBulkTranslate(true);

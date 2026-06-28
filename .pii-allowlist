@@ -166,3 +166,9 @@ registry[.]npmjs[.]org
 (?i)^orari di apertura$
 (?i)^ravioli de$
 (?i)^hausgemacht$
+
+# ── Test fixtures (not PII) ──
+# Fake URL used as the request target in chat worker handler tests.
+^https?://x/chat$
+# Fixed system-clock dates used in vitest rate-limit/daily-cap window tests.
+^2026-02-01T

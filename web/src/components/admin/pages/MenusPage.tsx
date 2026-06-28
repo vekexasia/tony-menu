@@ -54,6 +54,7 @@ export default function MenusPage() {
 
   const [deleting, setDeleting] = useState<AdminMenu | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     setLoadError(null);
@@ -158,35 +159,41 @@ export default function MenusPage() {
 
   const togglePublished = async (menu: AdminMenu) => {
     const next = !menu.published;
+    setLoadError(null);
     setMenus((prev) => prev.map((m) => (m.id === menu.id ? { ...m, published: next } : m)));
     try {
       await updateMenu(menu.id, { published: next });
       await loadRestaurant({ force: true });
-    } catch {
-      // revert on error
+    } catch (err) {
+      // revert on error and surface it so the toggle isn't a silent no-op
       setMenus((prev) => prev.map((m) => (m.id === menu.id ? { ...m, published: !next } : m)));
+      setLoadError(err instanceof ApiError ? err.message : t("menus.saveFailed"));
     }
   };
 
   const handleReorder = async (reordered: AdminMenu[]) => {
+    setLoadError(null);
     setMenus(reordered.map((m, i) => ({ ...m, sortOrder: i })));
     try {
       await reorderMenus(reordered.map((m, i) => ({ id: m.id, order: i })));
-    } catch {
+    } catch (err) {
       await refresh();
+      setLoadError(err instanceof ApiError ? err.message : t("menus.saveFailed"));
     }
   };
 
   const handleDelete = async () => {
     if (!deleting) return;
     setDeletingId(deleting.id);
+    setDeleteError(null);
     try {
       await deleteMenu(deleting.id);
       setDeleting(null);
       await refresh();
       await loadRestaurant({ force: true });
-    } catch {
-      // leave dialog open so user can retry
+    } catch (err) {
+      // leave dialog open so user can retry, but show why it failed
+      setDeleteError(err instanceof ApiError ? err.message : t("menus.saveFailed"));
     } finally {
       setDeletingId(null);
     }
@@ -493,8 +500,11 @@ export default function MenusPage() {
             <p className="text-sm text-gray-600 mt-2">
               {t("menus.deleteConfirm")}
             </p>
+            {deleteError && (
+              <div className="mt-3 text-sm text-red-600">{deleteError}</div>
+            )}
             <div className="mt-4 flex gap-2 justify-end">
-              <button onClick={() => setDeleting(null)} className="px-3 py-2 rounded text-sm text-gray-600 hover:bg-gray-100">{t("common.cancel")}</button>
+              <button onClick={() => { setDeleting(null); setDeleteError(null); }} className="px-3 py-2 rounded text-sm text-gray-600 hover:bg-gray-100">{t("common.cancel")}</button>
               <button
                 onClick={handleDelete}
                 disabled={deletingId === deleting.id}

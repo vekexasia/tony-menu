@@ -7,6 +7,7 @@ import { runBulkTranslate } from "@/lib/bulk-translate";
 import { useRestaurantStore, useCategories } from "@/stores/restaurantStore";
 import { SortableList } from "@/components/admin/SortableList";
 import { TranslationTabs } from "@/components/admin/TranslationTabs";
+import { ConfirmDeleteModal } from "@/components/admin/ConfirmDeleteModal";
 import { locales } from "@/lib/i18n-config";
 import { useTranslations } from "@/lib/i18n";
 
@@ -71,6 +72,8 @@ export default function CategoriesPage() {
   const [activeTab, setActiveTab] = useState(primaryLocale);
   const [saving, setSaving] = useState(false);
   const [deletingCategoryId, setDeletingCategoryId] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<Category | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [bulkTranslating, setBulkTranslating] = useState(false);
   const [bulkProgress, setBulkProgress] = useState<{
@@ -163,16 +166,18 @@ export default function CategoriesPage() {
     }
   };
 
-  const handleDeleteCategory = async (category: Category, e?: React.MouseEvent) => {
+  const requestDeleteCategory = (category: Category, e?: React.MouseEvent) => {
     e?.preventDefault();
     e?.stopPropagation();
+    setDeleteError(null);
+    setPendingDelete(category);
+  };
 
-    const message = category.entryCount > 0
-      ? t("categories.confirmDeleteWithEntries").replace("{name}", category.name).replace("{count}", String(category.entryCount))
-      : t("categories.confirmDelete").replace("{name}", category.name);
-    if (!window.confirm(message)) return;
-
+  const confirmDeleteCategory = async () => {
+    const category = pendingDelete;
+    if (!category) return;
     setDeletingCategoryId(category.id);
+    setDeleteError(null);
     try {
       await deleteCategory(category.id);
       setSelected((prev) => {
@@ -182,9 +187,10 @@ export default function CategoriesPage() {
       });
       useRestaurantStore.getState().reset();
       await loadRestaurant();
+      setPendingDelete(null);
     } catch (err) {
       console.error("Error deleting category:", err);
-      window.alert(t("categories.deleteFailed"));
+      setDeleteError(t("categories.deleteFailed"));
     } finally {
       setDeletingCategoryId(null);
     }
@@ -416,6 +422,7 @@ export default function CategoriesPage() {
               </button>
               <button
                 type="button"
+                // ponytail NOTE: retranslate is a bulk-action confirm, not a delete; ConfirmDeleteModal doesn't fit. Upgrade to a generic confirm modal if more of these appear.
                 onClick={() => {
                   if (window.confirm(t("categories.bulk.retranslateConfirm"))) {
                     handleBulkTranslateCategoryNames(true);
@@ -560,7 +567,7 @@ export default function CategoriesPage() {
                         <i className="fa-solid fa-pen" style={{ fontSize: 11 }} />
                       </button>
                       <button
-                        onClick={(e) => handleDeleteCategory(category, e)}
+                        onClick={(e) => requestDeleteCategory(category, e)}
                         disabled={deletingCategoryId === category.id}
                         title={t("categories.row.actionDelete")}
                         style={{ width: 28, height: 28, border: "none", background: "transparent", borderRadius: 4, color: deletingCategoryId === category.id ? "#C8C3BC" : "#DC2626", cursor: deletingCategoryId === category.id ? "wait" : "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
@@ -741,6 +748,21 @@ export default function CategoriesPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {pendingDelete && (
+        <ConfirmDeleteModal
+          name={pendingDelete.name}
+          deleting={deletingCategoryId === pendingDelete.id}
+          onCancel={() => { setPendingDelete(null); setDeleteError(null); }}
+          onConfirm={confirmDeleteCategory}
+          t={t}
+          title={t("categories.deleteTitle")}
+          confirmText={pendingDelete.entryCount > 0
+            ? t("categories.confirmDeleteWithEntries").replace("{count}", String(pendingDelete.entryCount))
+            : t("categories.confirmDelete")}
+          error={deleteError}
+        />
       )}
     </div>
   );

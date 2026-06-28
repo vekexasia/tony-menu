@@ -6,6 +6,10 @@
   "exports": {
     ".": "./src/index.ts"
   },
+  "scripts": {
+    "test": "vitest",
+    "test:run": "vitest run"
+  },
   "dependencies": {
     "zod": "^4.3.5"
   }
