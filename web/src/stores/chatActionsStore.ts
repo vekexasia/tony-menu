@@ -11,7 +11,6 @@ interface ChatActionsState {
   consumeOpenItemDetailRequest: () => void;
   setFilterCriteria: (criteria: { excludeAllergens?: string[]; searchQuery?: string } | null) => void;
   clearFilter: () => void;
-  dispatch: (toolCall: { name: string; params: Record<string, unknown> }) => void;
 }
 
 export const useChatActionsStore = create<ChatActionsState>((set) => ({
@@ -25,24 +24,6 @@ export const useChatActionsStore = create<ChatActionsState>((set) => ({
   consumeOpenItemDetailRequest: () => set({ openItemDetail: null }),
   setFilterCriteria: (criteria) => set({ filterCriteria: criteria }),
   clearFilter: () => set({ filterCriteria: null }),
-
-  dispatch: (toolCall) => {
-    const { name, params } = toolCall;
-    switch (name) {
-      case 'scroll_to_category':
-        set({ scrollToCategoryId: params.category_id as string });
-        break;
-      // show_items is handled in useStreamingChat via chatStore.addShowItems
-      case 'filter_menu':
-        set({
-          filterCriteria: {
-            excludeAllergens: params.exclude_allergens as string[] | undefined,
-            searchQuery: params.search_query as string | undefined,
-          },
-        });
-        break;
-    }
-  },
 }));
 
 // Selectors

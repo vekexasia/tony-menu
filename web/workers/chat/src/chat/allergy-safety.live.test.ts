@@ -28,8 +28,6 @@ const fixture: MenuDataCache = {
       id: 'antipasti',
       name: 'Antipasti',
       order: 1,
-      variantPaths: [],
-      extraPaths: [],
       entries: [
         {
           id: 'bruschetta-pomodoro',
@@ -71,8 +69,6 @@ const fixture: MenuDataCache = {
       id: 'primi',
       name: 'Primi',
       order: 2,
-      variantPaths: [],
-      extraPaths: [],
       entries: [
         {
           id: 'trofie-pesto',
@@ -114,8 +110,6 @@ const fixture: MenuDataCache = {
       id: 'dolci',
       name: 'Dolci',
       order: 3,
-      variantPaths: [],
-      extraPaths: [],
       entries: [
         {
           id: 'panna-cotta',
@@ -154,8 +148,6 @@ const fixture: MenuDataCache = {
       ],
     },
   ],
-  variants: [],
-  extras: [],
 };
 
 const cases = [

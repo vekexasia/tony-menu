@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import {
-  getContentDisplayText,
   getLocalizedContentValue,
   getSearchableContentTexts,
 } from './content-presentation';
@@ -43,87 +42,6 @@ describe('content presentation', () => {
     });
   });
 
-  describe('getContentDisplayText', () => {
-    it('keeps Venetian UI single-line now that translations are complete', () => {
-      expect(
-        getContentDisplayText({
-          entity,
-          field: 'name',
-          locale: 'vec',
-          restaurantId: 'demo-restaurant',
-        })
-      ).toEqual({
-        primary: 'Bacalà mantecà',
-        secondary: undefined,
-        isDualDisplay: false,
-      });
-    });
-
-    it('keeps Italian UI single-line', () => {
-      expect(
-        getContentDisplayText({
-          entity,
-          field: 'name',
-          locale: 'it',
-          restaurantId: 'demo-restaurant',
-        })
-      ).toEqual({
-        primary: 'Baccalà mantecato',
-        secondary: undefined,
-        isDualDisplay: false,
-      });
-    });
-
-    it('keeps other locales single-line for now', () => {
-      expect(
-        getContentDisplayText({
-          entity,
-          field: 'name',
-          locale: 'en',
-          restaurantId: 'demo-restaurant',
-        })
-      ).toEqual({
-        primary: 'Creamed cod',
-        secondary: undefined,
-        isDualDisplay: false,
-      });
-    });
-
-    it('does not force dual display for descriptions', () => {
-      expect(
-        getContentDisplayText({
-          entity,
-          field: 'description',
-          locale: 'it',
-          restaurantId: 'demo-restaurant',
-        })
-      ).toEqual({
-        primary: 'Ricetta classica',
-        secondary: undefined,
-        isDualDisplay: false,
-      });
-    });
-
-    it('falls back to base text when Venetian translation is missing', () => {
-      expect(
-        getContentDisplayText({
-          entity: {
-            name: 'Sarde in saor',
-            i18n: {
-              en: { name: 'Sweet and sour sardines' },
-            },
-          },
-          field: 'name',
-          locale: 'vec',
-          restaurantId: 'demo-restaurant',
-        })
-      ).toEqual({
-        primary: 'Sarde in saor',
-        secondary: undefined,
-        isDualDisplay: false,
-      });
-    });
-  });
 
   describe('getSearchableContentTexts', () => {
     it('includes both Venetian and Italian names for Venetian UI search', () => {
@@ -132,7 +50,6 @@ describe('content presentation', () => {
           entity,
           field: 'name',
           locale: 'vec',
-          restaurantId: 'demo-restaurant',
         })
       ).toEqual(['Baccalà mantecato', 'Bacalà mantecà']);
     });
@@ -143,7 +60,6 @@ describe('content presentation', () => {
           entity,
           field: 'name',
           locale: 'it',
-          restaurantId: 'demo-restaurant',
         })
       ).toEqual(['Baccalà mantecato']);
     });

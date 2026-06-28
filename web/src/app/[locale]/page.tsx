@@ -12,7 +12,7 @@ import { PromotionPopup } from "@/components/menu/PromotionPopup";
 import { MenuIcon } from "@/components/menu/MenuIcon";
 import { LanguagePicker } from "@/components/ui/LanguagePicker";
 import { LoadingScreen, ErrorScreen } from "@/components/ui/StatusScreen";
-import { getContentDisplayText } from "@/lib/content-presentation";
+import { getLocalizedContentValue } from "@/lib/content-presentation";
 
 export default function HomePage() {
   const t = useTranslations();
@@ -156,12 +156,7 @@ export default function HomePage() {
             }`}
           >
             {publishedMenus.map((menu) => {
-              const title = getContentDisplayText({
-                entity: menu,
-                field: "title",
-                locale,
-                restaurantId: data.id,
-              });
+              const title = getLocalizedContentValue(menu, "title", locale);
               return (
                 <Link
                   key={menu.id}
@@ -173,12 +168,7 @@ export default function HomePage() {
                     <MenuIcon kind={menu.icon} />
                   </div>
                   <span className="text-lg font-semibold text-gray-800 uppercase tracking-wide text-center">
-                    <span className="block">{title.primary}</span>
-                    {title.secondary && (
-                      <span className="mt-0.5 block text-xs font-medium normal-case text-gray-500">
-                        {title.secondary}
-                      </span>
-                    )}
+                    <span className="block">{title}</span>
                   </span>
                 </Link>
               );

@@ -12,8 +12,6 @@ const fixture: MenuDataCache = {
       id: 'pasta',
       name: 'Pasta',
       order: 1,
-      variantPaths: [],
-      extraPaths: [],
       entries: [
         {
           id: 'spaghetti-al-pomodoro',
@@ -29,8 +27,6 @@ const fixture: MenuDataCache = {
       ],
     },
   ],
-  variants: [],
-  extras: [],
   chatAgentPrompt: 'Owner instruction: mention the terrace when relevant.',
 };
 
@@ -75,8 +71,6 @@ describe('buildSystemPrompt label guidance', () => {
           id: 'pasta',
           name: 'Pasta',
           order: 1,
-          variantPaths: [],
-          extraPaths: [],
           entries: [
             {
               id: 'ravioli-new',
@@ -93,8 +87,6 @@ describe('buildSystemPrompt label guidance', () => {
           ],
         },
       ],
-      variants: [],
-      extras: [],
       labels: [
         { id: 'label-new', name: 'Novità', color: 'amber' as const, sortOrder: 0, i18n: { en: { name: 'New' } } },
         { id: 'label-chef', name: 'Lo Chef consiglia', color: 'red' as const, sortOrder: 1, i18n: { en: { name: "Chef's pick" } } },

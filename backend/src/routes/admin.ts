@@ -1,10 +1,11 @@
 import { Hono, type Context } from 'hono';
 import { eq, and, gte, lt, asc, desc, count, inArray, sql } from 'drizzle-orm';
 import { requireAuth } from '../middleware/auth';
-import { attachDb, requireAdmin } from '../middleware/admin-guard';
+import { requireAdmin } from '../middleware/admin-guard';
+import { requireDb } from '../middleware/db';
 import * as schema from '../db/schema';
 import { computeLeaderboardMovement, VALID_PERIODS, periodToMs, computeWindows } from '../lib/analytics';
-import { buildCatalogFromDb, warmCatalogAfterMutation } from './catalog';
+import { buildCatalogFromDb, refreshCatalogArtifacts } from './catalog';
 import { parseBody } from '../lib/validate';
 import { validateImage } from '../lib/image';
 import { checkRateLimit } from '../lib/rate-limit';
@@ -33,7 +34,7 @@ import type { DbInstance } from '../db';
 // All admin routes require auth + db + admin gate.
 const admin = new Hono<AppBindings>();
 
-const base = [requireAuth, attachDb, requireAdmin] as const;
+const base = [requireAuth, requireDb, requireAdmin] as const;
 
 
 admin.post('/demo/reset', ...base, async (c) => {
@@ -62,7 +63,7 @@ admin.get('/settings', ...base, async (c) => {
       chatAgentPrompt: schema.settings.chatAgentPrompt,
       aiChatEnabled: schema.settings.aiChatEnabled,
       aiVoiceEnabled: schema.settings.aiVoiceEnabled,
-      selectionEnabled: schema.settings.selectionEnabled,
+      modules: schema.settings.modules,
       promotionAlert: schema.settings.promotionAlert,
       publicationState: schema.settings.publicationState,
       primaryLocale: schema.settings.primaryLocale,
@@ -79,7 +80,7 @@ admin.get('/settings', ...base, async (c) => {
     chatAgentPrompt: row.chatAgentPrompt ?? '',
     aiChatEnabled: row.aiChatEnabled,
     aiVoiceEnabled: row.aiChatEnabled && row.aiVoiceEnabled,
-    selectionEnabled: row.selectionEnabled,
+    selectionEnabled: normalizeModulesConfig(row.modules, row).ordering.enabled,
     promotionAlert: row.promotionAlert ?? null,
     publicationState: row.publicationState,
     primaryLocale: row.primaryLocale,
@@ -95,7 +96,6 @@ admin.get('/modules', ...base, async (c) => {
   const [row] = await c.get('db')
     .select({
       modules: schema.settings.modules,
-      selectionEnabled: schema.settings.selectionEnabled,
       aiChatEnabled: schema.settings.aiChatEnabled,
       aiVoiceEnabled: schema.settings.aiVoiceEnabled,
     })
@@ -113,7 +113,6 @@ admin.put('/modules', ...base, async (c) => {
   const [row] = await c.get('db')
     .select({
       modules: schema.settings.modules,
-      selectionEnabled: schema.settings.selectionEnabled,
       aiChatEnabled: schema.settings.aiChatEnabled,
       aiVoiceEnabled: schema.settings.aiVoiceEnabled,
     })
@@ -124,7 +123,6 @@ admin.put('/modules', ...base, async (c) => {
   const modules = normalizeModulesConfig({ ...normalizeModulesConfig(row.modules, row), ...body });
   await updateSettings(c.get('db'), {
     modules,
-    selectionEnabled: modules.ordering.enabled,
     aiChatEnabled: modules.ai.enabled,
     aiVoiceEnabled: modules.ai.enabled && modules.ai.voiceEnabled,
   });
@@ -147,10 +145,9 @@ admin.put('/settings', ...base, async (c) => {
   if (body.chatAgentPrompt !== undefined) updates.chatAgentPrompt = body.chatAgentPrompt;
   if (body.aiChatEnabled !== undefined) updates.aiChatEnabled = body.aiChatEnabled;
   if (body.aiVoiceEnabled !== undefined) updates.aiVoiceEnabled = body.aiChatEnabled === false ? false : body.aiVoiceEnabled;
-  if (body.selectionEnabled !== undefined) updates.selectionEnabled = body.selectionEnabled;
   if (body.aiChatEnabled !== undefined || body.aiVoiceEnabled !== undefined || body.selectionEnabled !== undefined) {
     const [row] = await c.get('db')
-      .select({ modules: schema.settings.modules, selectionEnabled: schema.settings.selectionEnabled, aiChatEnabled: schema.settings.aiChatEnabled, aiVoiceEnabled: schema.settings.aiVoiceEnabled })
+      .select({ modules: schema.settings.modules, aiChatEnabled: schema.settings.aiChatEnabled, aiVoiceEnabled: schema.settings.aiVoiceEnabled })
       .from(schema.settings)
       .where(eq(schema.settings.id, 1));
     const modules = normalizeModulesConfig(row?.modules, row);
@@ -1076,7 +1073,7 @@ async function setLocaleFlag(
 
 async function refreshPublicCatalog(c: Context<AppBindings>): Promise<void> {
   try {
-    await warmCatalogAfterMutation(
+    await refreshCatalogArtifacts(
       c.env,
       c.req.url,
       c.get('db'),

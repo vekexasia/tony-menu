@@ -100,7 +100,7 @@ export function sanitizeUserContent(content: string): string {
     .replace(/"type"\s*:\s*"function"/gi, '"type\u200b":"function"');
 }
 
-function toPrompt(systemPrompt: string, messages: ChatMessage[]): string {
+export function toPrompt(systemPrompt: string, messages: ChatMessage[]): string {
   const conversation = messages
     .map(m => m.role === 'user'
       ? `User: ${sanitizeUserContent(m.content)}`
@@ -158,10 +158,6 @@ class WorkersAIProvider implements LLMProvider {
       ];
     }
   }
-}
-
-export function buildWorkersAIPrompt(systemPrompt: string, messages: ChatMessage[]): string {
-  return toPrompt(systemPrompt, messages);
 }
 
 export function createProvider(env: Env): LLMProvider {

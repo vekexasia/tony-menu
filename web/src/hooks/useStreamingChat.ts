@@ -190,17 +190,19 @@ export function useStreamingChat(locale: string) {
                       mode: (toolCall.params.mode as 'single' | 'multi') || 'single',
                     });
                   } else if (toolCall.name === 'navigate_to_category') {
-                    useChatActionsStore.getState().dispatch({
-                      name: 'scroll_to_category',
-                      params: { category_id: toolCall.params.category_id as string },
-                    });
+                    useChatActionsStore.getState().requestScrollToCategory(toolCall.params.category_id as string);
                     useChatStore.getState().addChoices({
                       prompt: (toolCall.params.choices_prompt as string) || '',
                       options: (toolCall.params.choices as string[]) || [],
                       mode: 'single',
                     });
-                  } else {
-                    useChatActionsStore.getState().dispatch(toolCall);
+                  } else if (toolCall.name === 'filter_menu') {
+                    useChatActionsStore.getState().setFilterCriteria({
+                      excludeAllergens: toolCall.params.exclude_allergens as string[] | undefined,
+                      searchQuery: toolCall.params.search_query as string | undefined,
+                    });
+                  } else if (toolCall.name === 'scroll_to_category') {
+                    useChatActionsStore.getState().requestScrollToCategory(toolCall.params.category_id as string);
                   }
                   break;
                 }

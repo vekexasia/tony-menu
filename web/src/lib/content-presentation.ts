@@ -10,12 +10,6 @@ export interface LocalizedContentEntity {
   i18n?: I18nMap;
 }
 
-export interface ContentDisplayText {
-  primary: string;
-  secondary?: string;
-  isDualDisplay: boolean;
-}
-
 export function getLocalizedContentValue(
   entity: LocalizedContentEntity,
   field: LocalizedContentField,
@@ -31,23 +25,6 @@ export function getLocalizedContentValue(
   return getBaseFieldValue(entity, field);
 }
 
-export function getContentDisplayText({
-  entity,
-  field = 'name',
-  locale,
-}: {
-  entity: LocalizedContentEntity;
-  field?: LocalizedContentField;
-  locale?: string;
-  restaurantId?: string;
-}): ContentDisplayText {
-  return {
-    primary: getLocalizedContentValue(entity, field, locale),
-    secondary: undefined,
-    isDualDisplay: false,
-  };
-}
-
 export function getSearchableContentTexts({
   entity,
   field = 'name',
@@ -56,7 +33,6 @@ export function getSearchableContentTexts({
   entity: LocalizedContentEntity;
   field?: LocalizedContentField;
   locale?: string;
-  restaurantId?: string;
 }): string[] {
   const values = [
     getBaseFieldValue(entity, field),

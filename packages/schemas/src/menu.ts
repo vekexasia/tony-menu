@@ -8,7 +8,6 @@ export const VariantSelectionSchema = z.object({
   isDefault: z.boolean(),
   i18n: I18nMapSchema.optional(),
 });
-export type VariantSelection = z.infer<typeof VariantSelectionSchema>;
 
 export const ExtraOptionSchema = z.object({
   name: z.string(),
@@ -17,4 +16,3 @@ export const ExtraOptionSchema = z.object({
   price: z.number(),
   i18n: I18nMapSchema.optional(),
 });
-export type ExtraOption = z.infer<typeof ExtraOptionSchema>;

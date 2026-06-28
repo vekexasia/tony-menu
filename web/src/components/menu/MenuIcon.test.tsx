@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { render } from '@testing-library/react';
 import { MENU_ICONS } from '@menu/schemas';
-import { MenuIcon, MENU_ICON_KINDS, MENU_ICON_LABELS } from './MenuIcon';
+import { MenuIcon, MENU_ICON_KINDS } from './MenuIcon';
 
 describe('MENU_ICON_KINDS / MENU_ICONS drift', () => {
   it('the web kinds match the schemas package zod enum exactly', () => {
@@ -10,12 +10,6 @@ describe('MENU_ICON_KINDS / MENU_ICONS drift', () => {
     // file. If these diverge, owners can save a kind the renderer doesn't know
     // and the home card will silently fall back. Keep them lockstep.
     expect([...MENU_ICON_KINDS]).toEqual([...MENU_ICONS]);
-  });
-
-  it('every kind has a human label', () => {
-    for (const kind of MENU_ICON_KINDS) {
-      expect(MENU_ICON_LABELS[kind]).toBeTruthy();
-    }
   });
 });
 

@@ -3,7 +3,7 @@
 import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { getContentDisplayText } from "@/lib/content-presentation";
+import { getLocalizedContentValue } from "@/lib/content-presentation";
 import { useTranslations } from "@/lib/i18n";
 import type { MenuCategory, MenuEntry } from "@/lib/types";
 import { useRestaurantStore } from "@/stores/restaurantStore";
@@ -53,21 +53,16 @@ export function SelectionPageClient() {
         return { line, entry: null, category: null, unavailable: true, displayName: t("selection.unavailableItem") };
       }
       const unavailable = resolved.entry.hidden || resolved.entry.outOfStock;
-      const name = getContentDisplayText({
-        entity: resolved.entry,
-        field: "name",
-        locale,
-        restaurantId: data?.id,
-      });
+      const name = getLocalizedContentValue(resolved.entry, "name", locale);
       return {
         line,
         entry: resolved.entry,
         category: resolved.category,
         unavailable,
-        displayName: name.primary,
+        displayName: name,
       };
     });
-  }, [data?.categories, data?.id, lines, locale, t]);
+  }, [data?.categories, lines, locale, t]);
 
   const grouped = useMemo(() => {
     const groups: Array<{ key: string; title: string; lines: ResolvedLine[]; order: number }> = [];
@@ -78,7 +73,7 @@ export function SelectionPageClient() {
       let group = byKey.get(key);
       if (!group) {
         const title = resolved.category
-          ? getContentDisplayText({ entity: resolved.category, field: "name", locale, restaurantId: data?.id }).primary
+          ? getLocalizedContentValue(resolved.category, "name", locale)
           : t("selection.unavailableItems");
         group = { key, title, lines: [], order: resolved.category?.order ?? Number.MAX_SAFE_INTEGER };
         byKey.set(key, group);
@@ -88,7 +83,7 @@ export function SelectionPageClient() {
     }
 
     return groups.sort((a, b) => a.order - b.order);
-  }, [data?.id, locale, resolvedLines, t]);
+  }, [locale, resolvedLines, t]);
 
   if (isLoading) {
     return <LoadingScreen as="main" />;

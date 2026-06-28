@@ -1,4 +1,4 @@
-import type { Env, MenuDataCache, CachedCategory, CachedEntry, CachedVariant, CachedExtra, CachedLabel } from '../types';
+import type { Env, MenuDataCache, CachedCategory, CachedEntry, CachedLabel } from '../types';
 
 // ── Raw row types returned by D1 ─────────────────────────────────────────────
 
@@ -29,22 +29,7 @@ interface EntryRow {
   i18n: string | null;       // JSON TEXT
 }
 
-interface VariantRow {
-  id: string;
-  name: string;
-  description: string | null;
-  selections: string | null; // JSON TEXT
-  i18n: string | null;       // JSON TEXT
-}
 
-interface ExtraRow {
-  id: string;
-  name: string;
-  type: string;
-  max: number;
-  options: string | null; // JSON TEXT
-  i18n: string | null;    // JSON TEXT
-}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -80,7 +65,7 @@ interface EntryLabelRow {
 
 export async function fetchMenuFromD1(env: Env): Promise<MenuDataCache> {
   // Fire all queries in parallel for minimum latency.
-  const [settingsResult, categoriesResult, entriesResult, membershipsResult, labelsResult, entryLabelsResult, variantsResult, extrasResult] = await Promise.all([
+  const [settingsResult, categoriesResult, entriesResult, membershipsResult, labelsResult, entryLabelsResult] = await Promise.all([
     env.DB.prepare(
       'SELECT name, payoff, chat_agent_prompt FROM settings WHERE id = 1'
     ).first<SettingsRow>(),
@@ -107,14 +92,6 @@ export async function fetchMenuFromD1(env: Env): Promise<MenuDataCache> {
     env.DB.prepare(
       'SELECT entry_id, label_id FROM entry_labels'
     ).all<EntryLabelRow>(),
-
-    env.DB.prepare(
-      'SELECT id, name, description, selections, i18n FROM menu_variants ORDER BY sort_order ASC'
-    ).all<VariantRow>(),
-
-    env.DB.prepare(
-      'SELECT id, name, type, max, options, i18n FROM menu_extras'
-    ).all<ExtraRow>(),
   ]);
 
   if (!settingsResult) {
@@ -173,43 +150,9 @@ export async function fetchMenuFromD1(env: Env): Promise<MenuDataCache> {
     name: row.name,
     order: row.sort_order,
     entries: entriesByCategory.get(row.id) ?? [],
-    variantPaths: [], // not modelled in D1
-    extraPaths: [],   // not modelled in D1
     i18n: parseJson<Record<string, Record<string, string>>>(row.i18n) ?? undefined,
   }));
 
-  // ── Build variants ────────────────────────────────────────────────────────
-  type SelectionJson = { name: string; price: number; isDefault: boolean; i18n?: Record<string, Record<string, string>> };
-  const variants: CachedVariant[] = variantsResult.results.map(row => ({
-    id: row.id,
-    path: `variants/${row.id}`,
-    name: row.name,
-    description: row.description ?? undefined,
-    selections: (parseJson<SelectionJson[]>(row.selections) ?? []).map(s => ({
-      name: s.name,
-      price: s.price,
-      isDefault: s.isDefault,
-      i18n: s.i18n,
-    })),
-    i18n: parseJson<Record<string, Record<string, string>>>(row.i18n) ?? undefined,
-  }));
-
-  // ── Build extras ──────────────────────────────────────────────────────────
-  type OptionJson = { name: string; price: number; desc?: string; i18n?: Record<string, Record<string, string>> };
-  const extras: CachedExtra[] = extrasResult.results.map(row => ({
-    id: row.id,
-    path: `extras/${row.id}`,
-    name: row.name,
-    max: row.max,
-    type: row.type,
-    extras: (parseJson<OptionJson[]>(row.options) ?? []).map(o => ({
-      name: o.name,
-      price: o.price,
-      desc: o.desc,
-      i18n: o.i18n,
-    })),
-    i18n: parseJson<Record<string, Record<string, string>>>(row.i18n) ?? undefined,
-  }));
 
   const labels: CachedLabel[] = labelsResult.results.map(row => ({
     id: row.id,
@@ -225,8 +168,6 @@ export async function fetchMenuFromD1(env: Env): Promise<MenuDataCache> {
       payoff: settingsResult.payoff ?? undefined,
     },
     categories,
-    variants,
-    extras,
     labels,
     chatAgentPrompt: settingsResult.chat_agent_prompt ?? undefined,
   };

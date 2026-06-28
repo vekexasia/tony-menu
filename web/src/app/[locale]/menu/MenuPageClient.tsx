@@ -16,7 +16,7 @@ import { useSelectionStore } from "@/stores/selectionStore";
 import type { MenuEntry } from "@/lib/types";
 import { recordView } from "@/lib/api";
 import { viewDedupeKey, formatMessage as fmt } from "@/lib/utils";
-import { getContentDisplayText, getLocalizedContentValue, getSearchableContentTexts } from "@/lib/content-presentation";
+import { getLocalizedContentValue, getSearchableContentTexts } from "@/lib/content-presentation";
 import { isMenuAvailableNow } from "@/lib/menu-schedule";
 import { resolveLabel } from "@/lib/label-colors";
 import { LoadingScreen, ErrorScreen } from "@/components/ui/StatusScreen";
@@ -145,8 +145,8 @@ export default function MenuPageClient() {
         ...cat,
         entries: cat.entries.filter((entry) => {
           if (!isVisible(entry)) return false;
-          const nameTexts = getSearchableContentTexts({ entity: entry, field: "name", locale, restaurantId: data?.id });
-          const descriptionTexts = getSearchableContentTexts({ entity: entry, field: "description", locale, restaurantId: data?.id });
+          const nameTexts = getSearchableContentTexts({ entity: entry, field: "name", locale });
+          const descriptionTexts = getSearchableContentTexts({ entity: entry, field: "description", locale });
           const searchableContent = [...nameTexts, ...descriptionTexts].join(" ").toLowerCase();
           if (searchQuery) return searchableContent.includes(searchQuery.toLowerCase());
           if (chatFilterCriteria?.excludeAllergens?.length) {
@@ -159,7 +159,7 @@ export default function MenuPageClient() {
         }),
       }))
       .filter((cat) => cat.entries.length > 0);
-  }, [categories, currentMenu, searchQuery, chatFilterCriteria, locale, data?.id]);
+  }, [categories, currentMenu, searchQuery, chatFilterCriteria, locale]);
 
   useEffect(() => {
     if (typeof window === 'undefined' || !data) return;
@@ -218,10 +218,6 @@ export default function MenuPageClient() {
     if (scrollToCategoryId) { scrollToCategory(scrollToCategoryId); consumeScrollRequest(); }
   }, [scrollToCategoryId, consumeScrollRequest]);
 
-  const getDisplayText = (
-    item: { name?: string; description?: string; desc?: string; i18n?: Record<string, Record<string, string>> },
-    field: "name" | "description" = "name"
-  ) => getContentDisplayText({ entity: item, field, locale, restaurantId: data?.id });
 
   const getLocalized = (
     item: { name?: string; description?: string; desc?: string; i18n?: Record<string, Record<string, string>> },
@@ -313,7 +309,7 @@ export default function MenuPageClient() {
                 onClick={() => scrollToCategory(cat.id)}
                 className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-colors ${activeCategory === cat.id ? "bg-primary text-white" : "bg-white text-gray-600 hover:bg-gray-200"}`}
               >
-                {getDisplayText(cat).primary}
+                {getLocalized(cat)}
               </button>
             ))}
           </div>
@@ -332,25 +328,23 @@ export default function MenuPageClient() {
         {filteredCategories.map((cat) => (
           <div key={cat.id} data-locale-anchor={`category:${cat.id}`} ref={(el) => { if (el) categoryRefs.current.set(cat.id, el); }}>
             {(() => {
-              const categoryName = getDisplayText(cat);
+              const categoryName = getLocalized(cat);
               return (
                 <h3 className="text-primary font-bold text-lg mb-3 tracking-wider">
-                  <span className="block">{categoryName.primary.toUpperCase()}</span>
-                  {categoryName.secondary && <span className="mt-0.5 block text-xs font-medium tracking-normal text-primary/70 normal-case">{categoryName.secondary}</span>}
+                  <span className="block">{categoryName.toUpperCase()}</span>
                 </h3>
               );
             })()}
             <div className="space-y-3">
               {cat.entries.map((entry) => {
                 const entryWithDesc = entry as MenuEntryWithDetails;
-                const itemName = getDisplayText(entry);
+                const itemName = getLocalized(entry);
                 const itemDescription = getLocalized({ description: entryWithDesc.description, i18n: entry.i18n }, "description") || entryWithDesc.description;
                 return (
                   <div key={entry.id} data-locale-anchor={`entry:${entry.id}`}>
                     <MenuItemListView
                       item={{
-                        name: itemName.primary,
-                        nameSecondary: itemName.secondary,
+                        name: itemName,
                         description: itemDescription,
                         price: entry.price,
                         priceUnit: entryWithDesc.priceUnit,

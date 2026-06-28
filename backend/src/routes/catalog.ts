@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { eq, asc } from 'drizzle-orm';
 import { requireDb } from '../middleware/db';
 import { requireAuth } from '../middleware/auth';
-import { attachDb, requireAdmin } from '../middleware/admin-guard';
+import { requireAdmin } from '../middleware/admin-guard';
 import { RecordViewBodySchema, normalizeModulesConfig } from '@menu/schemas';
 import type { CatalogResponse } from '@menu/schemas';
 import * as schema from '../db/schema';
@@ -112,7 +112,7 @@ export const catalogRoutes = new Hono<AppBindings>()
    *
    * Admin-only. Regenerates the R2 snapshot from the DB.
    */
-  .post('/publish', requireAuth, attachDb, requireAdmin, async (c) => {
+  .post('/publish', requireAuth, requireDb, requireAdmin, async (c) => {
     const bucket = c.env.PUBLIC_MENU_BUCKET;
     const db = c.get('db');
 
@@ -277,15 +277,6 @@ export async function refreshCatalogArtifacts(
     cacheWarmed,
     snapshotWritten,
   };
-}
-
-export async function warmCatalogAfterMutation(
-  env: Env,
-  requestUrl: string,
-  db: DbInstance,
-  publishedBy?: string,
-): Promise<void> {
-  await refreshCatalogArtifacts(env, requestUrl, db, publishedBy);
 }
 
 async function isMenuPublished(db: DbInstance): Promise<boolean> {

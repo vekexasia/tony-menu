@@ -21,22 +21,11 @@ export interface ChatRequest {
   locale?: string;
 }
 
-export interface RefreshRequest {
-  secret: string;
-}
-
 export interface ChatToolCall {
   name: string;
   params: Record<string, unknown>;
 }
 
-// SSE event types sent to the client
-export type SSEEventType = 'text' | 'tool_call' | 'done' | 'error';
-
-export interface SSEEvent {
-  type: SSEEventType;
-  data: string | ChatToolCall;
-}
 
 // Provider-neutral tool definition
 export interface ToolDefinition {
@@ -58,8 +47,6 @@ export interface ToolParameter {
 export interface MenuDataCache {
   restaurant: CachedRestaurant;
   categories: CachedCategory[];
-  variants: CachedVariant[];
-  extras: CachedExtra[];
   labels?: CachedLabel[];
   chatAgentPrompt?: string;
 }
@@ -74,8 +61,6 @@ export interface CachedCategory {
   name: string;
   order: number;
   entries: CachedEntry[];
-  variantPaths: string[];
-  extraPaths: string[];
   i18n?: Record<string, Record<string, string>>;
 }
 
@@ -91,8 +76,6 @@ export interface CachedEntry {
   allergens: string[];
   menuVisibility: string[];
   labelIds?: string[];
-  overriddenVariantPaths?: string[];
-  overriddenExtraPaths?: string[];
   i18n?: Record<string, Record<string, string>>;
 }
 
@@ -103,24 +86,5 @@ export interface CachedLabel {
   name: string;
   color: CachedLabelColor;
   sortOrder: number;
-  i18n?: Record<string, Record<string, string>>;
-}
-
-export interface CachedVariant {
-  id: string;
-  path: string;
-  name: string;
-  description?: string;
-  selections: { name: string; price: number; isDefault: boolean; i18n?: Record<string, Record<string, string>> }[];
-  i18n?: Record<string, Record<string, string>>;
-}
-
-export interface CachedExtra {
-  id: string;
-  path: string;
-  name: string;
-  max: number;
-  type: string;
-  extras: { name: string; price: number; desc?: string; i18n?: Record<string, Record<string, string>> }[];
   i18n?: Record<string, Record<string, string>>;
 }

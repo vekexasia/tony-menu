@@ -6,9 +6,9 @@ import { useTranslations } from '@/lib/i18n';
 import { useState, useCallback } from 'react';
 import type { MenuEntry } from '@/lib/types';
 import { useBackButtonClose } from '@/hooks/useBackButtonClose';
-import { useRestaurantStore, useLabels } from '@/stores/restaurantStore';
+import { useLabels } from '@/stores/restaurantStore';
 import { useSelectionStore } from '@/stores/selectionStore';
-import { getContentDisplayText, getLocalizedContentValue } from '@/lib/content-presentation';
+import { getLocalizedContentValue } from '@/lib/content-presentation';
 import { resolveLabel } from '@/lib/label-colors';
 import { MenuItemDetailView } from './views/MenuItemDetailView';
 
@@ -24,7 +24,6 @@ interface MenuItemDetailProps {
 
 export function MenuItemDetail({ item, onClose, locale, hidePrice, selectionEnabled }: MenuItemDetailProps) {
   const t = useTranslations();
-  const restaurantId = useRestaurantStore((state) => state.data?.id);
   const allLabels = useLabels();
   const quantity = useSelectionStore((state) => item ? state.quantityFor(item.id) : 0);
   const addToSelection = useSelectionStore((state) => state.add);
@@ -44,7 +43,7 @@ export function MenuItemDetail({ item, onClose, locale, hidePrice, selectionEnab
 
   if (!item) return null;
 
-  const itemName = getContentDisplayText({ entity: item, field: 'name', locale, restaurantId });
+  const itemName = getLocalizedContentValue(item, 'name', locale);
   const description =
     getLocalizedContentValue({ description: item.description, i18n: item.i18n }, 'description', locale)
     || item.description;
@@ -84,8 +83,7 @@ export function MenuItemDetail({ item, onClose, locale, hidePrice, selectionEnab
             </button>
             <MenuItemDetailView
               item={{
-                name: itemName.primary,
-                nameSecondary: itemName.secondary,
+                name: itemName,
                 description,
                 price: item.price,
                 priceUnit: item.priceUnit,

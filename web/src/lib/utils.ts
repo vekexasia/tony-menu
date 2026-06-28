@@ -29,64 +29,29 @@ export function formatMessage(
 }
 
 /**
- * Format a price for display.
- * Uses Euro format with comma as decimal separator (Italian locale).
- *
- * @param price - The price in cents or as a decimal
- * @param showCurrency - Whether to show the currency symbol
- * @returns Formatted price string (e.g., "12,50 €")
+ * Format a price for display: "€ 12,50" or "€ 12,50/kg".
+ * Italian locale uses a comma as the decimal separator.
  */
-export function formatPrice(price: number, showCurrency = true): string {
-  const formatted = price.toFixed(2).replace('.', ',');
-  return showCurrency ? `${formatted} €` : formatted;
+export function formatPrice(price: number, unit?: string | null): string {
+  const formatted = `€ ${price.toFixed(2).replace('.', ',')}`;
+  return unit ? `${formatted}/${unit}` : formatted;
 }
 
 /**
- * Convert a hex color string to HSL components.
- * Useful for generating lighter/darker variants of theme colors.
- *
- * @param hex - Hex color string (e.g., "#cc9166" or "cc9166")
- * @returns Object with h, s, l values (0-360 for h, 0-100 for s and l)
+ * Escape an untrusted string for HTML, then re-allow the inline formatting
+ * tags <b>, <i>, <u>. Safe for dangerouslySetInnerHTML.
  */
-export function hexToHSL(hex: string): { h: number; s: number; l: number } {
-  // Remove # if present
-  hex = hex.replace(/^#/, '');
-
-  // Parse hex values
-  const r = parseInt(hex.slice(0, 2), 16) / 255;
-  const g = parseInt(hex.slice(2, 4), 16) / 255;
-  const b = parseInt(hex.slice(4, 6), 16) / 255;
-
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  const l = (max + min) / 2;
-
-  let h = 0;
-  let s = 0;
-
-  if (max !== min) {
-    const d = max - min;
-    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-
-    switch (max) {
-      case r:
-        h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
-        break;
-      case g:
-        h = ((b - r) / d + 2) / 6;
-        break;
-      case b:
-        h = ((r - g) / d + 4) / 6;
-        break;
-    }
-  }
-
-  return {
-    h: Math.round(h * 360),
-    s: Math.round(s * 100),
-    l: Math.round(l * 100),
-  };
+export function sanitizeRichText(html: string): string {
+  if (!html) return '';
+  return html
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/&lt;(\/?)b&gt;/gi, '<$1b>')
+    .replace(/&lt;(\/?)i&gt;/gi, '<$1i>')
+    .replace(/&lt;(\/?)u&gt;/gi, '<$1u>');
 }
+
 
 /**
  * Returns a client-side dedupe key for view tracking, unique per entry per calendar day.
@@ -104,22 +69,3 @@ export function viewDedupeKey(entryId: string): string {
   return `${entryId}:${bucket}`;
 }
 
-/**
- * Generate CSS variables for the primary color and its variants.
- * Creates lighter and darker variants for hover states and backgrounds.
- *
- * @param primaryColor - The primary hex color (e.g., "#cc9166")
- * @returns CSS custom properties object
- */
-export function generateColorVariables(primaryColor: string): Record<string, string> {
-  const hsl = hexToHSL(primaryColor);
-
-  return {
-    '--color-primary': primaryColor,
-    '--color-primary-h': String(hsl.h),
-    '--color-primary-s': `${hsl.s}%`,
-    '--color-primary-l': `${hsl.l}%`,
-    '--color-primary-light': `hsl(${hsl.h}, ${hsl.s}%, ${Math.min(hsl.l + 30, 95)}%)`,
-    '--color-primary-dark': `hsl(${hsl.h}, ${hsl.s}%, ${Math.max(hsl.l - 8, 10)}%)`,
-  };
-}

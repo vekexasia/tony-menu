@@ -5,7 +5,7 @@ import Image from 'next/image';
 import type { ChatMessage } from '@/lib/chat-types';
 import { useRestaurantStore } from '@/stores/restaurantStore';
 import type { MenuEntry } from '@/lib/types';
-import { getContentDisplayText, getLocalizedContentValue } from '@/lib/content-presentation';
+import { getLocalizedContentValue } from '@/lib/content-presentation';
 import { useTranslations } from '@/lib/i18n';
 import { LABEL_COLOR_STYLES, resolveLabel } from '@/lib/label-colors';
 
@@ -52,12 +52,7 @@ function ItemCard({ itemId, locale, onClick }: { itemId: string; locale: string;
   }
   if (!entry) return null;
 
-  const name = getContentDisplayText({
-    entity: entry,
-    field: 'name',
-    locale,
-    restaurantId: data.id,
-  });
+  const name = getLocalized(entry, 'name', locale);
   const desc = getLocalized({ description: entry.description, i18n: entry.i18n }, 'description', locale) || entry.description;
   const labels = entry.labelIds?.length
     ? (data.labels ?? []).filter(label => entry.labelIds!.includes(label.id)).map(label => resolveLabel(label, locale))
@@ -72,7 +67,7 @@ function ItemCard({ itemId, locale, onClick }: { itemId: string; locale: string;
         <div className="relative w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 bg-gray-200">
           <Image
             src={entry.image}
-            alt={name.primary}
+            alt={name}
             fill
             className="object-cover"
             sizes="56px"
@@ -83,12 +78,7 @@ function ItemCard({ itemId, locale, onClick }: { itemId: string; locale: string;
       <div className="flex-1 min-w-0">
         <p className="font-semibold text-gray-800 text-xs leading-tight flex items-start justify-between gap-1">
           <span>
-            <span className="block">{name.primary}</span>
-            {name.secondary && (
-              <span className="mt-0.5 block text-[10px] font-medium text-gray-500">
-                {name.secondary}
-              </span>
-            )}
+            <span className="block">{name}</span>
           </span>
           {entry.internalCode && (
             <span className="font-mono text-[10px] font-normal text-gray-400 shrink-0">{entry.internalCode}</span>

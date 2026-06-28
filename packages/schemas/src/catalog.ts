@@ -15,7 +15,6 @@ export const CatalogLabelSchema = z.object({
   sortOrder: z.number(),
   i18n: I18nMapSchema.nullable(),
 });
-export type CatalogLabel = z.infer<typeof CatalogLabelSchema>;
 
 export const CatalogEntrySchema = z.object({
   id: z.string(),
@@ -35,7 +34,6 @@ export const CatalogEntrySchema = z.object({
   i18n: I18nMapSchema.nullable(),
   metadata: z.record(z.string(), z.unknown()).nullable(),
 });
-export type CatalogEntry = z.infer<typeof CatalogEntrySchema>;
 
 export const CatalogCategorySchema = z.object({
   id: z.string(),
@@ -44,7 +42,6 @@ export const CatalogCategorySchema = z.object({
   i18n: I18nMapSchema.nullable(),
   entries: z.array(CatalogEntrySchema),
 });
-export type CatalogCategory = z.infer<typeof CatalogCategorySchema>;
 
 /**
  * Curated set of standard icons that the home page renders inline as SVG.
@@ -75,7 +72,6 @@ export const HHMMSchema = z.string().regex(HHMM_RE, 'must be HH:MM');
 
 export const WEEKDAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
 export const WeekdaySchema = z.enum(WEEKDAYS);
-export type Weekday = z.infer<typeof WeekdaySchema>;
 
 export const CatalogMenuSchema = z.object({
   id: z.string(),
@@ -89,7 +85,6 @@ export const CatalogMenuSchema = z.object({
   availableTo: HHMMSchema.nullable().optional(),
   availableDays: z.array(WeekdaySchema).nullable().optional(),
 });
-export type CatalogMenu = z.infer<typeof CatalogMenuSchema>;
 
 export const CatalogVariantSchema = z.object({
   id: z.string(),
@@ -99,7 +94,6 @@ export const CatalogVariantSchema = z.object({
   selections: z.array(VariantSelectionSchema).nullable(),
   i18n: I18nMapSchema.nullable(),
 });
-export type CatalogVariant = z.infer<typeof CatalogVariantSchema>;
 
 export const CatalogExtraSchema = z.object({
   id: z.string(),
@@ -109,7 +103,6 @@ export const CatalogExtraSchema = z.object({
   options: z.array(ExtraOptionSchema).nullable(),
   i18n: I18nMapSchema.nullable(),
 });
-export type CatalogExtra = z.infer<typeof CatalogExtraSchema>;
 
 export const CatalogRestaurantSchema = z.object({
   id: z.string(),
@@ -131,7 +124,6 @@ export const CatalogRestaurantSchema = z.object({
     customLocales: z.array(z.object({ code: z.string(), name: z.string(), flagUrl: z.string().nullable().optional() })).nullable().optional(),
   }).optional(),
 });
-export type CatalogRestaurant = z.infer<typeof CatalogRestaurantSchema>;
 
 export const CatalogResponseSchema = z.object({
   restaurant: CatalogRestaurantSchema,

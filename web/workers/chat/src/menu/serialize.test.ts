@@ -28,12 +28,8 @@ function cache(): MenuDataCache {
             i18n: { de: { name: 'Ravioli DE', description: 'Hausgemacht' } },
           },
         ],
-        variantPaths: [],
-        extraPaths: [],
       },
     ],
-    variants: [],
-    extras: [],
     labels: [],
   };
 }

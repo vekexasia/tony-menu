@@ -265,8 +265,6 @@ function catalogToStore(catalog: CatalogResponse) {
 const EMPTY_CATEGORIES: import('../lib/types').MenuCategory[] = [];
 
 export const useRestaurantData = () => useRestaurantStore((state) => state.data);
-export const useRestaurantLoading = () => useRestaurantStore((state) => state.isLoading);
-export const useRestaurantError = () => useRestaurantStore((state) => state.error);
 export const useCategories = () => useRestaurantStore((state) => state.data?.categories ?? EMPTY_CATEGORIES);
 
 const EMPTY_LABELS: import('../lib/types').MenuLabel[] = [];

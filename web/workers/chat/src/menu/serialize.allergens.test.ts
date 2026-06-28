@@ -10,8 +10,6 @@ function cache(): MenuDataCache {
         id: 'cat-1',
         name: 'Primi',
         order: 0,
-        variantPaths: ['variants/v-size'],
-        extraPaths: ['extras/e-cheese'],
         entries: [
           {
             id: 'gluten-pasta',
@@ -52,27 +50,6 @@ function cache(): MenuDataCache {
         ],
       },
     ],
-    variants: [
-      {
-        id: 'v-size',
-        path: 'variants/v-size',
-        name: 'Size',
-        selections: [
-          { name: 'Small', price: 0, isDefault: true },
-          { name: 'Large', price: 300, isDefault: false, i18n: { de: { name: 'Gross' } } },
-        ],
-      },
-    ],
-    extras: [
-      {
-        id: 'e-cheese',
-        path: 'extras/e-cheese',
-        name: 'Cheese',
-        max: 1,
-        type: 'single',
-        extras: [{ name: 'Parmesan', price: 100 }],
-      },
-    ],
     labels: [],
   };
 }
@@ -107,7 +84,7 @@ describe('searchByAllergens (allergen exclusion)', () => {
   });
 });
 
-describe('getItemDetail allergen/variant/extra mapping', () => {
+describe('getItemDetail allergen mapping', () => {
   it('maps allergen ids through ALLERGEN_NAMES', () => {
     const detail = getItemDetail(cache(), 'gluten-pasta', 'en');
     expect(detail?.allergens).toEqual(['Gluten', 'Eggs']);
@@ -116,22 +93,6 @@ describe('getItemDetail allergen/variant/extra mapping', () => {
   it('omits allergens when the item has none', () => {
     const detail = getItemDetail(cache(), 'safe-salad', 'en');
     expect(detail).not.toHaveProperty('allergens');
-  });
-
-  it('includes category-level variants with localized option names and default flag', () => {
-    const detail = getItemDetail(cache(), 'gluten-pasta', 'de');
-    const variants = detail?.variants as { name: string; options: { name: string; default?: boolean }[] }[];
-    expect(variants).toHaveLength(1);
-    expect(variants[0].options).toEqual([
-      { name: 'Small', default: true },
-      { name: 'Gross' },
-    ]);
-  });
-
-  it('includes category-level extras with their options', () => {
-    const detail = getItemDetail(cache(), 'gluten-pasta', 'en');
-    const extras = detail?.extras as { name: string; options: { name: string }[] }[];
-    expect(extras).toEqual([{ name: 'Cheese', options: [{ name: 'Parmesan' }] }]);
   });
 
   it('flags out-of-stock items', () => {

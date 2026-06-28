@@ -7,6 +7,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { updateEntry, reorderEntries, deleteEntry, translateText } from "@/lib/api";
 import { runBulkTranslate } from "@/lib/bulk-translate";
 import { sanitizeI18nData } from "@/lib/i18n-admin";
+import { formatPrice, sanitizeRichText } from "@/lib/utils";
 import { useLabels, useRestaurantStore } from "@/stores/restaurantStore";
 import { ConfirmDeleteModal } from "@/components/admin/ConfirmDeleteModal";
 import { SortableList, DragHandle } from "@/components/admin/SortableList";
@@ -48,20 +49,12 @@ interface Category {
   name: string;
 }
 
-// Render rich text with HTML tags
+// Render rich text, allowing only <b>, <i>, <u>.
 function RichText({ html, className }: { html: string; className?: string }) {
-  // Only allow safe tags: b, i, u
-  const sanitizedHtml = html
-    .replace(/<(?!\/?(?:b|i|u)>)[^>]*>/gi, "")
-    .replace(/</g, "&lt;")
-    .replace(/&lt;(\/?)b&gt;/gi, "<$1b>")
-    .replace(/&lt;(\/?)i&gt;/gi, "<$1i>")
-    .replace(/&lt;(\/?)u&gt;/gi, "<$1u>");
-
   return (
     <span
       className={className}
-      dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
+      dangerouslySetInnerHTML={{ __html: sanitizeRichText(html) }}
     />
   );
 }
@@ -191,10 +184,6 @@ export default function EntriesPage() {
     if (!categoryId) setReorderMode(false);
   }, [categoryId]);
 
-  const formatPrice = (price: number, priceUnit?: string) => {
-    const formatted = `€ ${price.toFixed(2).replace(".", ",")}`;
-    return priceUnit ? `${formatted}/${priceUnit}` : formatted;
-  };
 
   const disabledTranslationLocales = (restaurantData?.features?.disabledLocales ?? []) as string[];
   const customTranslationLocales = ((restaurantData?.features?.customLocales ?? []) as { code: string }[]).map((c) => c.code);

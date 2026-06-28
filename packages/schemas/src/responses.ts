@@ -1,12 +1,6 @@
 import { z } from 'zod';
-import { MembershipRoleSchema } from './common.js';
 
 // ── Generic ─────────────────────────────────────────────────────────
-
-export const OkResponseSchema = z.object({
-  ok: z.literal(true),
-});
-export type OkResponse = z.infer<typeof OkResponseSchema>;
 
 export const CreatedEntryResponseSchema = z.object({
   ok: z.literal(true),
@@ -19,11 +13,6 @@ export const ImageUploadResponseSchema = z.object({
   imageUrl: z.string(),
 });
 export type ImageUploadResponse = z.infer<typeof ImageUploadResponseSchema>;
-
-export const ErrorResponseSchema = z.object({
-  error: z.string(),
-});
-export type ErrorResponse = z.infer<typeof ErrorResponseSchema>;
 
 // ── Me ──────────────────────────────────────────────────────────────
 
@@ -55,7 +44,6 @@ export const DailyTotalSchema = z.object({
   date: z.string(),
   viewCount: z.number(),
 });
-export type DailyTotal = z.infer<typeof DailyTotalSchema>;
 
 export const MenuViewBreakdownSchema = z.object({
   menuId: z.string(),
@@ -88,9 +76,3 @@ export const TranslateResponseSchema = z.object({
 });
 export type TranslateResponse = z.infer<typeof TranslateResponseSchema>;
 
-// ── Restaurant Create ───────────────────────────────────────────────
-
-export const CreateRestaurantResponseSchema = z.object({
-  restaurantId: z.string(),
-});
-export type CreateRestaurantResponse = z.infer<typeof CreateRestaurantResponseSchema>;

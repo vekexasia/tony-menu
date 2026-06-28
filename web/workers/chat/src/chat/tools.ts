@@ -102,7 +102,7 @@ export const TOOLS: ToolDefinition[] = [
   // --- Server-side tools (resolved by the worker, result fed back to LLM) ---
   {
     name: 'get_item_detail',
-    description: 'Get full details for a menu item: description, allergens, variants, and extras. Use when the user asks about a specific dish or you need allergen info.',
+    description: 'Get full details for a menu item: description and allergens. Use when the user asks about a specific dish or you need allergen info.',
     serverSide: true,
     parameters: [
       {

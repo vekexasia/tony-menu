@@ -1,7 +1,6 @@
 import { z } from 'zod';
 
 export const OrderingModeSchema = z.enum(['summary', 'send']);
-export type OrderingMode = z.infer<typeof OrderingModeSchema>;
 
 export const OrderingModuleConfigSchema = z.object({
   enabled: z.boolean(),
@@ -13,12 +12,10 @@ export const AiModuleConfigSchema = z.object({
   enabled: z.boolean(),
   voiceEnabled: z.boolean(),
 });
-export type AiModuleConfig = z.infer<typeof AiModuleConfigSchema>;
 
 export const AnalyticsModuleConfigSchema = z.object({
   enabled: z.boolean(),
 });
-export type AnalyticsModuleConfig = z.infer<typeof AnalyticsModuleConfigSchema>;
 
 export const ModulesConfigSchema = z.object({
   ordering: OrderingModuleConfigSchema.optional(),
@@ -42,13 +39,13 @@ export const DEFAULT_MODULES_CONFIG: NormalizedModulesConfig = {
 
 export function normalizeModulesConfig(
   modules: unknown,
-  legacy: { selectionEnabled?: boolean | null; aiChatEnabled?: boolean | null; aiVoiceEnabled?: boolean | null } = {},
+  legacy: { aiChatEnabled?: boolean | null; aiVoiceEnabled?: boolean | null } = {},
 ): NormalizedModulesConfig {
   const parsed = ModulesConfigSchema.safeParse(modules ?? {});
   const config = parsed.success ? parsed.data : {};
   const aiEnabled = legacy.aiChatEnabled ?? DEFAULT_MODULES_CONFIG.ai.enabled;
   return {
-    ordering: config.ordering ?? { enabled: legacy.selectionEnabled ?? DEFAULT_MODULES_CONFIG.ordering.enabled, mode: 'summary' },
+    ordering: config.ordering ?? { enabled: DEFAULT_MODULES_CONFIG.ordering.enabled, mode: 'summary' },
     ai: config.ai ?? { enabled: aiEnabled, voiceEnabled: aiEnabled && (legacy.aiVoiceEnabled ?? DEFAULT_MODULES_CONFIG.ai.voiceEnabled) },
     analytics: config.analytics ?? DEFAULT_MODULES_CONFIG.analytics,
   };

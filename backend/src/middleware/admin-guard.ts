@@ -1,5 +1,5 @@
 import { createMiddleware } from 'hono/factory';
-import type { Env, RuntimeConfig } from '../types';
+import type { Env } from '../types';
 import type { AuthUser } from './auth';
 import { createDb } from '../db/index';
 import { isDemoMode } from '../lib/demo';
@@ -7,7 +7,6 @@ import { isDemoMode } from '../lib/demo';
 type AdminBindings = {
   Bindings: Env;
   Variables: {
-    config: RuntimeConfig;
     user: AuthUser;
     db: ReturnType<typeof createDb>;
   };
@@ -18,19 +17,6 @@ function parseAdminEmails(env: Env): Set<string> {
   if (!raw) return new Set();
   return new Set(raw.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean));
 }
-
-/**
- * Attaches a Drizzle DB client to the request context.
- * Must run before any route that touches the database.
- */
-export const attachDb = createMiddleware<AdminBindings>(async (c, next) => {
-  const db = createDb(c.env);
-  if (!db) {
-    return c.json({ error: 'Database not configured' }, 503);
-  }
-  c.set('db', db);
-  await next();
-});
 
 /**
  * Allows the request only if the authenticated user's email is in the

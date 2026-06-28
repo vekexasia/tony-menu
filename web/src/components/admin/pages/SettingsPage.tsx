@@ -6,7 +6,7 @@ import Image from "next/image";
 import { updateRestaurantSettings, setMenuPublished, fetchRestaurantSettings, downloadMenuExport, fetchLabels, createLabel, updateLabel, deleteLabel, type AdminLabel } from "@/lib/api";
 import { PALETTES, type PaletteKey, DEFAULT_PALETTE, applyPalette } from "@/lib/palettes";
 import { LABEL_COLOR_STYLES, resolveLabel } from "@/lib/label-colors";
-import { LOCALE_LABELS, LOCALE_SHORT_CODES } from "@/lib/locale-flags";
+import { LOCALE_LABELS } from "@/lib/locale-flags";
 import { uploadHeaderImage, uploadPromotionalImage, uploadLocaleFlag } from "@/lib/imageUpload";
 import { deleteLocaleFlag } from "@/lib/api";
 import { TranslationTabs } from "@/components/admin/TranslationTabs";
@@ -868,7 +868,7 @@ export default function SettingsPage({ section }: { section?: SettingsSection } 
                     <div key={locale} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap", padding: "8px 0", borderBottom: `1px solid ${T.border}` }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         <Flag code={locale} label={LOCALE_LABELS[locale]} />
-                        <span style={{ fontSize: 11, fontWeight: 700, color: T.off, background: T.offBg, borderRadius: 4, padding: "1px 5px" }}>{LOCALE_SHORT_CODES[locale]}</span>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: T.off, background: T.offBg, borderRadius: 4, padding: "1px 5px" }}>{locale.toUpperCase()}</span>
                         <span style={{ fontSize: 13, color: T.text }}>{LOCALE_LABELS[locale]}</span>
                       </div>
                       <div style={{ display: "flex", gap: 4 }}>

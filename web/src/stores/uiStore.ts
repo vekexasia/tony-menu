@@ -37,7 +37,3 @@ export const useUIStore = create<UIState>((set) => ({
   },
 }));
 
-// Selector hooks
-export const useVisibleCategory = () => useUIStore((state) => state.visibleCategory);
-export const useSearchQuery = () => useUIStore((state) => state.searchQuery);
-export const useHasSearchQuery = () => useUIStore((state) => state.searchQuery.trim().length > 0);

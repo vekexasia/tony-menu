@@ -33,9 +33,6 @@ export const LOCALE_LABELS: Record<string, string> = {
   hu: "Magyar",
 };
 
-export const LOCALE_SHORT_CODES: Record<string, string> = {
-  it: "IT", en: "EN", de: "DE", fr: "FR", es: "ES", nl: "NL", ru: "RU", pt: "PT", hu: "HU",
-};
 
 export function getBundledFlagSvg(locale: string): string | null {
   return LOCALE_FLAG_SVG[locale] ?? null;

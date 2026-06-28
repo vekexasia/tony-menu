@@ -3,6 +3,7 @@
 import Image from "next/image";
 import type { MenuItemView } from "./MenuItemListView";
 import { labelColorStyle } from "@/lib/label-colors";
+import { formatPrice, sanitizeRichText } from "@/lib/utils";
 
 /**
  * Pure presentational component for the menu item detail (expanded) view.
@@ -29,23 +30,8 @@ const ALLERGEN_NAMES: Record<string, string> = {
   Uova: "Uova",
 };
 
-function sanitizeRichText(html: string): string {
-  if (!html) return "";
-  let safe = html
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-  safe = safe
-    .replace(/&lt;(\/?)b&gt;/gi, "<$1b>")
-    .replace(/&lt;(\/?)i&gt;/gi, "<$1i>")
-    .replace(/&lt;(\/?)u&gt;/gi, "<$1u>");
-  return safe;
-}
 
-function formatPrice(price: number, unit?: string | null): string {
-  const formatted = `€ ${price.toFixed(2).replace(".", ",")}`;
-  return unit ? `${formatted}/${unit}` : formatted;
-}
+
 
 export interface MenuItemDetailViewProps {
   item: MenuItemView;
@@ -81,9 +67,6 @@ export function MenuItemDetailView({ item, hidePrice, allergyWarning, frozenWarn
                   <span className="font-mono text-sm font-normal text-gray-400 shrink-0 mt-1">{item.internalCode}</span>
                 )}
               </span>
-              {item.nameSecondary && (
-                <span className="mt-1 block text-sm font-medium text-gray-500">{item.nameSecondary}</span>
-              )}
             </h2>
             {!hidePrice && (
               <span className="text-2xl font-bold text-primary whitespace-nowrap">
@@ -100,9 +83,6 @@ export function MenuItemDetailView({ item, hidePrice, allergyWarning, frozenWarn
                   <span className="font-mono text-sm font-normal text-gray-400 shrink-0 mt-1">{item.internalCode}</span>
                 )}
               </span>
-              {item.nameSecondary && (
-                <span className="mt-1 block text-sm font-medium text-gray-500">{item.nameSecondary}</span>
-              )}
             </h2>
             {!hidePrice && (
               <div className="text-2xl font-bold text-primary mb-2">

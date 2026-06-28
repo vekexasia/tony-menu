@@ -36,9 +36,9 @@ describe('modules schemas', () => {
       analytics: { enabled: true },
     });
   });
-  it('normalizeModulesConfig respects legacy flags', () => {
-    expect(normalizeModulesConfig({}, { selectionEnabled: true, aiChatEnabled: true, aiVoiceEnabled: true })).toEqual({
-      ordering: { enabled: true, mode: 'summary' },
+  it('normalizeModulesConfig respects legacy ai flags', () => {
+    expect(normalizeModulesConfig({}, { aiChatEnabled: true, aiVoiceEnabled: true })).toEqual({
+      ordering: { enabled: false, mode: 'summary' },
       ai: { enabled: true, voiceEnabled: true },
       analytics: { enabled: true },
     });

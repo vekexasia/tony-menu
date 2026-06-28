@@ -42,7 +42,6 @@ export const ReorderItemsBodySchema = z.object({
     order: z.number(),
   })),
 });
-export type ReorderItemsBody = z.infer<typeof ReorderItemsBodySchema>;
 
 // ── Menu Entries ────────────────────────────────────────────────────
 
@@ -82,7 +81,6 @@ export type UpdateEntryBody = z.infer<typeof UpdateEntryBodySchema>;
 export const MoveEntryBodySchema = z.object({
   targetCategoryId: z.string(),
 });
-export type MoveEntryBody = z.infer<typeof MoveEntryBodySchema>;
 
 // ── Menus ───────────────────────────────────────────────────────────
 
@@ -114,18 +112,11 @@ export const UpdateMenuBodySchema = z.object({
 );
 export type UpdateMenuBody = z.infer<typeof UpdateMenuBodySchema>;
 
-// ── Restaurants ─────────────────────────────────────────────────────
-
-export const CreateRestaurantBodySchema = z.object({
-  name: z.string().trim().min(1),
-  cuisineType: z.string().optional(),
-});
-export type CreateRestaurantBody = z.infer<typeof CreateRestaurantBodySchema>;
+// ── Restaurants ───────────────────────────────────────────
 
 export const SetPublishedBodySchema = z.object({
   published: z.boolean(),
 });
-export type SetPublishedBody = z.infer<typeof SetPublishedBodySchema>;
 
 // ── Translate ───────────────────────────────────────────────────────
 
@@ -134,7 +125,6 @@ export const TranslateRequestBodySchema = z.object({
   targetLocale: z.string().min(2).max(10).regex(/^[a-z0-9-]+$/),
   field: z.enum(['name', 'desc', 'text']),
 });
-export type TranslateRequestBody = z.infer<typeof TranslateRequestBodySchema>;
 
 // ── Labels ──────────────────────────────────────────────────────────
 
@@ -157,4 +147,3 @@ export type UpdateLabelBody = z.infer<typeof UpdateLabelBodySchema>;
 export const RecordViewBodySchema = z.object({
   entryId: z.string().min(1),
 });
-export type RecordViewBody = z.infer<typeof RecordViewBodySchema>;

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import type { MenuLabel } from "@/lib/types";
 import { labelColorStyle } from "@/lib/label-colors";
+import { formatPrice } from "@/lib/utils";
 
 /**
  * Pure presentational list-card view for a menu item.
@@ -17,8 +18,6 @@ export interface MenuItemView {
   name: string;
   /** Internal article code (shown only when present). */
   internalCode?: string | null;
-  /** Secondary display name (e.g. fallback locale). */
-  nameSecondary?: string | null;
   /** Description (already localized). */
   description?: string | null;
   /** Price in display units (e.g. 7.5 for €7.50). */
@@ -37,10 +36,6 @@ export interface MenuItemView {
   labels?: MenuLabel[];
 }
 
-function formatPrice(price: number, unit?: string | null): string {
-  const formatted = `€ ${price.toFixed(2).replace(".", ",")}`;
-  return unit ? `${formatted}/${unit}` : formatted;
-}
 
 interface MenuItemListViewProps {
   item: MenuItemView;
@@ -65,11 +60,6 @@ export function MenuItemListView({ item, outOfStockLabel, onClick }: MenuItemLis
           {item.internalCode && (
             <span className="ml-2 align-baseline font-mono text-xs font-normal text-gray-400">
               {item.internalCode}
-            </span>
-          )}
-          {item.nameSecondary && (
-            <span className="mt-0.5 block text-xs font-medium text-gray-500">
-              {item.nameSecondary}
             </span>
           )}
         </h4>

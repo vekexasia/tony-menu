@@ -20,25 +20,6 @@ export const MENU_ICON_KINDS = [
 ] as const;
 export type MenuIconKind = (typeof MENU_ICON_KINDS)[number];
 
-/**
- * Italian-leaning labels for the curated icon set. Used by the admin picker.
- */
-export const MENU_ICON_LABELS: Record<MenuIconKind, string> = {
-  utensils: "Cibo",
-  lunch: "Pranzo",
-  dinner: "Cena",
-  breakfast: "Colazione",
-  wine: "Vini",
-  beer: "Birre",
-  cocktail: "Cocktail",
-  coffee: "Caffè",
-  pizza: "Pizza",
-  burger: "Burger",
-  dessert: "Dolci",
-  salad: "Insalate",
-  fish: "Pesce",
-  bread: "Pane",
-};
 
 const FALLBACK_KIND: MenuIconKind = "utensils";
 

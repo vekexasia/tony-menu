@@ -1,6 +1,5 @@
 import type { Env } from './types';
 import { handleChat } from './chat/handler';
-import { handleChatDebug } from './chat/debug';
 import { getCorsHeaders, handleCorsPreFlight } from './middleware/cors';
 import { invalidateCache, getMenuData } from './menu/cache';
 import { checkSessionIssueRateLimit } from './middleware/rate-limit';
@@ -67,16 +66,6 @@ const worker = {
         console.warn(`[AUTH] 401 reason: ${authErr instanceof Error ? authErr.message : String(authErr)}`);
         return json({ error: 'Unauthorized' }, 401, corsHeaders);
       }
-    }
-
-    // Route: POST /chat/debug — dev-only, gated by REFRESH_SECRET
-    if (url.pathname === '/chat/debug' && request.method === 'POST') {
-      let body: { secret?: string } = {};
-      try { body = await request.clone().json() as { secret?: string }; } catch { /* ok */ }
-      if (!env.REFRESH_SECRET || body.secret !== env.REFRESH_SECRET) {
-        return json({ error: 'Unauthorized' }, 401, corsHeaders);
-      }
-      return handleChatDebug(request, env, corsHeaders);
     }
 
     // Route: POST /refresh-menu — invalidates the KV/in-memory menu cache.

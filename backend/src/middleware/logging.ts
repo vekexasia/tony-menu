@@ -1,5 +1,6 @@
 import { createMiddleware } from 'hono/factory';
 import type { AppBindings } from '../types';
+import { checkRateLimit } from '../lib/rate-limit';
 
 /**
  * Request logging middleware.
@@ -29,37 +30,14 @@ export const requestLogger = createMiddleware<AppBindings>(async (c, next) => {
 });
 
 /**
- * Simple rate limiter using Cloudflare's cf-connecting-ip.
- * Tracks request counts in a Map (per-isolate, not distributed).
+ * Per-IP rate limiter using Cloudflare's cf-connecting-ip.
+ * Delegates to the shared sliding-window limiter in lib/rate-limit.
  */
-// ponytail: per-isolate counter, not distributed; effective limit scales with the
-// number of live isolates. Upgrade path: Cloudflare Rate Limiting rules, a Durable
-// Object, or Workers KV for a global limit.
-const requestCounts = new Map<string, { count: number; resetAt: number }>();
-
 export function rateLimit(maxRequests: number, windowMs: number) {
   return createMiddleware<AppBindings>(async (c, next) => {
     const ip = c.req.header('cf-connecting-ip') || 'unknown';
-    const now = Date.now();
-
-    let entry = requestCounts.get(ip);
-    if (!entry || now > entry.resetAt) {
-      entry = { count: 0, resetAt: now + windowMs };
-      requestCounts.set(ip, entry);
-    }
-
-    entry.count++;
-
-    if (entry.count > maxRequests) {
-      return c.json(
-        { error: 'Too many requests', retryAfter: Math.ceil((entry.resetAt - now) / 1000) },
-        429,
-      );
-    }
-
-    c.header('X-RateLimit-Limit', String(maxRequests));
-    c.header('X-RateLimit-Remaining', String(Math.max(0, maxRequests - entry.count)));
-
+    const limited = checkRateLimit(`ip:${ip}`, maxRequests, windowMs);
+    if (limited) return limited;
     await next();
   });
 }

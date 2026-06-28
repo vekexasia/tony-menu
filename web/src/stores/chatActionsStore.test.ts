@@ -11,19 +11,16 @@ describe('chatActionsStore', () => {
     });
   });
 
-  it('dispatch scroll_to_category sets scrollToCategoryId', () => {
-    useChatActionsStore.getState().dispatch({
-      name: 'scroll_to_category',
-      params: { category_id: 'cat-123' },
-    });
+  it('requestScrollToCategory sets scrollToCategoryId', () => {
+    useChatActionsStore.getState().requestScrollToCategory('cat-123');
 
     expect(useChatActionsStore.getState().scrollToCategoryId).toBe('cat-123');
   });
 
-  it('dispatch filter_menu sets filterCriteria', () => {
-    useChatActionsStore.getState().dispatch({
-      name: 'filter_menu',
-      params: { exclude_allergens: ['Glutine', 'Latte-e-Derivati'] },
+  it('setFilterCriteria sets filterCriteria', () => {
+    useChatActionsStore.getState().setFilterCriteria({
+      excludeAllergens: ['Glutine', 'Latte-e-Derivati'],
+      searchQuery: undefined,
     });
 
     expect(useChatActionsStore.getState().filterCriteria).toEqual({

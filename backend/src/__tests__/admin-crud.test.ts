@@ -5,7 +5,7 @@ import { createTestDb, makeDbEnv, seedSettings, seedMenu, seedCategory, seedEntr
 beforeAll(() => installJwksMock());
 
 const ADMIN_UID = 'admin-1';
-type SettingsRow = { name: string; payoff: string; ai_chat_enabled: number; ai_voice_enabled: number; selection_enabled: number };
+type SettingsRow = { name: string; payoff: string; ai_chat_enabled: number; ai_voice_enabled: number };
 type PublicationRow = { publication_state: string };
 type CategoryRow = { name: string };
 type EntryRow = { name: string; price: number; hidden: number; out_of_stock: number; category_id: string };
@@ -45,12 +45,12 @@ describe('PUT /admin/settings', () => {
       body: { name: 'Updated Restaurant', payoff: 'Updated tagline', aiChatEnabled: true, aiVoiceEnabled: true, selectionEnabled: true },
     });
     expect(res.status).toBe(200);
-    const row = db.raw.prepare('SELECT name, payoff, ai_chat_enabled, ai_voice_enabled, selection_enabled FROM settings WHERE id = 1').get() as SettingsRow;
+    const row = db.raw.prepare('SELECT name, payoff, ai_chat_enabled, ai_voice_enabled, modules FROM settings WHERE id = 1').get() as SettingsRow & { modules: string };
     expect(row.name).toBe('Updated Restaurant');
     expect(row.payoff).toBe('Updated tagline');
     expect(row.ai_chat_enabled).toBe(1);
     expect(row.ai_voice_enabled).toBe(1);
-    expect(row.selection_enabled).toBe(1);
+    expect(JSON.parse(row.modules).ordering.enabled).toBe(true);
   });
 
   it('turns voice dictation off when Tony chat is disabled', async () => {
