@@ -172,3 +172,8 @@ registry[.]npmjs[.]org
 ^https?://x/chat$
 # Fixed system-clock dates used in vitest rate-limit/daily-cap window tests.
 ^2026-02-01T
+
+# ── TonyMenu marketing site (website/) public domains and doc links ──
+^https?://([a-z0-9-]+\.)*tonymenu\.app(/.*)?$
+^https?://([a-z0-9-]+\.)*astro\.build(/.*)?$
+^https?://astro\.badg\.es(/.*)?$

@@ -5,5 +5,9 @@
 # they're public UI strings shipped with the frontend.
 ignore_globs = [
   "web/messages/vec.json",
+  # Generated lockfile: full of public npm package funding/sponsor URLs
+  # (opencollective.com, github.com/sponsors/*) that the PII scanner
+  # mistakes for sensitive data. Not secrets, regenerated on every bump.
+  "website/package-lock.json",
 ]
 allowlist_paths = [".pii-allowlist"]
