@@ -9,5 +9,9 @@ ignore_globs = [
   # (opencollective.com, github.com/sponsors/*) that the PII scanner
   # mistakes for sensitive data. Not secrets, regenerated on every bump.
   "website/package-lock.json",
+  # Binary image/marketing assets: raw bytes occasionally misread as a
+  # person's name by the PII scanner. No text content to leak.
+  "website/public/assets/*.jpg",
+  "website/src/assets/*.webp",
 ]
 allowlist_paths = [".pii-allowlist"]
