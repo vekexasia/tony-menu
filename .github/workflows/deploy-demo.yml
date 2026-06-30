@@ -71,6 +71,7 @@ jobs:
           compatibility_date = "2025-04-11"
 
           routes = [
+            { pattern = "api.tonymenu.app", custom_domain = true },
             { pattern = "risto-menu-api.andreabaccega.com", custom_domain = true }
           ]
 
