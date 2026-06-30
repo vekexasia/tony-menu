@@ -9,9 +9,9 @@ concurrency:
 
 env:
   NODE_VERSION: '22'
-  DEMO_WEB_DOMAIN: https://risto-menu.andreabaccega.com
+  DEMO_WEB_DOMAIN: https://demo.tonymenu.app
   DEMO_PAGES_DOMAIN: https://risto-menu-demo.pages.dev
-  DEMO_API_DOMAIN: https://risto-menu-api.andreabaccega.com
+  DEMO_API_DOMAIN: https://api.tonymenu.app
   DEMO_CHAT_DOMAIN: https://risto-menu-demo-chat.vekexasia.workers.dev
   DEMO_CHAT_NAME: risto-menu-demo-chat
   DEMO_CHAT_KV_NAMESPACE_ID: 705f0360cf374bb2b67f4f76b2937dea
@@ -71,6 +71,7 @@ jobs:
           compatibility_date = "2025-04-11"
 
           routes = [
+            { pattern = "api.tonymenu.app", custom_domain = true },
             { pattern = "risto-menu-api.andreabaccega.com", custom_domain = true }
           ]
 

@@ -22,7 +22,7 @@ import { execSync } from 'child_process';
 import { readdirSync } from 'fs';
 import path from 'path';
 
-const DEMO_API = 'https://risto-menu-api.andreabaccega.com';
+const DEMO_API = 'https://api.tonymenu.app';
 const D1_STATE_DIR = path.resolve(
   import.meta.dirname,
   '../.wrangler/state/v3/d1/miniflare-D1DatabaseObject',

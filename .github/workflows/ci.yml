@@ -130,7 +130,7 @@ jobs:
       - run: npm ci
       - run: npm --workspace web run build:cf
         env:
-          NEXT_PUBLIC_API_URL: https://risto-menu-api.andreabaccega.com
+          NEXT_PUBLIC_API_URL: https://api.tonymenu.app
           NEXT_PUBLIC_CHAT_WORKER_URL: https://risto-menu-demo-chat.vekexasia.workers.dev
           NEXT_PUBLIC_DEFAULT_LOCALE: en
       - name: Assert demo build has Tony and no private chat URL
@@ -154,3 +154,19 @@ jobs:
           cache-dependency-path: web/workers/chat/package-lock.json
       - run: npm ci
       - run: npm run test:run
+
+  website-build:
+    name: Website build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: website
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+      - run: npm ci
+      - run: npm run build

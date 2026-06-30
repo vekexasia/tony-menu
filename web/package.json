@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "dev:demo": "NEXT_PUBLIC_API_URL=https://risto-menu-api.andreabaccega.com NEXT_PUBLIC_CHAT_WORKER_URL=https://risto-menu-demo-chat.vekexasia.workers.dev NEXT_PUBLIC_DEFAULT_LOCALE=en next dev --turbopack",
+    "dev:demo": "NEXT_PUBLIC_API_URL=https://api.tonymenu.app NEXT_PUBLIC_CHAT_WORKER_URL=https://risto-menu-demo-chat.vekexasia.workers.dev NEXT_PUBLIC_DEFAULT_LOCALE=en next dev --turbopack",
     "build": "next build",
     "build:cf": "next build",
     "preview:cf": "npx wrangler pages dev out",

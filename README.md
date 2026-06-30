@@ -6,10 +6,10 @@ Restaurant owners manage the menu from `/admin`. QR codes should point to `/`; t
 
 ## Live demo
 
-Try the public demo: **https://risto-menu.andreabaccega.com**
+Try the public demo: **https://demo.tonymenu.app**
 
-- Public menu: https://risto-menu.andreabaccega.com
-- Admin: https://risto-menu.andreabaccega.com/admin
+- Public menu: https://demo.tonymenu.app
+- Admin: https://demo.tonymenu.app/admin
 
 The demo is editable and public. Data resets automatically, so do not enter real customer data.
 Tony, the menu assistant, is enabled with a daily usage cap for the demo.
