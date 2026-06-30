@@ -1,0 +1,515 @@
+---
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TonyMenu &mdash; a digital restaurant menu your diners actually enjoy</title>
+<meta name="description" content="Self-hostable digital restaurant menu. Diners scan, browse in their language, and ask Tony for recommendations.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" is:inline defer></script>
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  html{scroll-behavior:smooth;}
+  ::selection{background:#C2541F;color:#fff;}
+  #tm-qr img,#tm-qr canvas{display:block;border-radius:6px;}
+  @keyframes tmReveal{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:none;}}
+</style>
+</head>
+<body>
+
+<div style="font-family:'Hanken Grotesk',system-ui,sans-serif;background:#FBF5EC;color:#2A211B;-webkit-font-smoothing:antialiased;overflow-x:hidden;">
+
+  <!-- ============ NAV ============ -->
+  <header style="position:sticky;top:0;z-index:50;backdrop-filter:saturate(140%) blur(12px);background:rgba(251,245,236,.82);border-bottom:1px solid rgba(42,33,27,.08);">
+    <nav style="max-width:1140px;margin:0 auto;padding:16px 28px;display:flex;align-items:center;justify-content:space-between;gap:24px;">
+      <a href="#top" style="display:flex;align-items:center;gap:11px;text-decoration:none;">
+        <span style="width:34px;height:34px;border-radius:10px;background:#C2541F;display:grid;place-items:center;box-shadow:0 4px 12px -4px rgba(194,84,31,.5);">
+          <span style="width:13px;height:13px;border-radius:50%;border:2.5px solid #fff;"></span>
+        </span>
+        <span style="font-family:'Newsreader',serif;font-size:21px;font-weight:600;letter-spacing:-.01em;color:#2A211B;"><span style="color:#C2541F;">Tony</span>Menu</span>
+      </a>
+      <div style="display:flex;align-items:center;gap:30px;">
+        <div data-nav-links style="display:flex;align-items:center;gap:26px;font-size:14.5px;font-weight:500;">
+          <a href="#how" style="text-decoration:none;color:#5b4d42;">How it works</a>
+          <a href="#tony" style="text-decoration:none;color:#5b4d42;">Tony</a>
+          <a href="#features" style="text-decoration:none;color:#5b4d42;">Features</a>
+          <a href="#pricing" style="text-decoration:none;color:#5b4d42;">Pricing</a>
+          <a href="#demo" style="text-decoration:none;color:#5b4d42;">Try it</a>
+          <a href="/docs/" style="text-decoration:none;color:#5b4d42;">Docs</a>
+        </div>
+        <a href="https://demo.tonymenu.app" target="_blank" rel="noopener" data-hover="filter:brightness(.93);transform:translateY(-1px);" style="text-decoration:none;background:#C2541F;color:#fff;font-weight:600;font-size:14.5px;padding:10px 18px;border-radius:10px;box-shadow:0 6px 16px -6px rgba(194,84,31,.55);transition:filter .2s ease,transform .2s ease;">Try the demo</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ============ HERO ============ -->
+  <section id="top" style="position:relative;background:radial-gradient(120% 90% at 82% -10%, rgba(232,155,107,.22), transparent 55%), #FBF5EC;">
+    <div data-cols="1.15fr .85fr" style="max-width:1140px;margin:0 auto;padding:72px 28px 88px;display:grid;grid-template-columns:1.15fr .85fr;gap:48px;align-items:center;">
+      <div data-reveal>
+        <div style="display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;letter-spacing:.02em;color:#C2541F;background:rgba(194,84,31,.10);padding:7px 13px;border-radius:99px;margin-bottom:22px;">
+          <span style="width:7px;height:7px;border-radius:50%;background:#C2541F;"></span>
+          Open-source &middot; self-hostable
+        </div>
+        <h1 style="font-family:'Newsreader',serif;font-weight:500;font-size:clamp(40px,5.4vw,62px);line-height:1.04;letter-spacing:-.02em;margin:0 0 22px;color:#241c16;">
+          A digital restaurant menu<br>your diners actually <span style="font-style:italic;color:#C2541F;">enjoy</span>.
+        </h1>
+        <p style="font-size:19px;line-height:1.55;color:#5b4d42;max-width:520px;margin:0 0 32px;">
+          Self-hostable digital restaurant menu. Diners scan, browse in their language, and ask Tony for recommendations.
+        </p>
+        <div style="display:flex;flex-wrap:wrap;gap:14px;">
+          <a href="https://demo.tonymenu.app" target="_blank" rel="noopener" data-hover="filter:brightness(.93);transform:translateY(-2px);" style="text-decoration:none;display:inline-flex;align-items:center;gap:9px;background:#C2541F;color:#fff;font-weight:600;font-size:16px;padding:15px 26px;border-radius:12px;box-shadow:0 10px 26px -10px rgba(194,84,31,.6);transition:filter .2s ease,transform .2s ease;">
+            Try the demo
+            <span style="font-size:18px;">&rarr;</span>
+          </a>
+          <a href="https://github.com/vekexasia/tony-menu" target="_blank" rel="noopener" data-hover="border-color:rgba(42,33,27,.3);transform:translateY(-2px);" style="text-decoration:none;display:inline-flex;align-items:center;gap:9px;background:#fff;color:#2A211B;font-weight:600;font-size:16px;padding:15px 24px;border-radius:12px;border:1px solid rgba(42,33,27,.14);transition:border-color .2s ease,transform .2s ease;">
+            <span style="color:#E0A23B;font-size:18px;">&#9733;</span>
+            Star on GitHub
+          </a>
+        </div>
+        <p style="font-size:13.5px;color:#9a8a7c;margin:22px 0 0;font-family:'JetBrains Mono',monospace;">Live demo resets automatically &middot; no signup</p>
+      </div>
+
+      <div data-reveal data-delay="120" style="display:flex;justify-content:center;">
+        <div style="position:relative;width:268px;aspect-ratio:390/844;border-radius:42px;background:linear-gradient(#221c17,#14100c);padding:9px;box-shadow:0 40px 80px -26px rgba(42,33,27,.55),0 14px 34px -18px rgba(42,33,27,.42);">
+          <div style="position:absolute;top:17px;left:50%;transform:translateX(-50%);width:78px;height:6px;border-radius:99px;background:rgba(255,255,255,.16);z-index:3;"></div>
+          <img src="/assets/demo-mobile-menu.jpg" alt="TonyMenu mobile menu" style="width:100%;height:100%;object-fit:cover;border-radius:34px;display:block;">
+          <div style="position:absolute;bottom:-18px;left:-26px;background:#fff;border-radius:14px;padding:10px 14px;box-shadow:0 16px 34px -14px rgba(42,33,27,.4);display:flex;align-items:center;gap:9px;">
+            <span style="width:30px;height:30px;border-radius:8px;background:#C2541F;display:grid;place-items:center;color:#fff;font-size:16px;">&#9733;</span>
+            <span style="font-size:12.5px;font-weight:600;line-height:1.25;">Scan &middot; browse<br><span style="color:#9a8a7c;font-weight:500;">in any language</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MOBILE SCREENSHOTS ============ -->
+  <section style="background:#fff;border-top:1px solid rgba(42,33,27,.07);border-bottom:1px solid rgba(42,33,27,.07);">
+    <div style="max-width:1140px;margin:0 auto;padding:84px 28px;">
+      <div data-reveal style="text-align:center;max-width:620px;margin:0 auto 56px;">
+        <p style="font-family:'JetBrains Mono',monospace;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:#C2541F;margin:0 0 14px;">The diner experience</p>
+        <h2 style="font-family:'Newsreader',serif;font-weight:500;font-size:clamp(30px,3.6vw,42px);line-height:1.1;letter-spacing:-.015em;margin:0;color:#241c16;">Show, don't tell.</h2>
+      </div>
+      <div style="display:flex;justify-content:center;flex-wrap:wrap;gap:48px;">
+
+        <div data-reveal style="text-align:center;">
+          <div style="position:relative;width:236px;aspect-ratio:390/844;border-radius:40px;background:linear-gradient(#221c17,#14100c);padding:8px;box-shadow:0 34px 64px -24px rgba(42,33,27,.48);margin:0 auto;">
+            <div style="position:absolute;top:15px;left:50%;transform:translateX(-50%);width:70px;height:5px;border-radius:99px;background:rgba(255,255,255,.16);z-index:3;"></div>
+            <img src="/assets/demo-mobile-menu.jpg" alt="Localized menu" style="width:100%;height:100%;object-fit:cover;border-radius:32px;display:block;">
+          </div>
+          <p style="margin:22px 0 4px;font-weight:600;font-size:16px;">The menu</p>
+          <p style="margin:0;font-size:14px;color:#8a7a6c;">Categories, prices, photos</p>
+        </div>
+
+        <div data-reveal data-delay="120" style="text-align:center;">
+          <div style="position:relative;width:236px;aspect-ratio:390/844;border-radius:40px;background:linear-gradient(#221c17,#14100c);padding:8px;box-shadow:0 34px 64px -24px rgba(42,33,27,.48);margin:0 auto;">
+            <div style="position:absolute;top:15px;left:50%;transform:translateX(-50%);width:70px;height:5px;border-radius:99px;background:rgba(255,255,255,.16);z-index:3;"></div>
+            <img src="/assets/demo-mobile-item.jpg" alt="Dish detail" style="width:100%;height:100%;object-fit:cover;border-radius:32px;display:block;">
+          </div>
+          <p style="margin:22px 0 4px;font-weight:600;font-size:16px;">The dish</p>
+          <p style="margin:0;font-size:14px;color:#8a7a6c;">Full detail, allergens, photo</p>
+        </div>
+
+        <div data-reveal data-delay="240" style="text-align:center;">
+          <div style="position:relative;width:236px;aspect-ratio:390/844;border-radius:40px;background:linear-gradient(#221c17,#14100c);padding:8px;box-shadow:0 34px 64px -24px rgba(42,33,27,.48);margin:0 auto;">
+            <div style="position:absolute;top:15px;left:50%;transform:translateX(-50%);width:70px;height:5px;border-radius:99px;background:rgba(255,255,255,.16);z-index:3;"></div>
+            <img src="/assets/demo-mobile-tony.jpg" alt="Tony chat" style="width:100%;height:100%;object-fit:cover;border-radius:32px;display:block;">
+          </div>
+          <p style="margin:22px 0 4px;font-weight:600;font-size:16px;">Ask Tony</p>
+          <p style="margin:0;font-size:14px;color:#8a7a6c;">Recommendations on tap</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ HOW IT WORKS ============ -->
+  <section id="how" style="background:#FBF5EC;">
+    <div style="max-width:1140px;margin:0 auto;padding:88px 28px;">
+      <div data-reveal style="text-align:center;max-width:620px;margin:0 auto 58px;">
+        <p style="font-family:'JetBrains Mono',monospace;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:#C2541F;margin:0 0 14px;">How it works</p>
+        <h2 style="font-family:'Newsreader',serif;font-weight:500;font-size:clamp(30px,3.6vw,42px);line-height:1.1;letter-spacing:-.015em;margin:0;color:#241c16;">Three taps from table to plate.</h2>
+      </div>
+      <div data-cols="repeat(3,1fr)" style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;">
+
+        <div data-reveal style="background:#fff;border:1px solid rgba(42,33,27,.08);border-radius:18px;padding:34px 30px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
+            <span style="width:48px;height:48px;border-radius:13px;background:rgba(194,84,31,.10);display:grid;place-items:center;color:#C2541F;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="2"/><rect x="15" y="15" width="6" height="6" rx="1.4" fill="currentColor"/></svg>
+            </span>
+            <span style="font-family:'Newsreader',serif;font-size:34px;color:rgba(42,33,27,.16);font-weight:500;">01</span>
+          </div>
+          <h3 style="font-family:'Newsreader',serif;font-weight:500;font-size:23px;margin:0 0 10px;color:#241c16;">Scan the QR</h3>
+          <p style="margin:0;font-size:15.5px;line-height:1.55;color:#6b5d50;">One code on the table opens the menu instantly. No app, no download.</p>
+        </div>
+
+        <div data-reveal data-delay="120" style="background:#fff;border:1px solid rgba(42,33,27,.08);border-radius:18px;padding:34px 30px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
+            <span style="width:48px;height:48px;border-radius:13px;background:rgba(194,84,31,.10);display:grid;place-items:center;color:#C2541F;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="2.6" rx="1.3" fill="currentColor"/><rect x="3" y="10.7" width="18" height="2.6" rx="1.3" fill="currentColor"/><rect x="3" y="16.4" width="12" height="2.6" rx="1.3" fill="currentColor"/></svg>
+            </span>
+            <span style="font-family:'Newsreader',serif;font-size:34px;color:rgba(42,33,27,.16);font-weight:500;">02</span>
+          </div>
+          <h3 style="font-family:'Newsreader',serif;font-weight:500;font-size:23px;margin:0 0 10px;color:#241c16;">Browse the localized menu</h3>
+          <p style="margin:0;font-size:15.5px;line-height:1.55;color:#6b5d50;">Automatic locale detection shows every dish in the diner's own language.</p>
+        </div>
+
+        <div data-reveal data-delay="240" style="background:#fff;border:1px solid rgba(42,33,27,.08);border-radius:18px;padding:34px 30px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
+            <span style="width:48px;height:48px;border-radius:13px;background:rgba(194,84,31,.10);display:grid;place-items:center;color:#C2541F;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="13" rx="4" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="10.5" r="1.4" fill="currentColor"/><circle cx="13" cy="10.5" r="1.4" fill="currentColor"/><circle cx="17" cy="10.5" r="1.4" fill="currentColor"/></svg>
+            </span>
+            <span style="font-family:'Newsreader',serif;font-size:34px;color:rgba(42,33,27,.16);font-weight:500;">03</span>
+          </div>
+          <h3 style="font-family:'Newsreader',serif;font-weight:500;font-size:23px;margin:0 0 10px;color:#241c16;">Ask Tony for recommendations</h3>
+          <p style="margin:0;font-size:15.5px;line-height:1.55;color:#6b5d50;">Stuck choosing? Tony suggests dishes from the menu in a friendly chat.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TONY ============ -->
+  <section id="tony" style="background:#241c16;color:#f3e9dd;position:relative;overflow:hidden;">
+    <div style="position:absolute;inset:0;background:radial-gradient(90% 70% at 18% 20%, rgba(232,155,107,.18), transparent 55%);pointer-events:none;"></div>
+    <div data-cols=".85fr 1.15fr" style="position:relative;max-width:1140px;margin:0 auto;padding:96px 28px;display:grid;grid-template-columns:.85fr 1.15fr;gap:56px;align-items:center;">
+      <div data-reveal style="display:flex;justify-content:center;order:1;">
+        <div style="position:relative;width:262px;aspect-ratio:390/844;border-radius:42px;background:linear-gradient(#0e0b08,#000);padding:9px;box-shadow:0 44px 90px -28px rgba(0,0,0,.7);">
+          <div style="position:absolute;top:17px;left:50%;transform:translateX(-50%);width:78px;height:6px;border-radius:99px;background:rgba(255,255,255,.18);z-index:3;"></div>
+          <img src="/assets/demo-mobile-tony.jpg" alt="Tony, the AI menu assistant" style="width:100%;height:100%;object-fit:cover;border-radius:34px;display:block;">
+        </div>
+      </div>
+      <div data-reveal data-delay="120" style="order:2;">
+        <div style="display:inline-flex;align-items:center;gap:9px;font-size:13px;font-weight:600;letter-spacing:.02em;color:#E8A56B;background:rgba(232,155,107,.14);padding:7px 14px;border-radius:99px;margin-bottom:22px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="13" rx="4" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="10.5" r="1.4" fill="currentColor"/><circle cx="13" cy="10.5" r="1.4" fill="currentColor"/><circle cx="17" cy="10.5" r="1.4" fill="currentColor"/></svg>
+          Meet Tony &middot; optional AI assistant
+        </div>
+        <h2 style="font-family:'Newsreader',serif;font-weight:500;font-size:clamp(32px,4vw,48px);line-height:1.06;letter-spacing:-.02em;margin:0 0 20px;">
+          The waiter who's<br>read the whole menu.
+        </h2>
+        <p style="font-size:18px;line-height:1.6;color:#cdbfb0;max-width:520px;margin:0 0 28px;">
+          Tony is an optional chat assistant that recommends dishes from the restaurant's current menu. Diners just say what they're in the mood for, like "something light and fresh," and Tony picks real dishes, with prices and photos, right in the conversation.
+        </p>
+        <div style="display:flex;flex-direction:column;gap:14px;max-width:480px;">
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <span style="flex:none;width:26px;height:26px;border-radius:50%;background:#C2541F;display:grid;place-items:center;color:#fff;font-size:13px;margin-top:2px;">&#10003;</span>
+            <p style="margin:0;font-size:15.5px;line-height:1.5;color:#e6dccf;">Recommends only what's actually on the menu right now</p>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <span style="flex:none;width:26px;height:26px;border-radius:50%;background:#C2541F;display:grid;place-items:center;color:#fff;font-size:13px;margin-top:2px;">&#10003;</span>
+            <p style="margin:0;font-size:15.5px;line-height:1.5;color:#e6dccf;">Friendly and conversational, answers in the diner's language</p>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <span style="flex:none;width:26px;height:26px;border-radius:50%;background:#C2541F;display:grid;place-items:center;color:#fff;font-size:13px;margin-top:2px;">&#10003;</span>
+            <p style="margin:0;font-size:15.5px;line-height:1.5;color:#e6dccf;">Fully optional. Switch it off and the menu still shines</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FEATURE GRID ============ -->
+  <section id="features" style="background:#fff;">
+    <div style="max-width:1140px;margin:0 auto;padding:88px 28px;">
+      <div data-reveal style="text-align:center;max-width:640px;margin:0 auto 56px;">
+        <p style="font-family:'JetBrains Mono',monospace;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:#C2541F;margin:0 0 14px;">Everything included</p>
+        <h2 style="font-family:'Newsreader',serif;font-weight:500;font-size:clamp(30px,3.6vw,42px);line-height:1.1;letter-spacing:-.015em;margin:0;color:#241c16;">A full menu platform, not a PDF.</h2>
+      </div>
+      <div data-cols="repeat(3,1fr)" data-cols-mid="repeat(2,1fr)" style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;">
+
+        <div data-reveal style="background:#FBF5EC;border:1px solid rgba(42,33,27,.07);border-radius:16px;padding:28px;">
+          <span style="width:44px;height:44px;border-radius:12px;background:#fff;border:1px solid rgba(42,33,27,.08);display:grid;place-items:center;color:#C2541F;margin-bottom:18px;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="2"/><rect x="15" y="15" width="6" height="6" rx="1.4" fill="currentColor"/></svg>
+          </span>
+          <h3 style="font-size:17px;font-weight:600;margin:0 0 8px;color:#241c16;">QR menu with locale detection</h3>
+          <p style="margin:0;font-size:14.5px;line-height:1.55;color:#6b5d50;">Scan and the menu opens automatically in the diner's language.</p>
+        </div>
+
+        <div data-reveal data-delay="80" style="background:#FBF5EC;border:1px solid rgba(42,33,27,.07);border-radius:16px;padding:28px;">
+          <span style="width:44px;height:44px;border-radius:12px;background:#fff;border:1px solid rgba(42,33,27,.08);display:grid;place-items:center;color:#C2541F;margin-bottom:18px;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="4" y="6" width="16" height="2.4" rx="1.2" fill="currentColor"/><circle cx="9" cy="7.2" r="2.6" fill="#fff" stroke="currentColor" stroke-width="2"/><rect x="4" y="15.6" width="16" height="2.4" rx="1.2" fill="currentColor"/><circle cx="15" cy="16.8" r="2.6" fill="#fff" stroke="currentColor" stroke-width="2"/></svg>
+          </span>
+          <h3 style="font-size:17px;font-weight:600;margin:0 0 8px;color:#241c16;">Complete admin panel</h3>
+          <p style="margin:0;font-size:14.5px;line-height:1.55;color:#6b5d50;">Menu, categories, variants, extras, images, hours, publishing and translations.</p>
+        </div>
+
+        <div data-reveal data-delay="160" style="background:#FBF5EC;border:1px solid rgba(42,33,27,.07);border-radius:16px;padding:28px;">
+          <span style="width:44px;height:44px;border-radius:12px;background:#fff;border:1px solid rgba(42,33,27,.08);display:grid;place-items:center;color:#C2541F;margin-bottom:18px;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="13" rx="4" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="10.5" r="1.4" fill="currentColor"/><circle cx="13" cy="10.5" r="1.4" fill="currentColor"/><circle cx="17" cy="10.5" r="1.4" fill="currentColor"/></svg>
+          </span>
+          <h3 style="font-size:17px;font-weight:600;margin:0 0 8px;color:#241c16;">Optional AI assistant</h3>
+          <p style="margin:0;font-size:14.5px;line-height:1.55;color:#6b5d50;">Tony recommends dishes from the live menu. Enable it per restaurant.</p>
+        </div>
+
+        <div data-reveal style="background:#FBF5EC;border:1px solid rgba(42,33,27,.07);border-radius:16px;padding:28px;">
+          <span style="width:44px;height:44px;border-radius:12px;background:#fff;border:1px solid rgba(42,33,27,.08);display:grid;place-items:center;color:#C2541F;margin-bottom:18px;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="4" y="12" width="4" height="8" rx="1.2" fill="currentColor"/><rect x="10" y="7" width="4" height="13" rx="1.2" fill="currentColor"/><rect x="16" y="3" width="4" height="17" rx="1.2" fill="currentColor"/></svg>
+          </span>
+          <h3 style="font-size:17px;font-weight:600;margin:0 0 8px;color:#241c16;">Privacy-safe analytics</h3>
+          <p style="margin:0;font-size:14.5px;line-height:1.55;color:#6b5d50;">See which dishes get viewed, without tracking individual diners.</p>
+        </div>
+
+        <div data-reveal data-delay="80" style="background:#FBF5EC;border:1px solid rgba(42,33,27,.07);border-radius:16px;padding:28px;">
+          <span style="width:44px;height:44px;border-radius:12px;background:#fff;border:1px solid rgba(42,33,27,.08);display:grid;place-items:center;color:#C2541F;margin-bottom:18px;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="5" y="10" width="14" height="10" rx="2.5" stroke="currentColor" stroke-width="2"/><path d="M8 10V8a4 4 0 0 1 8 0v2" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="12" cy="15" r="1.6" fill="currentColor"/></svg>
+          </span>
+          <h3 style="font-size:17px;font-weight:600;margin:0 0 8px;color:#241c16;">Cloudflare Access auth</h3>
+          <p style="margin:0;font-size:14.5px;line-height:1.55;color:#6b5d50;">Admin sits behind Cloudflare Access, so there are no in-app passwords to manage.</p>
+        </div>
+
+        <div data-reveal data-delay="160" style="background:#FBF5EC;border:1px solid rgba(42,33,27,.07);border-radius:16px;padding:28px;">
+          <span style="width:44px;height:44px;border-radius:12px;background:#fff;border:1px solid rgba(42,33,27,.08);display:grid;place-items:center;color:#C2541F;margin-bottom:18px;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="6" rx="2" stroke="currentColor" stroke-width="2"/><rect x="4" y="14" width="16" height="6" rx="2" stroke="currentColor" stroke-width="2"/><circle cx="7.5" cy="7" r="1.2" fill="currentColor"/><circle cx="7.5" cy="17" r="1.2" fill="currentColor"/></svg>
+          </span>
+          <h3 style="font-size:17px;font-weight:600;margin:0 0 8px;color:#241c16;">Fully self-hostable</h3>
+          <p style="margin:0;font-size:14.5px;line-height:1.55;color:#6b5d50;">Run it entirely on your own Cloudflare account. Your data, your infra.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TRY IT LIVE ============ -->
+  <section id="demo" style="background:#FBF5EC;border-top:1px solid rgba(42,33,27,.07);">
+    <div style="max-width:1140px;margin:0 auto;padding:88px 28px;">
+      <div data-reveal style="text-align:center;max-width:640px;margin:0 auto 52px;">
+        <p style="font-family:'JetBrains Mono',monospace;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:#C2541F;margin:0 0 14px;">Try it live</p>
+        <h2 style="font-family:'Newsreader',serif;font-weight:500;font-size:clamp(30px,3.6vw,42px);line-height:1.1;letter-spacing:-.015em;margin:0 0 12px;color:#241c16;">Two ways in.</h2>
+        <p style="margin:0;font-size:17px;color:#6b5d50;">Scan the menu like a real diner, or open the admin on your desktop.</p>
+      </div>
+      <div data-cols=".9fr 1.1fr" style="display:grid;grid-template-columns:.9fr 1.1fr;gap:24px;align-items:stretch;">
+
+        <!-- QR path -->
+        <div data-reveal style="background:#fff;border:1px solid rgba(42,33,27,.09);border-radius:20px;padding:36px;display:flex;flex-direction:column;align-items:center;text-align:center;">
+          <p style="font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:#9a8a7c;margin:0 0 6px;">The menu</p>
+          <h3 style="font-family:'Newsreader',serif;font-weight:500;font-size:24px;margin:0 0 22px;color:#241c16;">Scan to try the menu on your phone</h3>
+          <div style="background:#fff;border:1px solid rgba(42,33,27,.10);border-radius:18px;padding:18px;box-shadow:0 16px 38px -18px rgba(42,33,27,.35);">
+            <div id="tm-qr" style="width:200px;height:200px;display:grid;place-items:center;color:#bdae9f;font-family:'JetBrains Mono',monospace;font-size:12px;">QR</div>
+          </div>
+          <p style="margin:22px 0 0;font-size:14px;color:#8a7a6c;max-width:260px;line-height:1.5;">Point your camera at the code, exactly what a diner does at the table.</p>
+          <a href="https://demo.tonymenu.app" target="_blank" rel="noopener" style="margin-top:18px;text-decoration:none;font-size:14px;font-weight:600;color:#C2541F;">or open the menu directly &rarr;</a>
+        </div>
+
+        <!-- Admin path -->
+        <div data-reveal data-delay="120" style="background:#fff;border:1px solid rgba(42,33,27,.09);border-radius:20px;padding:36px;display:flex;flex-direction:column;">
+          <p style="font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:#9a8a7c;margin:0 0 6px;">The admin</p>
+          <h3 style="font-family:'Newsreader',serif;font-weight:500;font-size:24px;margin:0 0 20px;color:#241c16;">Run the kitchen from your desk</h3>
+          <div style="border-radius:14px;overflow:hidden;border:1px solid rgba(42,33,27,.12);box-shadow:0 18px 40px -20px rgba(42,33,27,.4);background:#1d1813;">
+            <div style="display:flex;align-items:center;gap:7px;padding:11px 14px;background:#2a231d;">
+              <span style="width:11px;height:11px;border-radius:50%;background:#E8775B;"></span>
+              <span style="width:11px;height:11px;border-radius:50%;background:#E8B04B;"></span>
+              <span style="width:11px;height:11px;border-radius:50%;background:#7BB47A;"></span>
+              <span style="margin-left:10px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#a99c8d;">demo.tonymenu.app/admin</span>
+            </div>
+            <img src="/assets/demo-admin-desktop.jpg" alt="TonyMenu desktop admin panel" style="width:100%;display:block;">
+          </div>
+          <a href="https://demo.tonymenu.app/admin" target="_blank" rel="noopener" data-hover="filter:brightness(.93);transform:translateY(-2px);" style="margin-top:22px;align-self:flex-start;text-decoration:none;display:inline-flex;align-items:center;gap:9px;background:#C2541F;color:#fff;font-weight:600;font-size:15.5px;padding:14px 24px;border-radius:11px;box-shadow:0 10px 24px -10px rgba(194,84,31,.55);transition:filter .2s ease,transform .2s ease;">
+            Open the live admin
+            <span style="font-size:17px;">&rarr;</span>
+          </a>
+          <p style="margin:14px 0 0;font-size:13.5px;color:#9a8a7c;line-height:1.5;">Opens in a new tab. Best viewed on a desktop, the admin is built for a large screen.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PRICING ============ -->
+  <section id="pricing" style="background:#FBF5EC;border-top:1px solid rgba(42,33,27,.07);">
+    <div style="max-width:1140px;margin:0 auto;padding:88px 28px;">
+      <div data-reveal style="text-align:center;max-width:640px;margin:0 auto 52px;">
+        <p style="font-family:'JetBrains Mono',monospace;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:#C2541F;margin:0 0 14px;">Pricing</p>
+        <h2 style="font-family:'Newsreader',serif;font-weight:500;font-size:clamp(30px,3.6vw,42px);line-height:1.1;letter-spacing:-.015em;margin:0 0 12px;color:#241c16;">Free to run yourself. Fair when you sell it.</h2>
+        <p style="margin:0;font-size:17px;color:#6b5d50;">Run it yourself, let us host it for you, or licence it for resale.</p>
+      </div>
+      <div data-cols="repeat(3,1fr)" data-cols-mid="1fr" style="display:grid;grid-template-columns:repeat(3,1fr);gap:22px;align-items:stretch;">
+
+        <div data-reveal style="background:#C2541F;color:#fff;border-radius:20px;padding:34px;display:flex;flex-direction:column;position:relative;overflow:hidden;box-shadow:0 24px 50px -22px rgba(194,84,31,.55);">
+          <div style="position:absolute;inset:0;background:radial-gradient(80% 60% at 90% 0%, rgba(255,255,255,.16), transparent 60%);pointer-events:none;"></div>
+          <div style="position:relative;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.78);">Self-host</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;background:rgba(255,255,255,.2);color:#fff;padding:4px 9px;border-radius:99px;">Most popular</span>
+          </div>
+          <div style="position:relative;display:flex;align-items:baseline;gap:8px;margin-bottom:6px;">
+            <span style="font-family:'Newsreader',serif;font-weight:500;font-size:44px;line-height:1;">Free</span>
+          </div>
+          <p style="position:relative;margin:0 0 22px;font-size:14px;color:rgba(255,255,255,.78);">forever, on your own infrastructure</p>
+          <div style="position:relative;display:flex;flex-direction:column;gap:11px;margin-bottom:26px;">
+            <div style="display:flex;gap:11px;align-items:flex-start;"><span style="flex:none;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.22);display:grid;place-items:center;font-size:11px;margin-top:2px;">&#10003;</span><p style="margin:0;font-size:14.5px;line-height:1.5;color:rgba(255,255,255,.94);">Personal, non-commercial, academic, charity and government use</p></div>
+            <div style="display:flex;gap:11px;align-items:flex-start;"><span style="flex:none;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.22);display:grid;place-items:center;font-size:11px;margin-top:2px;">&#10003;</span><p style="margin:0;font-size:14.5px;line-height:1.5;color:rgba(255,255,255,.94);">Every feature included, including the Tony AI assistant</p></div>
+            <div style="display:flex;gap:11px;align-items:flex-start;"><span style="flex:none;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.22);display:grid;place-items:center;font-size:11px;margin-top:2px;">&#10003;</span><p style="margin:0;font-size:14.5px;line-height:1.5;color:rgba(255,255,255,.94);">Runs on your own Cloudflare account, your data, your infra</p></div>
+          </div>
+          <a href="https://github.com/vekexasia/tony-menu" target="_blank" rel="noopener" data-hover="transform:translateY(-2px);" style="position:relative;margin-top:auto;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:9px;background:#fff;color:#241c16;font-weight:600;font-size:15px;padding:14px 22px;border-radius:11px;transition:transform .2s ease;">
+            <span style="color:#E0A23B;font-size:17px;">&#9733;</span>
+            Get it on GitHub
+          </a>
+        </div>
+
+        <div data-reveal data-delay="120" style="background:#fff;border:1px solid rgba(42,33,27,.09);border-radius:20px;padding:34px;display:flex;flex-direction:column;">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#9a8a7c;margin-bottom:16px;">Hosted</span>
+          <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:6px;">
+            <span style="font-family:'Newsreader',serif;font-weight:500;font-size:44px;line-height:1;color:#241c16;">&euro;50</span>
+            <span style="font-size:15px;color:#9a8a7c;">/ month</span>
+          </div>
+          <p style="margin:0 0 22px;font-size:14px;color:#9a8a7c;">we run it, you just manage the menu</p>
+          <div style="display:flex;flex-direction:column;gap:11px;margin-bottom:26px;">
+            <div style="display:flex;gap:11px;align-items:flex-start;"><span style="flex:none;width:20px;height:20px;border-radius:50%;background:rgba(194,84,31,.12);color:#C2541F;display:grid;place-items:center;font-size:11px;margin-top:2px;">&#10003;</span><p style="margin:0;font-size:14.5px;line-height:1.5;color:#5b4d42;">Fully managed hosting, updates and backups</p></div>
+            <div style="display:flex;gap:11px;align-items:flex-start;"><span style="flex:none;width:20px;height:20px;border-radius:50%;background:rgba(194,84,31,.12);color:#C2541F;display:grid;place-items:center;font-size:11px;margin-top:2px;">&#10003;</span><p style="margin:0;font-size:14.5px;line-height:1.5;color:#5b4d42;">Tony AI assistant included, no setup</p></div>
+            <div style="display:flex;gap:11px;align-items:flex-start;"><span style="flex:none;width:20px;height:20px;border-radius:50%;background:rgba(194,84,31,.12);color:#C2541F;display:grid;place-items:center;font-size:11px;margin-top:2px;">&#10003;</span><p style="margin:0;font-size:14.5px;line-height:1.5;color:#5b4d42;">Commercial licence for one restaurant included</p></div>
+          </div>
+          <a href="https://github.com/vekexasia/tony-menu/blob/main/COMMERCIAL.md" target="_blank" rel="noopener" data-hover="filter:brightness(1.25);transform:translateY(-2px);" style="margin-top:auto;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:9px;background:#241c16;color:#fff;font-weight:600;font-size:15px;padding:14px 22px;border-radius:11px;transition:filter .2s ease,transform .2s ease;">
+            Enquire about hosting
+            <span style="font-size:17px;">&rarr;</span>
+          </a>
+        </div>
+
+        <div data-reveal data-delay="240" style="background:#fff;border:1px solid rgba(42,33,27,.09);border-radius:20px;padding:34px;display:flex;flex-direction:column;">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#9a8a7c;margin-bottom:16px;">Commercial licence</span>
+          <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px;">
+            <span style="font-family:'Newsreader',serif;font-weight:500;font-size:44px;line-height:1;color:#241c16;">Custom</span>
+          </div>
+          <p style="margin:0 0 22px;font-size:14px;color:#9a8a7c;">priced to your setup, by enquiry</p>
+          <div style="display:flex;flex-direction:column;gap:11px;margin-bottom:26px;">
+            <div style="display:flex;gap:11px;align-items:flex-start;"><span style="flex:none;width:20px;height:20px;border-radius:50%;background:rgba(194,84,31,.12);color:#C2541F;display:grid;place-items:center;font-size:11px;margin-top:2px;">&#10003;</span><p style="margin:0;font-size:14.5px;line-height:1.5;color:#5b4d42;">Self-hosting it yourself for a paying restaurant</p></div>
+            <div style="display:flex;gap:11px;align-items:flex-start;"><span style="flex:none;width:20px;height:20px;border-radius:50%;background:rgba(194,84,31,.12);color:#C2541F;display:grid;place-items:center;font-size:11px;margin-top:2px;">&#10003;</span><p style="margin:0;font-size:14.5px;line-height:1.5;color:#5b4d42;">Hosting it as a paid service for others</p></div>
+            <div style="display:flex;gap:11px;align-items:flex-start;"><span style="flex:none;width:20px;height:20px;border-radius:50%;background:rgba(194,84,31,.12);color:#C2541F;display:grid;place-items:center;font-size:11px;margin-top:2px;">&#10003;</span><p style="margin:0;font-size:14.5px;line-height:1.5;color:#5b4d42;">Embedding it in a paid product</p></div>
+          </div>
+          <a href="https://github.com/vekexasia/tony-menu/blob/main/COMMERCIAL.md" target="_blank" rel="noopener" data-hover="filter:brightness(1.25);transform:translateY(-2px);" style="margin-top:auto;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:9px;background:#241c16;color:#fff;font-weight:600;font-size:15px;padding:14px 22px;border-radius:11px;transition:filter .2s ease,transform .2s ease;">
+            Enquire about a licence
+            <span style="font-size:17px;">&rarr;</span>
+          </a>
+        </div>
+
+      </div>
+      <p data-reveal style="text-align:center;margin:30px auto 0;max-width:660px;font-size:13.5px;line-height:1.6;color:#9a8a7c;">No self-serve checkout yet. Commercial licensing is handled by enquiry so we can fit terms to how you're running it. Not sure which applies? Reach out and we'll point you the right way.</p>
+    </div>
+  </section>
+
+  <!-- ============ TWO-PATH CTA ============ -->
+  <section style="background:#fff;border-top:1px solid rgba(42,33,27,.07);">
+    <div style="max-width:1140px;margin:0 auto;padding:88px 28px;">
+      <div data-reveal style="text-align:center;max-width:620px;margin:0 auto 52px;">
+        <p style="font-family:'JetBrains Mono',monospace;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:#C2541F;margin:0 0 14px;">Get started</p>
+        <h2 style="font-family:'Newsreader',serif;font-weight:500;font-size:clamp(30px,3.6vw,42px);line-height:1.1;letter-spacing:-.015em;margin:0;color:#241c16;">Pick your path.</h2>
+      </div>
+      <div data-cols="1fr 1fr" style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+
+        <div data-reveal style="background:#FBF5EC;border:1px solid rgba(42,33,27,.09);border-radius:20px;padding:40px;display:flex;flex-direction:column;">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#9a8a7c;margin-bottom:16px;">Developers</span>
+          <h3 style="font-family:'Newsreader',serif;font-weight:500;font-size:28px;margin:0 0 12px;color:#241c16;">Self-host it, free</h3>
+          <p style="margin:0 0 24px;font-size:15.5px;line-height:1.6;color:#6b5d50;flex:1;">Free for personal, non-commercial, academic, charity, and government use. Clone the repo, deploy to your own Cloudflare account, and you're live.</p>
+          <a href="https://github.com/vekexasia/tony-menu" target="_blank" rel="noopener" data-hover="filter:brightness(1.25);transform:translateY(-2px);" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:9px;background:#241c16;color:#fff;font-weight:600;font-size:15.5px;padding:14px 22px;border-radius:11px;transition:filter .2s ease,transform .2s ease;">
+            <span style="color:#E0A23B;font-size:17px;">&#9733;</span>
+            Get it on GitHub
+          </a>
+        </div>
+
+        <div data-reveal data-delay="120" style="background:#C2541F;color:#fff;border-radius:20px;padding:40px;display:flex;flex-direction:column;position:relative;overflow:hidden;">
+          <div style="position:absolute;inset:0;background:radial-gradient(80% 60% at 90% 0%, rgba(255,255,255,.16), transparent 60%);pointer-events:none;"></div>
+          <span style="position:relative;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:16px;">Restaurants &amp; businesses</span>
+          <h3 style="position:relative;font-family:'Newsreader',serif;font-weight:500;font-size:28px;margin:0 0 12px;">Use it commercially</h3>
+          <p style="position:relative;margin:0 0 24px;font-size:15.5px;line-height:1.6;color:rgba(255,255,255,.88);flex:1;">Running it for a paying restaurant, hosting it as a service, or embedding it in a paid product requires a separate license. Get in touch and we'll sort it out.</p>
+          <a href="https://github.com/vekexasia/tony-menu/blob/main/COMMERCIAL.md" target="_blank" rel="noopener" data-hover="transform:translateY(-2px);" style="position:relative;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:9px;background:#fff;color:#241c16;font-weight:600;font-size:15.5px;padding:14px 22px;border-radius:11px;transition:transform .2s ease;">
+            Commercial licensing
+            <span style="font-size:17px;">&rarr;</span>
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer style="background:#1d1712;color:#bdae9f;">
+    <div style="max-width:1140px;margin:0 auto;padding:54px 28px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:32px;align-items:center;">
+      <div style="display:flex;align-items:center;gap:11px;">
+        <span style="width:32px;height:32px;border-radius:9px;background:#C2541F;display:grid;place-items:center;">
+          <span style="width:12px;height:12px;border-radius:50%;border:2.5px solid #fff;"></span>
+        </span>
+        <span style="font-family:'Newsreader',serif;font-size:19px;font-weight:600;color:#f3e9dd;"><span style="color:#E8A56B;">Tony</span>Menu</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:26px;font-size:14.5px;">
+        <a href="https://github.com/vekexasia/tony-menu" target="_blank" rel="noopener" style="text-decoration:none;color:#bdae9f;">GitHub</a>
+        <a href="/docs/" style="text-decoration:none;color:#bdae9f;">Docs</a>
+        <a href="https://github.com/vekexasia/tony-menu/blob/main/LICENSE" target="_blank" rel="noopener" style="text-decoration:none;color:#bdae9f;">License</a>
+        <a href="https://github.com/vekexasia/tony-menu/security/policy" target="_blank" rel="noopener" style="text-decoration:none;color:#bdae9f;">Security</a>
+        <a href="https://github.com/vekexasia/tony-menu/issues" target="_blank" rel="noopener" style="text-decoration:none;color:#bdae9f;">Contact</a>
+      </div>
+    </div>
+    <div style="border-top:1px solid rgba(255,255,255,.08);">
+      <div style="max-width:1140px;margin:0 auto;padding:18px 28px;font-size:12.5px;color:#7d7060;font-family:'JetBrains Mono',monospace;">Open-source &middot; self-hostable &middot; &copy; 2026 TonyMenu</div>
+    </div>
+  </footer>
+
+</div>
+
+<script is:inline>
+  function responsive() {
+    var w = window.innerWidth;
+    document.querySelectorAll('[data-cols]').forEach(function (el) {
+      var d = el.getAttribute('data-cols');
+      var m = el.getAttribute('data-cols-mid');
+      if (w < 760) el.style.gridTemplateColumns = '1fr';
+      else if (m && w < 1040) el.style.gridTemplateColumns = m;
+      else el.style.gridTemplateColumns = d;
+    });
+    var nav = document.querySelector('[data-nav-links]');
+    if (nav) nav.style.display = w < 860 ? 'none' : 'flex';
+  }
+
+  function setupHover() {
+    document.querySelectorAll('[data-hover]').forEach(function (el) {
+      var hoverText = el.getAttribute('data-hover');
+      var base = el.getAttribute('style') || '';
+      el.addEventListener('mouseenter', function () {
+        el.setAttribute('style', base + ';' + hoverText);
+      });
+      el.addEventListener('mouseleave', function () {
+        el.setAttribute('style', base);
+      });
+    });
+  }
+
+  function setupReveal() {
+    var els = document.querySelectorAll('[data-reveal]');
+    requestAnimationFrame(function () {
+      els.forEach(function (e) {
+        var d = parseInt(e.getAttribute('data-delay') || '0', 10);
+        e.style.animation = 'tmReveal .7s ease both';
+        e.style.animationDelay = (d / 1000) + 's';
+      });
+    });
+  }
+
+  function renderQR() {
+    var el = document.getElementById('tm-qr');
+    if (!el) return;
+    var url = 'https://demo.tonymenu.app';
+    var tries = 0;
+    (function go() {
+      if (window.QRCode) {
+        el.innerHTML = '';
+        new window.QRCode(el, {
+          text: url, width: 200, height: 200,
+          colorDark: '#241c16', colorLight: '#ffffff',
+          correctLevel: window.QRCode.CorrectLevel.M
+        });
+      } else if (tries++ < 40) {
+        setTimeout(go, 150);
+      }
+    })();
+  }
+
+  responsive();
+  setupHover();
+  setupReveal();
+  renderQR();
+  window.addEventListener('resize', responsive);
+</script>
+
+</body>
+</html>
