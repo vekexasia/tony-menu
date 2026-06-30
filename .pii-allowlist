@@ -186,4 +186,4 @@ https?://([a-z0-9-]+\.)*tonymenu\.app(/[^\s*`]*)?
 ^https?://cdnjs\.cloudflare\.com(/.*)?$
 # Starlight starter template boilerplate (create-astro default content).
 ^https?://(www\.)?diataxis\.fr(/.*)?$
-^@astrojs/starlight(/.*)?$
+@astrojs/starlight(/[a-z-]*)?
