@@ -27,6 +27,46 @@ export interface StaleItemsErrorResponse {
   staleEntryIds: string[];
 }
 
+// ── Order lifecycle (kitchen board, #18) ────────────────────────────
+
+export const ORDER_STATUSES = ['submitted', 'ready', 'served', 'rejected'] as const;
+export const OrderStatusSchema = z.enum(ORDER_STATUSES);
+export type OrderStatus = z.infer<typeof OrderStatusSchema>;
+
+/** Legal whole-order transitions: submitted → ready → served, or reject. */
+export const ORDER_STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
+  submitted: ['ready', 'rejected'],
+  ready: ['served', 'rejected'],
+  served: [],
+  rejected: [],
+};
+
+export const UpdateOrderStatusBodySchema = z
+  .object({
+    status: z.enum(['ready', 'served', 'rejected']),
+    rejectReason: z.string().trim().min(1).max(500).optional(),
+  })
+  .refine((b) => b.status !== 'rejected' || !!b.rejectReason, {
+    message: 'rejectReason is required when rejecting',
+  });
+export type UpdateOrderStatusBody = z.infer<typeof UpdateOrderStatusBodySchema>;
+
+/** Toggle a per-item-per-destination row's printed/done state. */
+export const SetDestinationPrintedBodySchema = z.object({ printed: z.boolean() });
+export type SetDestinationPrintedBody = z.infer<typeof SetDestinationPrintedBodySchema>;
+
+// ── Order destinations CRUD (admin) ─────────────────────────────────
+
+export const CreateOrderDestinationBodySchema = z.object({
+  name: z.string().trim().min(1).max(50),
+});
+export type CreateOrderDestinationBody = z.infer<typeof CreateOrderDestinationBodySchema>;
+
+export const UpdateOrderDestinationBodySchema = z.object({
+  name: z.string().trim().min(1).max(50),
+});
+export type UpdateOrderDestinationBody = z.infer<typeof UpdateOrderDestinationBodySchema>;
+
 // ── Waiter QR handoff: order intents (#19) ───────────────────
 
 export const CreateOrderIntentBodySchema = z.object({

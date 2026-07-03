@@ -415,6 +415,8 @@ export interface MenuEntry {
   allergens: Allergen[];
   /** IDs of labels attached to this entry. */
   labelIds?: string[];
+  /** IDs of order destinations (kitchen departments) this entry routes to. */
+  destinationIds?: string[];
   /**
    * Variant document paths that override the category's variants.
    * If null/undefined, inherits from parent category.

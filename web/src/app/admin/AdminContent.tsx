@@ -162,8 +162,10 @@ export default function AdminContent({
   const currentPath = (pathname ?? "/admin").replace(/\/+$/, "") || "/admin";
 
   const analyticsEnabled = data?.features?.analytics !== false;
+  const orderingEnabled = data?.features?.ordering?.enabled === true;
   const topNavItems: { href: string; label: string; matchPrefix?: string }[] = [
     { href: "/admin/categories", label: t("layout.nav.menu") },
+    ...(orderingEnabled ? [{ href: "/admin/orders", label: t("layout.nav.orders") }] : []),
     ...(analyticsEnabled ? [{ href: "/admin/analytics", label: t("layout.nav.analytics") }] : []),
     { href: "/admin/modules", label: "Modules" },
     { href: "/admin/settings", label: t("layout.nav.settings"), matchPrefix: "/admin/settings" },
@@ -176,6 +178,7 @@ export default function AdminContent({
     { href: "/admin/categories", icon: "fa-layer-group", label: t("layout.section.categories"), count: categories.length },
     { href: entriesHref, icon: "fa-utensils", label: t("layout.section.items"), count: totalEntries },
     { href: "/admin/hours", icon: "fa-clock", label: t("layout.section.hours") },
+    ...(orderingEnabled ? [{ href: "/admin/orders", icon: "fa-bell-concierge", label: t("layout.section.orders") }] : []),
     ...(analyticsEnabled ? [{ href: "/admin/analytics", icon: "fa-chart-simple", label: t("layout.section.analytics") }] : []),
     { href: "/admin/modules", icon: "fa-puzzle-piece", label: "Modules" },
   ];

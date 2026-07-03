@@ -12,6 +12,7 @@ import { validateImage } from '../lib/image';
 import { checkRateLimit } from '../lib/rate-limit';
 import { isDemoMode } from '../lib/demo';
 import { resetDemoData } from '../lib/demo-reset';
+import { adminOrderRoutes } from './admin-orders';
 import {
   UpdateSettingsBodySchema,
   UpdateHoursBodySchema,
@@ -36,6 +37,9 @@ import type { DbInstance } from '../db';
 const admin = new Hono<AppBindings>();
 
 const base = [requireAuth, requireDb, requireAdmin] as const;
+
+// Kitchen board + order destinations (#18) live in admin-orders.ts.
+admin.route('/', adminOrderRoutes);
 
 
 admin.post('/demo/reset', ...base, async (c) => {
@@ -476,6 +480,10 @@ admin.post('/categories/:categoryId/entries', ...base, async (c) => {
     await setEntryLabelAssignments(db, id, body.labelIds);
   }
 
+  if (body.destinationIds && body.destinationIds.length > 0) {
+    await setEntryDestinationAssignments(db, id, body.destinationIds);
+  }
+
   await refreshPublicCatalog(c);
   return c.json({ ok: true, id }, 201);
 });
@@ -508,6 +516,9 @@ admin.put('/entries/:entryId', ...base, async (c) => {
   }
   if (body.labelIds !== undefined) {
     await setEntryLabelAssignments(db, entryId, body.labelIds);
+  }
+  if (body.destinationIds !== undefined) {
+    await setEntryDestinationAssignments(db, entryId, body.destinationIds);
   }
 
   await refreshPublicCatalog(c);
@@ -1222,6 +1233,20 @@ async function setEntryLabelAssignments(db: DbInstance, entryId: string, labelId
   await db.batch([
     del,
     db.insert(schema.entryLabels).values(unique.map((labelId) => ({ entryId, labelId }))),
+  ]);
+}
+
+// Same replace-all pattern as labels: entry_destinations is a plain m2m.
+async function setEntryDestinationAssignments(db: DbInstance, entryId: string, destinationIds: string[]): Promise<void> {
+  const unique = Array.from(new Set(destinationIds));
+  const del = db.delete(schema.entryDestinations).where(eq(schema.entryDestinations.entryId, entryId));
+  if (unique.length === 0) {
+    await del;
+    return;
+  }
+  await db.batch([
+    del,
+    db.insert(schema.entryDestinations).values(unique.map((destinationId) => ({ entryId, destinationId }))),
   ]);
 }
 

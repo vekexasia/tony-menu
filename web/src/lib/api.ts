@@ -467,6 +467,75 @@ export function publishCatalog() {
   });
 }
 
+// ── Kitchen board / order destinations (#18) ────────────────────────
+
+export interface AdminOrderItemDestination {
+  id: string;
+  destinationId: string | null;
+  destinationName: string;
+  printedAt: number | null;
+}
+
+export interface AdminOrderItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  destinations: AdminOrderItemDestination[];
+}
+
+export interface AdminOrder {
+  id: string;
+  dailyNumber: number;
+  status: 'submitted' | 'ready' | 'served' | 'rejected';
+  rejectReason: string | null;
+  createdAt: number;
+  items: AdminOrderItem[];
+}
+
+export function fetchAdminOrders(day?: number) {
+  const qs = day ? `?day=${day}` : '';
+  return apiFetch<{ day: number; orders: AdminOrder[] }>(`/admin/orders${qs}`, { auth: true });
+}
+
+export function updateOrderStatus(orderId: string, body: UpdateOrderStatusBody) {
+  return apiFetch<{ ok: true; status: string }>(`/admin/orders/${encodeURIComponent(orderId)}/status`, {
+    method: 'PATCH',
+    body,
+    auth: true,
+  });
+}
+
+export function setDestinationPrinted(rowId: string, printed: boolean) {
+  return apiFetch<{ ok: true; printedAt: number | null }>(`/admin/order-item-destinations/${encodeURIComponent(rowId)}/printed`, {
+    method: 'PATCH',
+    body: { printed },
+    auth: true,
+  });
+}
+
+export interface AdminOrderDestination {
+  id: string;
+  name: string;
+  sortOrder: number;
+}
+
+export function fetchOrderDestinations() {
+  return apiFetch<{ destinations: AdminOrderDestination[] }>(`/admin/order-destinations`, { auth: true });
+}
+
+export function createOrderDestination(name: string) {
+  return apiFetch<CreatedEntryResponse>(`/admin/order-destinations`, { method: 'POST', body: { name }, auth: true });
+}
+
+export function updateOrderDestination(id: string, name: string) {
+  return apiFetch(`/admin/order-destinations/${encodeURIComponent(id)}`, { method: 'PATCH', body: { name }, auth: true });
+}
+
+export function deleteOrderDestination(id: string) {
+  return apiFetch(`/admin/order-destinations/${encodeURIComponent(id)}`, { method: 'DELETE', auth: true });
+}
+
 // ── Analytics ────────────────────────────────────────────────────────
 
 export function getAnalytics(

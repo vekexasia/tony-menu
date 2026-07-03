@@ -30,6 +30,8 @@ export const CatalogEntrySchema = z.object({
   hidden: z.boolean(),
   menuIds: z.array(z.string()),
   labelIds: z.array(z.string()),
+  /** Order routing departments (#18). Optional so pre-existing cached artifacts still parse. */
+  destinationIds: z.array(z.string()).optional(),
   allergens: z.array(z.string()).nullable(),
   i18n: I18nMapSchema.nullable(),
   metadata: z.record(z.string(), z.unknown()).nullable(),

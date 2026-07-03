@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
 import { uploadEntryImage, deleteEntryImage } from "@/lib/imageUpload";
-import { updateEntry, createEntry, deleteEntry, moveEntry } from "@/lib/api";
+import { updateEntry, createEntry, deleteEntry, moveEntry, fetchOrderDestinations, type AdminOrderDestination } from "@/lib/api";
 import { sanitizeI18nData } from "@/lib/i18n-admin";
 import { useRestaurantStore, useCategories, useLabels } from "@/stores/restaurantStore";
 import { LABEL_COLOR_STYLES, resolveLabel } from "@/lib/label-colors";
@@ -58,6 +58,7 @@ interface MenuEntry {
   i18n?: I18nData;
   menuIds: string[];
   labelIds: string[];
+  destinationIds: string[];
   hidden: boolean;
   internalCode?: string;
 }
@@ -168,10 +169,16 @@ export default function EditEntryPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeTranslationTab, setActiveTranslationTab] = useState<string>(primaryLocale);
   const initializedRef = useRef(false);
+  const [allDestinations, setAllDestinations] = useState<AdminOrderDestination[]>([]);
 
   useEffect(() => {
     loadRestaurant();
   }, [loadRestaurant]);
+
+  // Order destinations for the routing picker. Only shown when some exist.
+  useEffect(() => {
+    fetchOrderDestinations().then((res) => setAllDestinations(res.destinations)).catch(() => {});
+  }, []);
 
   // Initialize the form once per (entry, category) once the store is ready.
   useEffect(() => {
@@ -201,6 +208,7 @@ export default function EditEntryPage() {
         allergens: [],
         menuIds: defaultMenuIds,
         labelIds: [],
+        destinationIds: [],
         hidden: false,
         internalCode: undefined,
       });
@@ -244,6 +252,7 @@ export default function EditEntryPage() {
       i18n: (cached.i18n || {}) as I18nData,
       menuIds: cached.menuIds,
       labelIds: (cached.labelIds || []) as string[],
+      destinationIds: (cached.destinationIds || []) as string[],
       hidden: cached.hidden,
       internalCode: cached.internalCode ?? undefined,
     });
@@ -331,6 +340,7 @@ export default function EditEntryPage() {
           i18n: sanitizeI18nData(editingEntry.i18n),
           menuIds: editingEntry.menuIds,
           labelIds: editingEntry.labelIds,
+          destinationIds: editingEntry.destinationIds,
           hidden: editingEntry.hidden,
           internalCode: editingEntry.internalCode || null,
         });
@@ -346,6 +356,7 @@ export default function EditEntryPage() {
           i18n: sanitizeI18nData(editingEntry.i18n),
           menuIds: editingEntry.menuIds,
           labelIds: editingEntry.labelIds,
+          destinationIds: editingEntry.destinationIds,
           hidden: editingEntry.hidden,
           internalCode: editingEntry.internalCode || null,
         });
@@ -750,6 +761,38 @@ export default function EditEntryPage() {
           )}
           {allLabels.length === 0 && (
             <p className="text-xs text-gray-400 italic">{t("entries.labelsHint")}</p>
+          )}
+
+          {/* Order destinations (kitchen departments) — same multi-select pattern as labels */}
+          {allDestinations.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t("entries.destinationsSection")}
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {allDestinations.map((dest) => {
+                  const selected = editingEntry.destinationIds.includes(dest.id);
+                  return (
+                    <button
+                      key={dest.id}
+                      type="button"
+                      onClick={() => {
+                        const next = selected
+                          ? editingEntry.destinationIds.filter((id) => id !== dest.id)
+                          : [...editingEntry.destinationIds, dest.id];
+                        setEditingEntry({ ...editingEntry, destinationIds: next });
+                      }}
+                      className={`text-xs font-semibold px-3 py-1 rounded-xl border-2 transition-opacity ${
+                        selected ? "border-primary bg-primary/10 text-primary" : "border-transparent bg-gray-100 text-gray-600 opacity-60"
+                      }`}
+                    >
+                      {dest.name}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-gray-400 italic mt-1">{t("entries.destinationsHint")}</p>
+            </div>
           )}
 
           {/* Allergens */}

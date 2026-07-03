@@ -57,6 +57,7 @@ export const CreateEntryBodySchema = z.object({
   i18n: I18nMapSchema.optional(),
   menuIds: z.array(z.string()).optional(),
   labelIds: z.array(z.string()).optional(),
+  destinationIds: z.array(z.string()).optional(),
   hidden: z.boolean().optional(),
   internalCode: z.string().nullable().optional(),
 });
@@ -73,6 +74,7 @@ export const UpdateEntryBodySchema = z.object({
   i18n: I18nMapSchema.optional(),
   menuIds: z.array(z.string()).optional(),
   labelIds: z.array(z.string()).optional(),
+  destinationIds: z.array(z.string()).optional(),
   hidden: z.boolean().optional(),
   internalCode: z.string().nullable().optional(),
 });

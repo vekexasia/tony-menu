@@ -175,6 +175,7 @@ function catalogToStore(catalog: CatalogResponse) {
       allergens: (e.allergens || []) as Allergen[],
       menuIds: e.menuIds,
       labelIds: e.labelIds ?? [],
+      destinationIds: e.destinationIds ?? [],
       hidden: e.hidden,
       internalCode: e.internalCode ?? undefined,
       overriddenVariantPaths: (e.metadata?.variantRefs as string[]) || [],

@@ -333,6 +333,10 @@ export async function buildCatalogFromDb(
     .select()
     .from(schema.entryLabels);
 
+  const entryDestinationsRows = await db
+    .select()
+    .from(schema.entryDestinations);
+
   const variants = await db
     .select()
     .from(schema.menuVariants)
@@ -354,6 +358,13 @@ export async function buildCatalogFromDb(
     const list = labelIdsByEntry.get(el.entryId) || [];
     list.push(el.labelId);
     labelIdsByEntry.set(el.entryId, list);
+  }
+
+  const destinationIdsByEntry = new Map<string, string[]>();
+  for (const ed of entryDestinationsRows) {
+    const list = destinationIdsByEntry.get(ed.entryId) || [];
+    list.push(ed.destinationId);
+    destinationIdsByEntry.set(ed.entryId, list);
   }
 
   const entriesByCategory = new Map<string, typeof entries>();
@@ -416,6 +427,7 @@ export async function buildCatalogFromDb(
         hidden: e.hidden,
         menuIds: menuIdsByEntry.get(e.id) ?? [],
         labelIds: labelIdsByEntry.get(e.id) ?? [],
+        destinationIds: destinationIdsByEntry.get(e.id) ?? [],
         allergens: e.allergens,
         i18n: e.i18n,
         metadata: e.metadata,
