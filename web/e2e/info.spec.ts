@@ -27,7 +27,7 @@ test.describe("Info Page", () => {
 
   test("should display back navigation button", async ({ page }) => {
     // Check that the back button (link to home) exists
-    const backLink = page.locator('header a[href="/"]');
+    const backLink = page.locator('header a[href^="/it"]');
     await expect(backLink).toBeVisible();
 
     // Check that the back arrow SVG is present
@@ -73,7 +73,7 @@ test.describe("Info Page", () => {
     page,
   }) => {
     // Click the back button
-    const backLink = page.locator('header a[href="/"]');
+    const backLink = page.locator('header a[href^="/it"]');
     await backLink.click();
 
     // Wait for navigation

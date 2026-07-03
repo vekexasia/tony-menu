@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useTranslations } from "@/lib/i18n";
+import { useTranslations, useLocale } from "@/lib/i18n";
 import Link from "next/link";
 import { useRestaurantStore } from "@/stores/restaurantStore";
 import { LoadingScreen, ErrorScreen } from "@/components/ui/StatusScreen";
@@ -11,6 +11,7 @@ const DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"
 
 export default function InfoPage() {
   const t = useTranslations();
+  const locale = useLocale();
   const { data, isLoading, error, loadRestaurant } = useRestaurantStore();
 
   useEffect(() => {
@@ -37,7 +38,7 @@ export default function InfoPage() {
     <main className="min-h-screen bg-gray-100">
       <header className="bg-primary text-white p-4">
         <div className="flex items-center gap-4">
-          <Link href="/" className="text-white">
+          <Link href={`/${locale}`} className="text-white">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
