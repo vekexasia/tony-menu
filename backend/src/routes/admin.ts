@@ -1,11 +1,12 @@
 import { Hono, type Context } from 'hono';
-import { eq, and, gte, lt, asc, desc, count, inArray, sql } from 'drizzle-orm';
+import { eq, and, gte, lt, asc, desc, count, inArray, isNull, sql } from 'drizzle-orm';
 import { requireAuth } from '../middleware/auth';
 import { requireAdmin } from '../middleware/admin-guard';
 import { requireDb } from '../middleware/db';
 import * as schema from '../db/schema';
 import { computeLeaderboardMovement, VALID_PERIODS, periodToMs, computeWindows } from '../lib/analytics';
 import { buildCatalogFromDb, refreshCatalogArtifacts } from './catalog';
+import { createOrder } from './orders';
 import { parseBody } from '../lib/validate';
 import { validateImage } from '../lib/image';
 import { checkRateLimit } from '../lib/rate-limit';
@@ -848,6 +849,118 @@ admin.get('/analytics', ...base, async (c) => {
     hourlyTotals,
   });
 });
+
+// ── Order Intents (waiter QR handoff, #19) ─────────────────────
+
+/**
+ * GET /admin/order-intents/:token
+ *
+ * Review an intent: lines are re-resolved against the CURRENT menu (name,
+ * price, availability) — nothing was frozen at intent creation, so the waiter
+ * always reviews live data.
+ */
+admin.get('/order-intents/:token', ...base, async (c) => {
+  const db = c.get('db');
+  const token = c.req.param('token');
+
+  const [intent] = await db
+    .select()
+    .from(schema.orderIntents)
+    .where(eq(schema.orderIntents.id, token))
+    .limit(1);
+  if (!intent) return c.json({ error: 'Not Found' }, 404);
+
+  const rawLines = intent.lines ?? [];
+  const entryIds = rawLines.map((l) => l.entryId);
+  const entries = entryIds.length > 0
+    ? await db
+        .select({
+          id: schema.menuEntries.id,
+          name: schema.menuEntries.name,
+          price: schema.menuEntries.price,
+          hidden: schema.menuEntries.hidden,
+          outOfStock: schema.menuEntries.outOfStock,
+        })
+        .from(schema.menuEntries)
+        .where(inArray(schema.menuEntries.id, entryIds))
+    : [];
+  const entryById = new Map(entries.map((e) => [e.id, e]));
+
+  const status = intent.consumedAt !== null
+    ? 'consumed'
+    : (intent.expiresAt < Date.now() ? 'expired' : 'pending');
+
+  return c.json({
+    token,
+    status,
+    expiresAt: intent.expiresAt,
+    consumedAt: intent.consumedAt,
+    lines: rawLines.map((line) => {
+      const entry = entryById.get(line.entryId);
+      return {
+        entryId: line.entryId,
+        quantity: line.quantity,
+        name: entry?.name ?? null,
+        price: entry?.price ?? null,
+        unavailable: !entry || entry.hidden || entry.outOfStock,
+      };
+    }),
+  });
+});
+
+/**
+ * POST /admin/order-intents/:token/consume
+ *
+ * Consume an intent into a real order through the shared createOrder path
+ * (#17). Atomicity: the consumed_at claim is a conditional UPDATE (WHERE
+ * consumed_at IS NULL) so exactly one request wins; on top of that the order
+ * uses `intent:<token>` as idempotency key, so even a lost race can never
+ * create a second order. Stale items abort and release the claim.
+ */
+admin.post('/order-intents/:token/consume', ...base, async (c) => {
+  const db = c.get('db');
+  const token = c.req.param('token');
+
+  const [intent] = await db
+    .select()
+    .from(schema.orderIntents)
+    .where(eq(schema.orderIntents.id, token))
+    .limit(1);
+  if (!intent) return c.json({ error: 'Not Found' }, 404);
+  if (intent.consumedAt !== null) return c.json({ error: 'consumed' }, 409);
+  if (intent.expiresAt < Date.now()) return c.json({ error: 'expired' }, 409);
+
+  // Atomic claim: only the request that flips consumed_at from NULL proceeds.
+  const claim = await db
+    .update(schema.orderIntents)
+    .set({ consumedAt: Date.now() })
+    .where(and(eq(schema.orderIntents.id, token), isNull(schema.orderIntents.consumedAt)));
+  if (claim.meta.changes === 0) return c.json({ error: 'consumed' }, 409);
+
+  // Any failure after the claim (stale items or a thrown error) must release
+  // it, otherwise the intent would be stuck consumed with no order behind it.
+  // Re-consuming can never double-create: createOrder is idempotent on
+  // `intent:<token>`.
+  let result;
+  try {
+    result = await createOrder(db, `intent:${token}`, intent.lines ?? []);
+  } catch (error) {
+    await releaseClaim(db, token);
+    throw error;
+  }
+  if ('error' in result) {
+    await releaseClaim(db, token);
+    return c.json(result, 409);
+  }
+  return c.json(result);
+});
+
+async function releaseClaim(db: DbInstance, token: string): Promise<void> {
+  await db
+    .update(schema.orderIntents)
+    .set({ consumedAt: null })
+    .where(eq(schema.orderIntents.id, token));
+}
 
 // ── Export ───────────────────────────────────────────────────────────
 

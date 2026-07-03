@@ -61,6 +61,9 @@ export function createApp() {
   app.use('/catalog/view', rateLimit(60, 60_000));
   // Public order submit — 10 req/min per IP; idempotency key dedupes retries.
   app.use('/orders', rateLimit(10, 60_000));
+  // Waiter-handoff intent creation (#19) — same budget, separate mount because
+  // Hono's '/orders' middleware does not match subpaths.
+  app.use('/orders/intents', rateLimit(10, 60_000));
 
   // Runtime config parsing
   app.use('*', async (c, next) => {

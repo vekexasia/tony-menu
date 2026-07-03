@@ -34,6 +34,10 @@ import type {
   ImageUploadResponse,
   SubmitOrderBody,
   SubmitOrderResponse,
+  UpdateOrderStatusBody,
+  CreateOrderIntentBody,
+  CreateOrderIntentResponse,
+  OrderIntentReviewResponse,
 } from '@menu/schemas';
 
 export type { CatalogResponse, MeResponse, AnalyticsResponse, ViewedItemRanked, MenuViewBreakdown, HourlyTotal };
@@ -130,6 +134,21 @@ export function getCatalog() {
 /** Submit a diner order (public, rate-limited, idempotent via idempotencyKey). */
 export function submitOrder(body: SubmitOrderBody) {
   return apiFetch<SubmitOrderResponse>('/orders', { method: 'POST', body });
+}
+
+/** Create a waiter-handoff order intent (public); the token goes into the QR link. */
+export function createOrderIntent(body: CreateOrderIntentBody) {
+  return apiFetch<CreateOrderIntentResponse>('/orders/intents', { method: 'POST', body });
+}
+
+/** Load an order intent for waiter review (admin). Lines reflect the current menu. */
+export function fetchOrderIntent(token: string) {
+  return apiFetch<OrderIntentReviewResponse>(`/admin/order-intents/${encodeURIComponent(token)}`, { auth: true });
+}
+
+/** Consume an intent into a real order (admin). 409: expired | consumed | stale_items. */
+export function consumeOrderIntent(token: string) {
+  return apiFetch<SubmitOrderResponse>(`/admin/order-intents/${encodeURIComponent(token)}/consume`, { method: 'POST', auth: true });
 }
 
 /** Fetch an authenticated admin catalog preview, including draft/hidden items. */

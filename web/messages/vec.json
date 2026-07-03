@@ -102,6 +102,13 @@
   "selection.sentDescription": "Show this number to the staff if needed.",
   "selection.staleError": "Some items are no longer available. Remove them to send your order.",
   "selection.sendError": "Could not send your order. Please try again.",
+  "selection.showQr": "Show QR to waiter",
+  "selection.qrCreating": "Preparing...",
+  "selection.qrTitle": "Show this to the waiter",
+  "selection.qrDescription": "The waiter scans this code to review and submit your order.",
+  "selection.qrExpires": "This code expires after 30 minutes.",
+  "selection.qrBack": "Back to selection",
+  "selection.qrError": "Could not prepare the QR code. Please try again.",
   "admin": {
     "common.cancel": "Anuła",
     "common.save": "Salva",

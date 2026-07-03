@@ -7,10 +7,15 @@ import { SelectionPageClient } from './SelectionPageClient';
 
 const loadRestaurantMock = vi.fn();
 const submitOrderMock = vi.fn();
+const createOrderIntentMock = vi.fn();
 
 vi.mock('@/lib/api', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/api')>();
-  return { ...actual, submitOrder: (...args: unknown[]) => submitOrderMock(...args) };
+  return {
+    ...actual,
+    submitOrder: (...args: unknown[]) => submitOrderMock(...args),
+    createOrderIntent: (...args: unknown[]) => createOrderIntentMock(...args),
+  };
 });
 
 vi.mock('next/navigation', () => ({
@@ -65,6 +70,7 @@ function resetStores() {
   vi.restoreAllMocks();
   loadRestaurantMock.mockReset();
   submitOrderMock.mockReset();
+  createOrderIntentMock.mockReset();
   useSelectionStore.setState({ restaurantId: null, updatedAt: 0, lines: [] });
   useRestaurantStore.setState({
     data: menuData,
@@ -225,6 +231,47 @@ describe('SelectionPageClient', () => {
 
     expect(await screen.findByRole('button', { name: 'selection.send' })).toBeDisabled();
     expect(submitOrderMock).not.toHaveBeenCalled();
+  });
+
+  it('shows the waiter QR button in waiter mode and renders a QR linking to the review page', async () => {
+    storeSelection([{ entryId: 'entry-bruschetta', quantity: 2, addedAt: 1 }]);
+    setSendMode('waiter');
+    createOrderIntentMock.mockResolvedValue({ ok: true, token: 'tok-123', expiresAt: Date.now() + 1_800_000 });
+
+    render(<SelectionPageClient />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'selection.showQr' }));
+
+    expect(await screen.findByTestId('waiter-qr')).toBeInTheDocument();
+    expect(createOrderIntentMock).toHaveBeenCalledWith({ lines: [{ entryId: 'entry-bruschetta', quantity: 2 }] });
+    // Selection stays intact — the waiter submits it, not the diner.
+    expect(useSelectionStore.getState().lines).toHaveLength(1);
+  });
+
+  it('shows both send and QR buttons when submitMode is both', async () => {
+    storeSelection([{ entryId: 'entry-bruschetta', quantity: 1, addedAt: 1 }]);
+    setSendMode('both');
+
+    render(<SelectionPageClient />);
+
+    expect(await screen.findByRole('button', { name: 'selection.send' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'selection.showQr' })).toBeInTheDocument();
+  });
+
+  it('shows no QR button in diner-only mode and surfaces intent creation failure', async () => {
+    storeSelection([{ entryId: 'entry-bruschetta', quantity: 1, addedAt: 1 }]);
+    setSendMode('diner');
+
+    const { unmount } = render(<SelectionPageClient />);
+    expect(await screen.findByText('Bruschetta')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'selection.showQr' })).not.toBeInTheDocument();
+    unmount();
+
+    setSendMode('waiter');
+    createOrderIntentMock.mockRejectedValue(new Error('network'));
+    render(<SelectionPageClient />);
+    fireEvent.click(await screen.findByRole('button', { name: 'selection.showQr' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('selection.qrError');
   });
 
   it('does not show stored lines when ordering is disabled', async () => {

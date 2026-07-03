@@ -334,6 +334,22 @@ export const orderItemDestinations = sqliteTable(
   }),
 );
 
+/**
+ * Waiter-handoff order intents (#19): the diner prepares a cart and shows a QR
+ * linking to the admin review page; a waiter consumes the intent into a real
+ * order through the same submit path as direct orders.
+ * `id` doubles as the opaque token (UUIDv4 — unguessable). Lines are a minimal
+ * {entryId, quantity} snapshot: name/price/destinations are resolved at consume
+ * time so the waiter always reviews current data.
+ */
+export const orderIntents = sqliteTable('order_intents', {
+  id: text('id').primaryKey(),
+  lines: jsonColumn<{ entryId: string; quantity: number }[]>('lines').notNull(),
+  expiresAt: integer('expires_at').notNull(),
+  consumedAt: integer('consumed_at'),
+  createdAt: integer('created_at').notNull().$defaultFn(() => Date.now()),
+});
+
 // ── Chat Sessions ─────────────────────────────────────────────────────────────
 
 /**

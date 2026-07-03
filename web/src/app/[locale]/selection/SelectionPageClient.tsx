@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { QRCodeSVG } from "qrcode.react";
 import { getLocalizedContentValue } from "@/lib/content-presentation";
-import { ApiError, submitOrder } from "@/lib/api";
+import { ApiError, createOrderIntent, submitOrder } from "@/lib/api";
 import { useTranslations } from "@/lib/i18n";
 import type { MenuCategory, MenuEntry } from "@/lib/types";
 import { useRestaurantStore } from "@/stores/restaurantStore";
@@ -27,7 +28,9 @@ export function SelectionPageClient() {
   const { data, isLoading, error, loadRestaurant } = useRestaurantStore();
   const [sending, setSending] = useState(false);
   const [sentNumber, setSentNumber] = useState<number | null>(null);
-  const [submitError, setSubmitError] = useState<"stale" | "generic" | null>(null);
+  const [intentUrl, setIntentUrl] = useState<string | null>(null);
+  const [creatingIntent, setCreatingIntent] = useState(false);
+  const [submitError, setSubmitError] = useState<"stale" | "generic" | "intent" | null>(null);
   const [staleEntryIds, setStaleEntryIds] = useState<string[]>([]);
   // One idempotency key per submit attempt session: retries after a network
   // failure reuse it, a successful send resets it.
@@ -41,6 +44,25 @@ export function SelectionPageClient() {
 
   const ordering = data?.features?.ordering;
   const canSend = ordering?.enabled === true && ordering.mode === "send" && ordering.submitMode !== "waiter";
+  const canWaiterQr = ordering?.enabled === true && ordering.mode === "send" && ordering.submitMode !== "diner" && ordering.submitMode !== undefined;
+
+  async function handleShowQr(resolved: ResolvedLine[]) {
+    if (creatingIntent) return;
+    setSubmitError(null);
+    setCreatingIntent(true);
+    try {
+      const result = await createOrderIntent({
+        lines: resolved.map((r) => ({ entryId: r.line.entryId, quantity: r.line.quantity })),
+      });
+      // The QR encodes a LINK to the admin review page — small and scannable,
+      // no cart payload. The selection is kept: the waiter submits it later.
+      setIntentUrl(`${window.location.origin}/admin/order-review/?token=${result.token}`);
+    } catch {
+      setSubmitError("intent");
+    } finally {
+      setCreatingIntent(false);
+    }
+  }
 
   async function handleSend(resolved: ResolvedLine[]) {
     if (sending) return;
@@ -144,6 +166,30 @@ export function SelectionPageClient() {
           <section className="bg-white rounded-2xl shadow-sm p-8 text-center">
             <h1 className="text-xl font-bold text-gray-800">{t("selection.disabledTitle")}</h1>
             <p className="text-sm text-gray-500 mt-2">{t("selection.disabledDescription")}</p>
+          </section>
+        </div>
+      </main>
+    );
+  }
+
+  if (intentUrl !== null) {
+    return (
+      <main className="min-h-screen bg-gray-100 px-4 py-6">
+        <div className="max-w-2xl mx-auto">
+          <section className="bg-white rounded-2xl shadow-sm p-8 text-center">
+            <h1 className="text-xl font-bold text-gray-800">{t("selection.qrTitle")}</h1>
+            <p className="text-sm text-gray-500 mt-2">{t("selection.qrDescription")}</p>
+            <div className="flex justify-center mt-6" data-testid="waiter-qr">
+              <QRCodeSVG value={intentUrl} size={220} marginSize={2} />
+            </div>
+            <p className="text-xs text-gray-400 mt-4">{t("selection.qrExpires")}</p>
+            <button
+              type="button"
+              onClick={() => setIntentUrl(null)}
+              className="inline-block mt-6 px-4 py-2 rounded-full bg-primary text-white text-sm font-semibold"
+            >
+              {t("selection.qrBack")}
+            </button>
           </section>
         </div>
       </main>
@@ -262,13 +308,34 @@ export function SelectionPageClient() {
               </>
             )}
 
+            {canWaiterQr && (
+              <>
+                {submitError === "intent" && (
+                  <div className="mt-6 rounded-2xl bg-red-50 border border-red-200 p-4 text-sm text-red-700" role="alert">
+                    {t("selection.qrError")}
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => handleShowQr(resolvedLines)}
+                  disabled={creatingIntent || hasUnavailable}
+                  className={`w-full ${canSend ? "mt-3" : "mt-6"} py-3 rounded-full bg-white border border-primary text-primary font-semibold disabled:opacity-50`}
+                >
+                  {creatingIntent ? t("selection.qrCreating") : t("selection.showQr")}
+                </button>
+                {!canSend && hasUnavailable && (
+                  <p className="mt-2 text-xs text-red-500 text-center font-medium">{t("selection.staleError")}</p>
+                )}
+              </>
+            )}
+
             <button
               type="button"
               // ponytail NOTE: this is a public-facing "clear selection" confirm, not an admin delete; ConfirmDeleteModal (admin-styled) doesn't fit here.
               onClick={() => {
                 if (confirm(t("selection.clearConfirm"))) clear();
               }}
-              className={`w-full ${canSend ? "mt-3" : "mt-6"} py-3 rounded-full bg-white border border-red-200 text-red-600 font-semibold`}
+              className={`w-full ${canSend || canWaiterQr ? "mt-3" : "mt-6"} py-3 rounded-full bg-white border border-red-200 text-red-600 font-semibold`}
             >
               {t("selection.clear")}
             </button>
