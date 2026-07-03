@@ -96,6 +96,12 @@
   "selection.clearConfirm": "Selectie wissen?",
   "selection.disabledTitle": "Selectie niet beschikbaar",
   "selection.disabledDescription": "Dit restaurant heeft menuselectie niet ingeschakeld.",
+  "selection.send": "Send order",
+  "selection.sending": "Sending...",
+  "selection.sentTitle": "Order sent!",
+  "selection.sentDescription": "Show this number to the staff if needed.",
+  "selection.staleError": "Some items are no longer available. Remove them to send your order.",
+  "selection.sendError": "Could not send your order. Please try again.",
   "admin": {
     "common.cancel": "Annuleren",
     "common.save": "Opslaan",

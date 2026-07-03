@@ -34,7 +34,7 @@ describe('GET /catalog', () => {
     expect(res.status).toBe(200);
     const body = await res.json() as CatalogBody;
     expect(body.restaurant.name).toBe('Trattoria Test');
-    expect(body.restaurant.features?.ordering).toEqual({ enabled: false, mode: 'summary' });
+    expect(body.restaurant.features?.ordering).toEqual({ enabled: false, mode: 'summary', submitMode: 'diner' });
     expect(body.menus).toHaveLength(1);
     expect(body.menus[0].code).toBe('food');
     expect(body.menus[0].published).toBe(true);
@@ -107,7 +107,7 @@ describe('module feature flags', () => {
     const res = await testRequest('/catalog', { env: makeDbEnv(db) });
     expect(res.status).toBe(200);
     const body = await res.json() as CatalogBody;
-    expect(body.restaurant.features?.ordering).toEqual({ enabled: true, mode: 'summary' });
+    expect(body.restaurant.features?.ordering).toEqual({ enabled: true, mode: 'summary', submitMode: 'diner' });
     expect(body.restaurant.features).not.toHaveProperty('selection');
   });
 

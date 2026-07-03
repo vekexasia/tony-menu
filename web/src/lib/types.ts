@@ -499,7 +499,7 @@ export interface RestaurantData {
     /** Enable browser voice dictation inside Tony chat. Defaults to false when missing. */
     aiVoice?: boolean;
     /** Let diners use ordering features. Defaults to disabled when missing. */
-    ordering?: { enabled: boolean; mode: 'summary' | 'send' };
+    ordering?: { enabled: boolean; mode: 'summary' | 'send'; submitMode?: 'diner' | 'waiter' | 'both' };
     /** Track anonymous menu views and show analytics. Defaults to enabled. */
     analytics?: boolean;
     /** Primary/source language for menu items. Defaults to 'it'. */

@@ -32,6 +32,8 @@ import type {
   NormalizedModulesConfig,
   ModulesConfig,
   ImageUploadResponse,
+  SubmitOrderBody,
+  SubmitOrderResponse,
 } from '@menu/schemas';
 
 export type { CatalogResponse, MeResponse, AnalyticsResponse, ViewedItemRanked, MenuViewBreakdown, HourlyTotal };
@@ -100,7 +102,7 @@ async function apiFetch<T>(path: string, options: FetchOptions = {}): Promise<T>
 
   if (!resp.ok) {
     const errorBody = await resp.json().catch(() => ({ error: resp.statusText }));
-    throw new ApiError(resp.status, (errorBody as Record<string, string>).error || resp.statusText);
+    throw new ApiError(resp.status, (errorBody as Record<string, string>).error || resp.statusText, errorBody);
   }
 
   return resp.json() as Promise<T>;
@@ -110,6 +112,8 @@ export class ApiError extends Error {
   constructor(
     public status: number,
     message: string,
+    /** Parsed error response body, e.g. { error: 'stale_items', staleEntryIds } */
+    public body?: unknown,
   ) {
     super(message);
     this.name = 'ApiError';
@@ -121,6 +125,11 @@ export class ApiError extends Error {
 /** Fetch the full public catalog. Cache-bust so admin edits are visible immediately. */
 export function getCatalog() {
   return apiFetch<CatalogResponse>(`/catalog?t=${Date.now()}`);
+}
+
+/** Submit a diner order (public, rate-limited, idempotent via idempotencyKey). */
+export function submitOrder(body: SubmitOrderBody) {
+  return apiFetch<SubmitOrderResponse>('/orders', { method: 'POST', body });
 }
 
 /** Fetch an authenticated admin catalog preview, including draft/hidden items. */

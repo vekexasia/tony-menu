@@ -1,10 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { useRestaurantStore } from '@/stores/restaurantStore';
 import { SELECTION_STORAGE_KEY, useSelectionStore } from '@/stores/selectionStore';
+import { ApiError } from '@/lib/api';
 import { SelectionPageClient } from './SelectionPageClient';
 
 const loadRestaurantMock = vi.fn();
+const submitOrderMock = vi.fn();
+
+vi.mock('@/lib/api', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/api')>();
+  return { ...actual, submitOrder: (...args: unknown[]) => submitOrderMock(...args) };
+});
 
 vi.mock('next/navigation', () => ({
   useParams: () => ({ locale: 'it' }),
@@ -57,12 +64,23 @@ function resetStores() {
   localStorage.clear();
   vi.restoreAllMocks();
   loadRestaurantMock.mockReset();
+  submitOrderMock.mockReset();
   useSelectionStore.setState({ restaurantId: null, updatedAt: 0, lines: [] });
   useRestaurantStore.setState({
     data: menuData,
     isLoading: false,
     error: null,
     loadRestaurant: loadRestaurantMock,
+  } as never);
+}
+
+function setSendMode(submitMode: 'diner' | 'waiter' | 'both') {
+  useRestaurantStore.setState({
+    data: {
+      ...(menuData as Record<string, unknown>),
+      features: { aiChat: true, ordering: { enabled: true, mode: 'send', submitMode } },
+    },
+    isLoading: false,
   } as never);
 }
 
@@ -122,6 +140,91 @@ describe('SelectionPageClient', () => {
 
     expect(useSelectionStore.getState().lines).toEqual([]);
     expect(screen.getByText('selection.empty')).toBeInTheDocument();
+  });
+
+  it('shows no send button in summary mode', async () => {
+    storeSelection([{ entryId: 'entry-bruschetta', quantity: 1, addedAt: 1 }]);
+
+    render(<SelectionPageClient />);
+
+    expect(await screen.findByText('Bruschetta')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'selection.send' })).not.toBeInTheDocument();
+  });
+
+  it('shows no send button when submitMode is waiter-only', async () => {
+    storeSelection([{ entryId: 'entry-bruschetta', quantity: 1, addedAt: 1 }]);
+    setSendMode('waiter');
+
+    render(<SelectionPageClient />);
+
+    expect(await screen.findByText('Bruschetta')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'selection.send' })).not.toBeInTheDocument();
+  });
+
+  it('sends the order and shows the daily number on success', async () => {
+    storeSelection([{ entryId: 'entry-bruschetta', quantity: 2, addedAt: 1 }]);
+    setSendMode('diner');
+    submitOrderMock.mockResolvedValue({ ok: true, orderId: 'o-1', dailyNumber: 7 });
+
+    render(<SelectionPageClient />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'selection.send' }));
+
+    expect(await screen.findByText('selection.sentTitle')).toBeInTheDocument();
+    expect(screen.getByTestId('order-daily-number')).toHaveTextContent('#7');
+    expect(useSelectionStore.getState().lines).toEqual([]);
+    expect(submitOrderMock).toHaveBeenCalledWith({
+      idempotencyKey: expect.any(String),
+      lines: [{ entryId: 'entry-bruschetta', quantity: 2 }],
+    });
+  });
+
+  it('lists stale items by name when the server rejects with 409', async () => {
+    storeSelection([
+      { entryId: 'entry-bruschetta', quantity: 1, addedAt: 1 },
+      { entryId: 'entry-pasta', quantity: 1, addedAt: 2 },
+    ]);
+    setSendMode('diner');
+    // 'entry-ghost' simulates a stale id the cached catalog can't resolve — it must fall back to the raw id.
+    submitOrderMock.mockRejectedValue(new ApiError(409, 'stale_items', { error: 'stale_items', staleEntryIds: ['entry-pasta', 'entry-ghost'] }));
+
+    render(<SelectionPageClient />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'selection.send' }));
+
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent('selection.staleError');
+    expect(alert).toHaveTextContent('Pasta');
+    expect(alert).toHaveTextContent('entry-ghost');
+    expect(alert).not.toHaveTextContent('Bruschetta');
+    // Selection is untouched — never silently dropped.
+    expect(useSelectionStore.getState().lines).toHaveLength(2);
+  });
+
+  it('reuses the idempotency key across retries of a failed send', async () => {
+    storeSelection([{ entryId: 'entry-bruschetta', quantity: 1, addedAt: 1 }]);
+    setSendMode('diner');
+    submitOrderMock.mockRejectedValueOnce(new Error('network'));
+    submitOrderMock.mockResolvedValueOnce({ ok: true, orderId: 'o-1', dailyNumber: 3 });
+
+    render(<SelectionPageClient />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'selection.send' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('selection.sendError');
+    fireEvent.click(screen.getByRole('button', { name: 'selection.send' }));
+
+    await waitFor(() => expect(submitOrderMock).toHaveBeenCalledTimes(2));
+    expect(submitOrderMock.mock.calls[0][0].idempotencyKey).toBe(submitOrderMock.mock.calls[1][0].idempotencyKey);
+  });
+
+  it('disables send while the selection contains unavailable items', async () => {
+    storeSelection([{ entryId: 'entry-sold-out', quantity: 1, addedAt: 1 }]);
+    setSendMode('diner');
+
+    render(<SelectionPageClient />);
+
+    expect(await screen.findByRole('button', { name: 'selection.send' })).toBeDisabled();
+    expect(submitOrderMock).not.toHaveBeenCalled();
   });
 
   it('does not show stored lines when ordering is disabled', async () => {

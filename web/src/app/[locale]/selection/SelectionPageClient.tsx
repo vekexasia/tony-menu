@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { getLocalizedContentValue } from "@/lib/content-presentation";
+import { ApiError, submitOrder } from "@/lib/api";
 import { useTranslations } from "@/lib/i18n";
 import type { MenuCategory, MenuEntry } from "@/lib/types";
 import { useRestaurantStore } from "@/stores/restaurantStore";
@@ -24,12 +25,50 @@ export function SelectionPageClient() {
   const locale = params.locale as string;
   const t = useTranslations();
   const { data, isLoading, error, loadRestaurant } = useRestaurantStore();
+  const [sending, setSending] = useState(false);
+  const [sentNumber, setSentNumber] = useState<number | null>(null);
+  const [submitError, setSubmitError] = useState<"stale" | "generic" | null>(null);
+  const [staleEntryIds, setStaleEntryIds] = useState<string[]>([]);
+  // One idempotency key per submit attempt session: retries after a network
+  // failure reuse it, a successful send resets it.
+  const idempotencyKeyRef = useRef<string | null>(null);
   const lines = useSelectionStore((state) => state.lines);
   const initializeSelection = useSelectionStore((state) => state.initialize);
   const increment = useSelectionStore((state) => state.increment);
   const decrement = useSelectionStore((state) => state.decrement);
   const clear = useSelectionStore((state) => state.clear);
   const formatMessage = (key: string, values: Record<string, string | number>) => fmt(t, key, values);
+
+  const ordering = data?.features?.ordering;
+  const canSend = ordering?.enabled === true && ordering.mode === "send" && ordering.submitMode !== "waiter";
+
+  async function handleSend(resolved: ResolvedLine[]) {
+    if (sending) return;
+    setSubmitError(null);
+    setSending(true);
+    if (!idempotencyKeyRef.current) idempotencyKeyRef.current = crypto.randomUUID();
+    try {
+      const result = await submitOrder({
+        idempotencyKey: idempotencyKeyRef.current,
+        lines: resolved.map((r) => ({ entryId: r.line.entryId, quantity: r.line.quantity })),
+      });
+      idempotencyKeyRef.current = null;
+      setSentNumber(result.dailyNumber);
+      clear();
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 409) {
+        // Server-side stale list is authoritative; the local catalog may lag.
+        idempotencyKeyRef.current = null;
+        const body = err.body as { staleEntryIds?: string[] } | undefined;
+        setStaleEntryIds(body?.staleEntryIds ?? []);
+        setSubmitError("stale");
+      } else {
+        setSubmitError("generic");
+      }
+    } finally {
+      setSending(false);
+    }
+  }
 
   useEffect(() => {
     loadRestaurant();
@@ -93,6 +132,8 @@ export function SelectionPageClient() {
     return <ErrorScreen as="main" message={error} retryLabel={t("retry")} onRetry={() => loadRestaurant({ force: true })} />;
   }
 
+  const hasUnavailable = resolvedLines.some((r) => r.unavailable);
+
   if (data && data.features?.ordering?.enabled !== true) {
     return (
       <main className="min-h-screen bg-gray-100 px-4 py-6">
@@ -103,6 +144,23 @@ export function SelectionPageClient() {
           <section className="bg-white rounded-2xl shadow-sm p-8 text-center">
             <h1 className="text-xl font-bold text-gray-800">{t("selection.disabledTitle")}</h1>
             <p className="text-sm text-gray-500 mt-2">{t("selection.disabledDescription")}</p>
+          </section>
+        </div>
+      </main>
+    );
+  }
+
+  if (sentNumber !== null) {
+    return (
+      <main className="min-h-screen bg-gray-100 px-4 py-6">
+        <div className="max-w-2xl mx-auto">
+          <section className="bg-white rounded-2xl shadow-sm p-8 text-center">
+            <h1 className="text-xl font-bold text-gray-800">{t("selection.sentTitle")}</h1>
+            <p className="text-sm text-gray-500 mt-2">{t("selection.sentDescription")}</p>
+            <p className="text-5xl font-bold text-primary mt-6" data-testid="order-daily-number">#{sentNumber}</p>
+            <Link href={`/${locale}/menu`} className="inline-block mt-8 px-4 py-2 rounded-full bg-primary text-white text-sm font-semibold">
+              {t("selection.backToMenu")}
+            </Link>
           </section>
         </div>
       </main>
@@ -169,13 +227,48 @@ export function SelectionPageClient() {
               ))}
             </div>
 
+            {canSend && (
+              <>
+                {submitError === "stale" && (
+                  <div className="mt-6 rounded-2xl bg-red-50 border border-red-200 p-4 text-sm text-red-700" role="alert">
+                    <p>{t("selection.staleError")}</p>
+                    {staleEntryIds.length > 0 && (
+                      <ul className="mt-2 list-disc list-inside font-medium">
+                        {staleEntryIds.map((id) => {
+                          // Deleted entries resolve to the generic "unavailable" label; show the id instead so every rejected line is identifiable.
+                          const resolved = resolvedLines.find((r) => r.line.entryId === id);
+                          return <li key={id}>{resolved?.entry ? resolved.displayName : id}</li>;
+                        })}
+                      </ul>
+                    )}
+                  </div>
+                )}
+                {submitError === "generic" && (
+                  <div className="mt-6 rounded-2xl bg-red-50 border border-red-200 p-4 text-sm text-red-700" role="alert">
+                    {t("selection.sendError")}
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => handleSend(resolvedLines)}
+                  disabled={sending || hasUnavailable}
+                  className="w-full mt-6 py-3 rounded-full bg-primary text-white font-semibold disabled:opacity-50"
+                >
+                  {sending ? t("selection.sending") : t("selection.send")}
+                </button>
+                {hasUnavailable && (
+                  <p className="mt-2 text-xs text-red-500 text-center font-medium">{t("selection.staleError")}</p>
+                )}
+              </>
+            )}
+
             <button
               type="button"
               // ponytail NOTE: this is a public-facing "clear selection" confirm, not an admin delete; ConfirmDeleteModal (admin-styled) doesn't fit here.
               onClick={() => {
                 if (confirm(t("selection.clearConfirm"))) clear();
               }}
-              className="w-full mt-6 py-3 rounded-full bg-white border border-red-200 text-red-600 font-semibold"
+              className={`w-full ${canSend ? "mt-3" : "mt-6"} py-3 rounded-full bg-white border border-red-200 text-red-600 font-semibold`}
             >
               {t("selection.clear")}
             </button>

@@ -240,6 +240,100 @@ export const entryLabels = sqliteTable(
   }),
 );
 
+// ── Ordering ──────────────────────────────────────────────────────────────────
+
+/**
+ * Kitchen/bar/etc. departments an entry's items get routed to.
+ * Same many-to-many pattern as labels/entryLabels.
+ */
+export const orderDestinations = sqliteTable('order_destinations', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  sortOrder: integer('sort_order').notNull().default(0),
+  ...timestamps,
+});
+
+export const entryDestinations = sqliteTable(
+  'entry_destinations',
+  {
+    entryId: text('entry_id').notNull().references(() => menuEntries.id, { onDelete: 'cascade' }),
+    destinationId: text('destination_id').notNull().references(() => orderDestinations.id, { onDelete: 'cascade' }),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.entryId, table.destinationId] }),
+    destinationIdx: index('entry_destinations_destination_idx').on(table.destinationId),
+  }),
+);
+
+/**
+ * One row per submitted order.
+ * order_day = YYYYMMDD integer (same pattern as catalogViews.dateBucket);
+ * daily_number restarts at 1 each day — UNIQUE(order_day, daily_number) with
+ * COUNT(*)+1 retry-on-conflict at insert. Rejected orders keep their number.
+ */
+export const orders = sqliteTable(
+  'orders',
+  {
+    id: text('id').primaryKey(),
+    orderDay: integer('order_day').notNull(),
+    dailyNumber: integer('daily_number').notNull(),
+    // submitted → ready → served, or rejected (transitions arrive with #18)
+    status: text('status').notNull().default('submitted'),
+    rejectReason: text('reject_reason'),
+    // Client-generated idempotency key: retried submits return the existing order.
+    idempotencyKey: text('idempotency_key').notNull(),
+    ...timestamps,
+  },
+  (table) => ({
+    dailyNumberIdx: uniqueIndex('orders_day_number_idx').on(table.orderDay, table.dailyNumber),
+    idempotencyIdx: uniqueIndex('orders_idempotency_idx').on(table.idempotencyKey),
+    dayIdx: index('orders_day_idx').on(table.orderDay),
+  }),
+);
+
+/**
+ * Frozen name/price snapshot per line — orders survive later menu edits.
+ * entry_id is a soft reference (SET NULL on delete), the snapshot stays intact.
+ */
+export const orderItems = sqliteTable(
+  'order_items',
+  {
+    id: text('id').primaryKey(),
+    orderId: text('order_id').notNull().references(() => orders.id, { onDelete: 'cascade' }),
+    entryId: text('entry_id').references(() => menuEntries.id, { onDelete: 'set null' }),
+    name: text('name').notNull(),
+    // Frozen price in integer cents at submit time.
+    price: integer('price').notNull(),
+    quantity: integer('quantity').notNull(),
+    createdAt: integer('created_at').notNull().$defaultFn(() => Date.now()),
+  },
+  (table) => ({
+    orderIdx: index('order_items_order_idx').on(table.orderId),
+  }),
+);
+
+/**
+ * Per-item-per-destination snapshot row created at submit time, so destination
+ * routing survives later menu/destination edits. printedAt is consumed by the
+ * kitchen board (#18): each department marks its own rows done independently.
+ */
+export const orderItemDestinations = sqliteTable(
+  'order_item_destinations',
+  {
+    id: text('id').primaryKey(),
+    orderItemId: text('order_item_id').notNull().references(() => orderItems.id, { onDelete: 'cascade' }),
+    destinationId: text('destination_id').references(() => orderDestinations.id, { onDelete: 'set null' }),
+    // Frozen destination name at submit time.
+    destinationName: text('destination_name').notNull(),
+    printedAt: integer('printed_at'),
+    createdAt: integer('created_at').notNull().$defaultFn(() => Date.now()),
+  },
+  (table) => ({
+    itemIdx: index('order_item_destinations_item_idx').on(table.orderItemId),
+    destinationIdx: index('order_item_destinations_destination_idx').on(table.destinationId),
+  }),
+);
+
 // ── Chat Sessions ─────────────────────────────────────────────────────────────
 
 /**

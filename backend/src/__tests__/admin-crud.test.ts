@@ -75,7 +75,7 @@ describe('GET /admin/modules', () => {
     expect(res.status).toBe(200);
     const body = await res.json() as { modules: { ordering: { enabled: boolean; mode: string }; ai: { enabled: boolean; voiceEnabled: boolean }; analytics: { enabled: boolean } } };
     expect(body.modules).toEqual({
-      ordering: { enabled: false, mode: 'summary' },
+      ordering: { enabled: false, mode: 'summary', submitMode: 'diner' },
       ai: { enabled: false, voiceEnabled: false },
       analytics: { enabled: true },
     });
@@ -86,7 +86,7 @@ describe('PUT /admin/modules', () => {
   it('updates module config', async () => {
     const { db, env, headers } = await adminEnv();
     const modules = {
-      ordering: { enabled: true, mode: 'summary' },
+      ordering: { enabled: true, mode: 'summary', submitMode: 'diner' },
       ai: { enabled: true, voiceEnabled: false },
       analytics: { enabled: false },
     };

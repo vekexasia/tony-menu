@@ -4,6 +4,7 @@ import { getRuntimeConfig } from './lib/env';
 import { healthRoutes } from './routes/health';
 import { meRoutes } from './routes/me';
 import { catalogRoutes } from './routes/catalog';
+import { orderRoutes } from './routes/orders';
 import { adminRoutes } from './routes/admin';
 import { requestLogger, rateLimit } from './middleware/logging';
 import type { AppBindings } from './types';
@@ -58,6 +59,8 @@ export function createApp() {
   // Stricter limit for view tracking — 60 req/min per IP
   // Primary DoS protection; DB UNIQUE constraint catches any that slip through.
   app.use('/catalog/view', rateLimit(60, 60_000));
+  // Public order submit — 10 req/min per IP; idempotency key dedupes retries.
+  app.use('/orders', rateLimit(10, 60_000));
 
   // Runtime config parsing
   app.use('*', async (c, next) => {
@@ -83,6 +86,7 @@ export function createApp() {
   app.route('/', healthRoutes);
   app.route('/admin/me', meRoutes);
   app.route('/catalog', catalogRoutes);
+  app.route('/orders', orderRoutes);
   app.route('/admin', adminRoutes);
 
   app.notFound((c) => c.json({ error: 'Not Found' }, 404));

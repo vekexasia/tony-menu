@@ -43,7 +43,7 @@ export default function ModulesPage() {
       <div className="space-y-4">
         <ModuleCard
           title="Ordering"
-          description="Let diners build a table order summary. Sending orders is coming later."
+          description="Let diners build a table order summary or send orders to the kitchen."
           enabled={modules.ordering.enabled}
           onToggle={(enabled) => save({ ...modules, ordering: { ...modules.ordering, enabled } })}
         >
@@ -52,12 +52,28 @@ export default function ModulesPage() {
             <select
               className="mt-1 block w-full rounded-lg border border-gray-200 bg-white px-3 py-2"
               value={modules.ordering.mode}
-              onChange={(e) => save({ ...modules, ordering: { ...modules.ordering, mode: e.target.value as "summary" } })}
+              onChange={(e) => save({ ...modules, ordering: { ...modules.ordering, mode: e.target.value as "summary" | "send" } })}
               disabled={!modules.ordering.enabled || saving}
             >
               <option value="summary">Summary only</option>
+              <option value="send">Send orders</option>
             </select>
           </label>
+          {modules.ordering.mode === "send" && (
+            <label className="block text-sm font-medium text-gray-700 mt-4">
+              Who submits
+              <select
+                className="mt-1 block w-full rounded-lg border border-gray-200 bg-white px-3 py-2"
+                value={modules.ordering.submitMode}
+                onChange={(e) => save({ ...modules, ordering: { ...modules.ordering, submitMode: e.target.value as "diner" | "waiter" | "both" } })}
+                disabled={!modules.ordering.enabled || saving}
+              >
+                <option value="diner">Diner sends directly</option>
+                <option value="waiter">Waiter reviews via QR</option>
+                <option value="both">Both</option>
+              </select>
+            </label>
+          )}
         </ModuleCard>
 
         <ModuleCard

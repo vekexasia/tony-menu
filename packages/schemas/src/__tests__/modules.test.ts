@@ -29,16 +29,23 @@ describe('modules schemas', () => {
     expect(ModulesConfigSchema.safeParse({ ai: { enabled: true, voiceEnabled: false } }).success).toBe(true);
     expect(ModulesConfigSchema.safeParse({ unknown: true }).success).toBe(false);
   });
+  it('OrderingModuleConfigSchema defaults submitMode for legacy configs', () => {
+    const parsed = OrderingModuleConfigSchema.safeParse({ enabled: true, mode: 'summary' });
+    expect(parsed.success).toBe(true);
+    expect(parsed.success && parsed.data.submitMode).toBe('diner');
+    expect(OrderingModuleConfigSchema.safeParse({ enabled: true, mode: 'send', submitMode: 'both' }).success).toBe(true);
+    expect(OrderingModuleConfigSchema.safeParse({ enabled: true, mode: 'send', submitMode: 'nobody' }).success).toBe(false);
+  });
   it('normalizeModulesConfig fills defaults from empty input', () => {
     expect(normalizeModulesConfig({})).toEqual({
-      ordering: { enabled: false, mode: 'summary' },
+      ordering: { enabled: false, mode: 'summary', submitMode: 'diner' },
       ai: { enabled: false, voiceEnabled: false },
       analytics: { enabled: true },
     });
   });
   it('normalizeModulesConfig respects legacy ai flags', () => {
     expect(normalizeModulesConfig({}, { aiChatEnabled: true, aiVoiceEnabled: true })).toEqual({
-      ordering: { enabled: false, mode: 'summary' },
+      ordering: { enabled: false, mode: 'summary', submitMode: 'diner' },
       ai: { enabled: true, voiceEnabled: true },
       analytics: { enabled: true },
     });
