@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useLocale } from "@/lib/i18n";
 import { useRestaurantStore } from "@/stores/restaurantStore";
 import { Flag } from "@/components/ui/Flag";
+import { PREFERRED_LOCALE_KEY } from "@/lib/locale-detection";
 
 const ALL_LANGUAGE_OPTIONS = [
   { code: "it", label: "Italiano" },
@@ -19,7 +20,6 @@ const ALL_LANGUAGE_OPTIONS = [
   { code: "vec", label: "Vèneto" },
 ] as const;
 
-const PREFERRED_LOCALE_KEY = "preferred-locale";
 const LOCALE_SWITCH_SCROLL_KEY = "locale-switch-scroll-position";
 const LOCALE_ANCHOR_SELECTOR = "[data-locale-anchor]";
 const LOCALE_RESTORE_DELAYS_MS = [0, 80, 180, 320, 550, 900] as const;
@@ -189,11 +189,12 @@ export function LanguagePicker({ variant = 'floating' }: LanguagePickerProps = {
       aria-expanded={open}
       aria-label="Select language"
       onClick={() => setOpen((value) => !value)}
-      className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-800 shadow-lg"
+      className="flex items-center gap-3 rounded-full border border-gray-200 bg-white px-5 py-3 text-base font-medium text-gray-800 shadow-lg"
     >
       <Flag
         code={currentLanguage.code}
         customUrl={customFlagByCode[currentLanguage.code]}
+        className="h-5 w-7 rounded-sm object-cover ring-1 ring-black/10"
         decorative
       />
       <span>{currentLanguage.label}</span>
@@ -203,7 +204,7 @@ export function LanguagePicker({ variant = 'floating' }: LanguagePickerProps = {
         viewBox="0 0 24 24"
         strokeWidth={2}
         stroke="currentColor"
-        className={`h-4 w-4 text-gray-500 transition-transform ${open ? "rotate-180" : ""}`}
+        className={`h-5 w-5 text-gray-500 transition-transform ${open ? "rotate-180" : ""}`}
       >
         <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
       </svg>

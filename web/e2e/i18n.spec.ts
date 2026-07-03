@@ -163,13 +163,17 @@ test.describe("Internationalization (i18n)", () => {
   });
 
   test.describe("Default locale behavior", () => {
-    test("should redirect root to default locale (Italian)", async ({
+    // default = NEXT_PUBLIC_DEFAULT_LOCALE ("en" locally, "it" in CI);
+    // ja-JP is intentionally unmatched so only the default branch applies.
+    const DEFAULT_LOCALE = process.env.NEXT_PUBLIC_DEFAULT_LOCALE ?? "en";
+    test.use({ locale: "ja-JP" });
+
+    test("should redirect root to default locale (env default)", async ({
       page,
     }) => {
       await page.goto("/");
 
-      // Should redirect to Italian as default
-      await expect(page).toHaveURL(/\/(it)?\/?$/);
+      await expect(page).toHaveURL(new RegExp(`/${DEFAULT_LOCALE}(/|$)`));
     });
   });
 });

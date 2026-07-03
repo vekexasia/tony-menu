@@ -1,4 +1,10 @@
 import { defineConfig, devices } from "@playwright/test";
+import { loadEnvConfig } from "@next/env";
+
+// The Next dev server reads NEXT_PUBLIC_DEFAULT_LOCALE from .env.local, but the
+// Playwright test process does not. Load Next env here so locale assertions see
+// the same default the server redirects to.
+loadEnvConfig(__dirname, true); // dev=true: match `next dev` env file precedence
 
 export default defineConfig({
   testDir: "./e2e",
