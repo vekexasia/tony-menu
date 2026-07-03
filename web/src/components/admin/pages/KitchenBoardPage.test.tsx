@@ -116,6 +116,8 @@ describe("KitchenBoardPage", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Kitchen" }));
 
     fireEvent.click(await screen.findByRole("checkbox"));
+    // Optimistic: checked immediately, before the PATCH resolves.
+    expect(screen.getByRole("checkbox")).toBeChecked();
     await waitFor(() =>
       expect(setDestinationPrintedMock).toHaveBeenCalledWith("oid-a", true),
     );

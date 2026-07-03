@@ -99,16 +99,21 @@ export default function KitchenBoardPage() {
   };
 
   const togglePrinted = async (rowId: string, printed: boolean) => {
-    try {
-      const res = await setDestinationPrinted(rowId, printed);
+    const applyPrintedAt = (printedAt: number | null) =>
       setOrders((prev) => prev?.map((o) => ({
         ...o,
         items: o.items.map((i) => ({
           ...i,
-          destinations: i.destinations.map((d) => d.id === rowId ? { ...d, printedAt: res.printedAt } : d),
+          destinations: i.destinations.map((d) => d.id === rowId ? { ...d, printedAt } : d),
         })),
       })) ?? null);
+    // Optimistic: reflect the tap immediately, reconcile with the server value.
+    applyPrintedAt(printed ? Date.now() : null);
+    try {
+      const res = await setDestinationPrinted(rowId, printed);
+      applyPrintedAt(res.printedAt);
     } catch (err) {
+      refresh(); // roll back to server truth
       setError(err instanceof Error ? err.message : String(err));
     }
   };

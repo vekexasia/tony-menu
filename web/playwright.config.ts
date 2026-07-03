@@ -49,6 +49,10 @@ export default defineConfig({
       name: "mobile",
       use: {
         ...devices["iPhone 13"],
+        // iPhone 13 defaults to webkit, whose system deps (libgtk-4, gstreamer,
+        // libavif) need root to install. These specs test viewport behaviour,
+        // not engine quirks — chromium keeps them runnable everywhere.
+        browserName: "chromium",
       },
       testMatch: [
         "**/home.spec.ts",

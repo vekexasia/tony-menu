@@ -113,23 +113,26 @@ test.describe('Waiter QR handoff', () => {
 
   test('already-consumed intent shows a clear error, and a consume race resolves to it', async ({ page }) => {
     await setupWaiter(page);
-    let reviews = 0;
+    // State-based mock (not call-count): React strict mode double-fires the
+    // load effect in dev, so the intent must stay pending until the consume
+    // attempt actually happens — then the reload finds it consumed.
+    let raced = false;
     await page.route(`**/admin/order-intents/${TOKEN}`, (route) => {
-      reviews += 1;
-      // First load: still pending. After the failed consume the page reloads
-      // the intent and finds it consumed by the concurrent waiter.
-      const status = reviews === 1 ? 'pending' : 'consumed';
+      const status = raced ? 'consumed' : 'pending';
       return route.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({ ...PENDING_INTENT, status, consumedAt: status === 'consumed' ? Date.now() : null }),
       });
     });
-    await page.route(`**/admin/order-intents/${TOKEN}/consume`, (route) => route.fulfill({
-      status: 409,
-      contentType: 'application/json',
-      body: JSON.stringify({ error: 'consumed' }),
-    }));
+    await page.route(`**/admin/order-intents/${TOKEN}/consume`, (route) => {
+      raced = true; // a concurrent waiter won the race
+      return route.fulfill({
+        status: 409,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: 'consumed' }),
+      });
+    });
 
     await page.goto(`/admin/order-review/?token=${TOKEN}`);
     await page.getByRole('button', { name: /submit order/i }).click();

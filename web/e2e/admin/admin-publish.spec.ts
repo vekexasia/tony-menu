@@ -5,16 +5,28 @@
  * publication via PUT /admin/publication.
  */
 
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const PUBLISHING = "/admin/settings/publishing";
 
+// The publication state is a single global flag on the shared backend; other
+// specs (chat, menu) read it concurrently. Never let the PUT reach the real
+// backend — fulfill it at the network layer so the UI behaves identically but
+// the seeded state is untouched.
+async function mockPublicationPut(page: Page) {
+  await page.route("**/admin/publication", (route) =>
+    route.request().method() === "PUT"
+      ? route.fulfill({ status: 200, contentType: "application/json", body: '{"ok":true}' })
+      : route.continue(),
+  );
+}
+
 test.describe("Admin publish toggle", () => {
   test.skip(!API_URL, "Skipped: NEXT_PUBLIC_API_URL not set");
-  // These tests toggle the single global publication state, so they must not
-  // run concurrently with each other.
-  test.describe.configure({ mode: "serial" });
+  test.beforeEach(async ({ page }) => {
+    await mockPublicationPut(page);
+  });
 
   test("publishing settings page shows the publish toggle", async ({ page }) => {
     await page.goto(PUBLISHING);
@@ -38,11 +50,6 @@ test.describe("Admin publish toggle", () => {
 
     const req = await putRequest;
     expect(req.url()).toContain("localhost:8787");
-
-    // Flip back so the seeded state is left unchanged for other specs.
-    await page.waitForTimeout(800);
-    await page.getByRole("button", { name: /pubblica menu|nascondi menu/i }).click();
-    await page.waitForTimeout(800);
   });
 
   test("toggle label flips after clicking", async ({ page }) => {
@@ -57,9 +64,5 @@ test.describe("Admin publish toggle", () => {
 
     const flipped = page.getByRole("button", { name: /pubblica menu|nascondi menu/i });
     expect((await flipped.textContent())?.trim() ?? "").not.toBe(initial);
-
-    // Restore original state.
-    await flipped.click();
-    await page.waitForTimeout(1200);
   });
 });
