@@ -50,9 +50,9 @@ test.describe('Direct order submit', () => {
     await page.waitForLoadState('domcontentloaded');
 
     await expect(page.getByText('Bruschetta')).toBeVisible();
-    await page.getByRole('button', { name: /send order/i }).click();
+    await page.getByRole('button', { name: /invia ordine/i }).click();
 
-    await expect(page.getByText(/order sent/i)).toBeVisible();
+    await expect(page.getByText(/ordine inviato/i)).toBeVisible();
     await expect(page.getByTestId('order-daily-number')).toHaveText('#42');
 
     expect(submittedBody!.idempotencyKey).toEqual(expect.any(String));
@@ -69,14 +69,14 @@ test.describe('Direct order submit', () => {
     await page.goto('/it/selection');
     await page.waitForLoadState('domcontentloaded');
 
-    await page.getByRole('button', { name: /send order/i }).click();
+    await page.getByRole('button', { name: /invia ordine/i }).click();
 
     // Filter out Next's empty route-announcer alert.
     const alert = page.getByRole('alert').filter({ hasText: /./ });
     await expect(alert).toBeVisible();
     await expect(alert).toContainText('Bruschetta');
     // Selection stays — never silently dropped.
-    await expect(page.getByRole('button', { name: /send order/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /invia ordine/i })).toBeVisible();
     await expect(page.getByText('Bruschetta').first()).toBeVisible();
   });
 });

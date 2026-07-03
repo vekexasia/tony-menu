@@ -99,26 +99,26 @@ test.describe('Kitchen board', () => {
     await page.waitForLoadState('domcontentloaded');
 
     await expect(page.getByTestId('kitchen-disabled')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('header').getByRole('link', { name: 'Orders' })).toHaveCount(0);
+    await expect(page.locator('header').getByRole('link', { name: 'Ordini' })).toHaveCount(0);
   });
 
   test('shows nav link and moves an order submitted → ready → served', async ({ page }) => {
     await setupBoardEnv(page);
     await page.goto(`/admin/orders?r=${MOCK_RESTAURANT_ID}`);
 
-    await expect(page.locator('header').getByRole('link', { name: 'Orders' })).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('header').getByRole('link', { name: 'Ordini' })).toBeVisible({ timeout: 10000 });
     const card = page.getByTestId('order-1');
     await expect(card).toBeVisible();
     await expect(card).toContainText('Pizza e patatine');
-    await expect(card).toContainText('Submitted');
+    await expect(card).toContainText('Inviato');
 
-    await card.getByRole('button', { name: 'Mark ready' }).click();
-    await expect(card).toContainText('Ready');
+    await card.getByRole('button', { name: 'Segna pronto' }).click();
+    await expect(card).toContainText('Pronto');
 
-    await card.getByRole('button', { name: 'Mark served' }).click();
-    await expect(card).toContainText('Served');
+    await card.getByRole('button', { name: 'Segna servito' }).click();
+    await expect(card).toContainText('Servito');
     // Terminal state: no further transition buttons.
-    await expect(card.getByRole('button', { name: /Mark|Reject/ })).toHaveCount(0);
+    await expect(card.getByRole('button', { name: /Segna|Rifiuta/ })).toHaveCount(0);
   });
 
   test('rejects an order with a reason', async ({ page }) => {
@@ -126,15 +126,15 @@ test.describe('Kitchen board', () => {
     await page.goto(`/admin/orders?r=${MOCK_RESTAURANT_ID}`);
 
     const card = page.getByTestId('order-1');
-    await card.getByRole('button', { name: 'Reject', exact: true }).click();
+    await card.getByRole('button', { name: 'Rifiuta', exact: true }).click();
 
-    const confirm = card.getByRole('button', { name: 'Reject order' });
+    const confirm = card.getByRole('button', { name: 'Rifiuta ordine' });
     await expect(confirm).toBeDisabled();
-    await card.getByPlaceholder('Reason for rejection').fill('Out of mozzarella');
+    await card.getByPlaceholder('Motivo del rifiuto').fill('Mozzarella finita');
     await confirm.click();
 
-    await expect(card).toContainText('Rejected');
-    await expect(card).toContainText('Out of mozzarella');
+    await expect(card).toContainText('Rifiutato');
+    await expect(card).toContainText('Mozzarella finita');
   });
 
   test('each department marks its own row done independently', async ({ page }) => {

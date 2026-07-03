@@ -150,6 +150,20 @@ describe('POST /admin/order-intents/:token/consume', () => {
     expect(intent.consumed_at).not.toBeNull();
   });
 
+  it('accepts demo intent consume without creating an order', async () => {
+    const db = intentsDb();
+    const token = await makeToken(db);
+    const res = await testRequest(`/admin/order-intents/${token}/consume`, {
+      method: 'POST',
+      headers: await adminHeaders(),
+      env: makeDbEnv(db, { ADMIN_EMAILS: ADMIN_UID, DEMO_MODE: 'true' }),
+    });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ ok: true, orderId: 'demo-order', dailyNumber: 1 });
+    expect(db.raw.prepare('SELECT COUNT(*) AS c FROM orders').get()).toEqual({ c: 0 });
+    expect((db.raw.prepare('SELECT consumed_at FROM order_intents WHERE id = ?').get(token) as { consumed_at: number | null }).consumed_at).not.toBeNull();
+  });
+
   it('consumes exactly once: second consume gets 409 and no second order exists', async () => {
     const db = intentsDb();
     const token = await makeToken(db);

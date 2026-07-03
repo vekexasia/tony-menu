@@ -63,7 +63,7 @@ test.describe('Waiter QR handoff', () => {
     });
 
     await page.goto('/it/selection');
-    await page.getByRole('button', { name: /show qr to waiter/i }).click();
+    await page.getByRole('button', { name: /mostra qr al cameriere/i }).click();
 
     await expect(page.getByTestId('waiter-qr')).toBeVisible();
     expect(intentBody!.lines).toEqual([{ entryId: 'entry-bruschetta', quantity: 2 }]);
@@ -90,7 +90,7 @@ test.describe('Waiter QR handoff', () => {
 
     await waiterPage.goto(reviewPath);
     await expect(waiterPage.getByText('Bruschetta')).toBeVisible();
-    await waiterPage.getByRole('button', { name: /submit order/i }).click();
+    await waiterPage.getByRole('button', { name: /invia ordine/i }).click();
 
     await expect(waiterPage.getByTestId('order-daily-number')).toHaveText('#5');
     expect(consumed).toBe(true);
@@ -107,8 +107,8 @@ test.describe('Waiter QR handoff', () => {
     await page.goto(`/admin/order-review/?token=${TOKEN}`);
 
     const alert = page.getByRole('alert').filter({ hasText: /./ });
-    await expect(alert).toContainText(/expired/i);
-    await expect(page.getByRole('button', { name: /submit order/i })).toHaveCount(0);
+    await expect(alert).toContainText(/scaduto/i);
+    await expect(page.getByRole('button', { name: /invia ordine/i })).toHaveCount(0);
   });
 
   test('already-consumed intent shows a clear error, and a consume race resolves to it', async ({ page }) => {
@@ -135,10 +135,10 @@ test.describe('Waiter QR handoff', () => {
     });
 
     await page.goto(`/admin/order-review/?token=${TOKEN}`);
-    await page.getByRole('button', { name: /submit order/i }).click();
+    await page.getByRole('button', { name: /invia ordine/i }).click();
 
     const alert = page.getByRole('alert').filter({ hasText: /./ }).first();
-    await expect(alert).toContainText(/already submitted/i);
-    await expect(page.getByRole('button', { name: /submit order/i })).toHaveCount(0);
+    await expect(alert).toContainText(/gia stato inviato/i);
+    await expect(page.getByRole('button', { name: /invia ordine/i })).toHaveCount(0);
   });
 });

@@ -557,7 +557,27 @@
     "destinations.renamePrompt": "Department name",
     "destinations.deleteConfirm": "Delete this department? Past orders keep its name.",
     "entries.destinationsSection": "Departments",
-    "entries.destinationsHint": "Route this item to the departments that prepare it."
+    "entries.destinationsHint": "Route this item to the departments that prepare it.",
+    "orderReview.invalidLinkTitle": "Invalid link",
+    "orderReview.invalidLinkText": "This link is missing its order token.",
+    "orderReview.notFoundTitle": "Order not found",
+    "orderReview.notFoundText": "This QR code does not match any prepared order. Ask the diner to generate a new one.",
+    "orderReview.loadFailedTitle": "Could not load order",
+    "orderReview.loadFailedText": "Something went wrong loading this order. Try again.",
+    "orderReview.loading": "Loading order...",
+    "orderReview.submitted": "Order submitted",
+    "orderReview.eyebrow": "Waiter review",
+    "orderReview.title": "Prepared order",
+    "orderReview.subtitle": "Review the diner's selection and submit it to the kitchen.",
+    "orderReview.expired": "This prepared order has expired. Ask the diner to generate a new QR code.",
+    "orderReview.consumed": "This prepared order was already submitted.",
+    "orderReview.stale": "Some items are no longer available. Ask the diner to amend the selection.",
+    "orderReview.submitFailed": "Could not submit the order. Try again.",
+    "orderReview.unavailable": "No longer available",
+    "orderReview.total": "Total",
+    "orderReview.submit": "Submit order",
+    "orderReview.submitting": "Submitting...",
+    "orderReview.removeUnavailable": "Remove unavailable items (the diner must amend the selection) before submitting."
   },
   "outOfStock": "OUT OF STOCK"
 }

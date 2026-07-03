@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ApiError, consumeOrderIntent, fetchOrderIntent } from "@/lib/api";
 import type { OrderIntentReviewResponse } from "@menu/schemas";
+import { useTranslations } from "@/lib/i18n";
 
 /**
  * Waiter review page (#19): opened by scanning the diner's QR
@@ -13,6 +14,7 @@ import type { OrderIntentReviewResponse } from "@menu/schemas";
 export default function OrderReviewPage() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
+  const t = useTranslations("admin");
 
   const [intent, setIntent] = useState<OrderIntentReviewResponse | null>(null);
   const [loadError, setLoadError] = useState<"notFound" | "generic" | null>(null);
@@ -52,16 +54,16 @@ export default function OrderReviewPage() {
     }
   }
 
-  if (!token) return <Message title="Invalid link" text="This link is missing its order token." />;
-  if (loadError === "notFound") return <Message title="Order not found" text="This QR code does not match any prepared order. Ask the diner to generate a new one." />;
-  if (loadError === "generic") return <Message title="Could not load order" text="Something went wrong loading this order. Try again." />;
-  if (!intent) return <div className="p-6 text-sm text-gray-500">Loading order...</div>;
+  if (!token) return <Message title={t("orderReview.invalidLinkTitle")} text={t("orderReview.invalidLinkText")} />;
+  if (loadError === "notFound") return <Message title={t("orderReview.notFoundTitle")} text={t("orderReview.notFoundText")} />;
+  if (loadError === "generic") return <Message title={t("orderReview.loadFailedTitle")} text={t("orderReview.loadFailedText")} />;
+  if (!intent) return <div className="p-6 text-sm text-gray-500">{t("orderReview.loading")}</div>;
 
   if (dailyNumber !== null) {
     return (
       <main className="p-6 max-w-2xl">
         <section className="rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm">
-          <h1 className="text-xl font-bold text-gray-900">Order submitted</h1>
+          <h1 className="text-xl font-bold text-gray-900">{t("orderReview.submitted")}</h1>
           <p className="text-5xl font-bold text-primary mt-6" data-testid="order-daily-number">#{dailyNumber}</p>
         </section>
       </main>
@@ -75,21 +77,21 @@ export default function OrderReviewPage() {
   return (
     <main className="p-6 max-w-2xl w-full">
       <div className="mb-6">
-        <div className="text-xs font-bold uppercase tracking-wide text-primary">Waiter review</div>
-        <h1 className="text-2xl font-bold text-gray-900">Prepared order</h1>
-        <p className="text-sm text-gray-500 mt-1">Review the diner&apos;s selection and submit it to the kitchen.</p>
+        <div className="text-xs font-bold uppercase tracking-wide text-primary">{t("orderReview.eyebrow")}</div>
+        <h1 className="text-2xl font-bold text-gray-900">{t("orderReview.title")}</h1>
+        <p className="text-sm text-gray-500 mt-1">{t("orderReview.subtitle")}</p>
       </div>
 
       {status === "expired" && (
-        <Banner text="This prepared order has expired. Ask the diner to generate a new QR code." />
+        <Banner text={t("orderReview.expired")} />
       )}
       {status === "consumed" && (
-        <Banner text="This prepared order was already submitted." />
+        <Banner text={t("orderReview.consumed")} />
       )}
-      {submitError === "expired" && <Banner text="This prepared order has expired. Ask the diner to generate a new QR code." />}
-      {submitError === "consumed" && <Banner text="This prepared order was already submitted." />}
-      {submitError === "stale" && <Banner text="Some items are no longer available. Ask the diner to amend the selection." />}
-      {submitError === "generic" && <Banner text="Could not submit the order. Try again." />}
+      {submitError === "expired" && <Banner text={t("orderReview.expired")} />}
+      {submitError === "consumed" && <Banner text={t("orderReview.consumed")} />}
+      {submitError === "stale" && <Banner text={t("orderReview.stale")} />}
+      {submitError === "generic" && <Banner text={t("orderReview.submitFailed")} />}
 
       <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
         <div className="space-y-3">
@@ -102,7 +104,7 @@ export default function OrderReviewPage() {
                 <p className={`font-semibold ${line.unavailable ? "text-gray-400 line-through" : "text-gray-800"}`}>
                   {line.name ?? line.entryId}
                 </p>
-                {line.unavailable && <p className="text-xs text-red-500 font-medium">No longer available</p>}
+                {line.unavailable && <p className="text-xs text-red-500 font-medium">{t("orderReview.unavailable")}</p>}
               </div>
               {line.price !== null && (
                 <div className="text-sm font-semibold text-gray-600 flex-shrink-0">
@@ -113,7 +115,7 @@ export default function OrderReviewPage() {
           ))}
         </div>
         <div className="flex justify-between border-t border-gray-100 mt-4 pt-3 text-sm font-bold text-gray-800">
-          <span>Total</span>
+          <span>{t("orderReview.total")}</span>
           <span>{(total / 100).toFixed(2)} &euro;</span>
         </div>
       </section>
@@ -126,11 +128,11 @@ export default function OrderReviewPage() {
             disabled={submitting || hasUnavailable}
             className="w-full mt-6 py-3 rounded-full bg-primary text-white font-semibold disabled:opacity-50"
           >
-            {submitting ? "Submitting..." : "Submit order"}
+            {submitting ? t("orderReview.submitting") : t("orderReview.submit")}
           </button>
           {hasUnavailable && (
             <p className="mt-2 text-xs text-red-500 text-center font-medium">
-              Remove unavailable items (the diner must amend the selection) before submitting.
+              {t("orderReview.removeUnavailable")}
             </p>
           )}
         </>

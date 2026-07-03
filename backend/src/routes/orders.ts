@@ -4,6 +4,7 @@ import { requireDb } from '../middleware/db';
 import { parseBody } from '../lib/validate';
 import { SubmitOrderBodySchema, CreateOrderIntentBodySchema, normalizeModulesConfig } from '@menu/schemas';
 import * as schema from '../db/schema';
+import { isDemoMode } from '../lib/demo';
 import type { DbInstance } from '../db';
 import type { AppBindings } from '../types';
 
@@ -176,6 +177,8 @@ export const orderRoutes = new Hono<AppBindings>()
     if (!ordering || !ordering.enabled || ordering.mode !== 'send' || ordering.submitMode === 'waiter') {
       return c.json({ error: 'Not Found' }, 404);
     }
+
+    if (isDemoMode(c.env)) return c.json({ ok: true, orderId: 'demo-order', dailyNumber: 1 });
 
     const result = await createOrder(db, body.idempotencyKey, body.lines);
     if ('error' in result) return c.json(result, 409);

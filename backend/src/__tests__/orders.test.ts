@@ -58,6 +58,19 @@ describe('POST /orders', () => {
     ]);
   });
 
+  it('accepts demo submits without creating an order', async () => {
+    const db = orderingDb();
+    const res = await testRequest('/orders', {
+      method: 'POST',
+      body: validBody(),
+      headers: { 'cf-connecting-ip': `10.0.0.${++ipCounter}` },
+      env: makeDbEnv(db, { DEMO_MODE: 'true' }),
+    });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ ok: true, orderId: 'demo-order', dailyNumber: 1 });
+    expect(db.raw.prepare('SELECT COUNT(*) AS c FROM orders').get()).toEqual({ c: 0 });
+  });
+
   it('snapshots destinations per item at submit time', async () => {
     const db = orderingDb();
     const now = Date.now();

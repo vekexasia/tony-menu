@@ -15,6 +15,18 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams("token=tok-123"),
 }));
 
+vi.mock("@/lib/i18n", () => ({
+  useTranslations: () => (key: string) => ({
+    "orderReview.unavailable": "No longer available",
+    "orderReview.submit": "Submit order",
+    "orderReview.submitting": "Submitting...",
+    "orderReview.expired": "This prepared order has expired.",
+    "orderReview.consumed": "This prepared order was already submitted.",
+    "orderReview.notFoundTitle": "Order not found",
+    "orderReview.notFoundText": "This QR code does not match any prepared order.",
+  }[key] ?? key),
+}));
+
 import OrderReviewPage from "./OrderReviewPage";
 
 const PENDING_INTENT = {

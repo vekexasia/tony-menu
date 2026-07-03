@@ -114,15 +114,6 @@ const allowedAdminSameAsEnglish = new Set([
   'admin.settings.publishing.menuPublic',
   'admin.settings.section.chatAi',
   'admin.translationTabs.autoLabel',
-  // Kitchen board + destinations (#18): english placeholders until #20 translates them.
-  ...Object.keys(englishAdminMessages).filter((key) =>
-    key.startsWith('admin.kitchen.')
-    || key.startsWith('admin.destinations.')
-    || key === 'admin.layout.nav.orders'
-    || key === 'admin.layout.section.orders'
-    || key === 'admin.entries.destinationsSection'
-    || key === 'admin.entries.destinationsHint',
-  ),
 ]);
 
 describe('i18n completeness (IT is source of truth)', () => {

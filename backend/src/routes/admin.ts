@@ -948,6 +948,8 @@ admin.post('/order-intents/:token/consume', ...base, async (c) => {
     .where(and(eq(schema.orderIntents.id, token), isNull(schema.orderIntents.consumedAt)));
   if (claim.meta.changes === 0) return c.json({ error: 'consumed' }, 409);
 
+  if (isDemoMode(c.env)) return c.json({ ok: true, orderId: 'demo-order', dailyNumber: 1 });
+
   // Any failure after the claim (stale items or a thrown error) must release
   // it, otherwise the intent would be stuck consumed with no order behind it.
   // Re-consuming can never double-create: createOrder is idempotent on
