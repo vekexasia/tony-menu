@@ -12,6 +12,8 @@ export const SubmitOrderBodySchema = z.object({
   /** Client-generated key: retries of the same submit return the same order. */
   idempotencyKey: z.string().min(8).max(128),
   lines: z.array(SubmitOrderLineSchema).min(1).max(100),
+  /** Optional table session (#15): set when a waiter orders for a table. */
+  tableSessionId: z.string().min(1).optional(),
 });
 export type SubmitOrderBody = z.infer<typeof SubmitOrderBodySchema>;
 
