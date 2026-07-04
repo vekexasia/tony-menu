@@ -93,7 +93,7 @@ cd web && npm run dev
 
 Open the frontend dev server's root path for the diner menu.
 
-`/admin` should be protected by Cloudflare Access. In local dev, either point `NEXT_PUBLIC_API_URL` at a deployed backend or use the Playwright admin bypass described in [docs/self-hosting.md](docs/self-hosting.md#8-run-locally). The first migration seeds a `settings` row named "My Restaurant"; change it from `/admin?s=settings`.
+`/admin` should be protected by Cloudflare Access. In local dev, point `NEXT_PUBLIC_API_URL` at a backend that can authenticate you, or run the backend with `DEMO_MODE=true` for demo-only access. The first migration seeds a `settings` row named "My Restaurant"; change it from `/admin?s=settings`.
 
 ## Common commands
 

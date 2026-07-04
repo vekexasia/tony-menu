@@ -40,19 +40,6 @@ export default function AdminContent({
   const categories = useCategories();
 
   useEffect(() => {
-    // Playwright test bypass — inject via page.addInitScript
-    if (process.env.NODE_ENV !== 'production' && typeof window !== 'undefined') {
-      const bypass = (window as Window & { __playwright_admin__?: { user: { uid: string; email: string; name?: string } } }).__playwright_admin__;
-      if (bypass) {
-        setAuthState({
-          loading: false,
-          user: { uid: bypass.user.uid, email: bypass.user.email, name: bypass.user.name, isAdmin: true },
-          isAdmin: true,
-        });
-        return;
-      }
-    }
-
     // With Cloudflare Access in front of /admin/*, the user is already
     // authenticated by the time this code runs. We just call /me to find out
     // who they are and whether they're authorised.

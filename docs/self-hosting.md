@@ -215,11 +215,8 @@ cd web && npm run dev              # → http://localhost:3000
 ```
 
 Open <http://localhost:3000/admin>. In local dev, Cloudflare Access isn't
-in the loop — `requireAuth` returns 503 because `ACCESS_TEAM_DOMAIN` /
-`ACCESS_AUD` aren't set. To bypass during dev, either point at the deployed
-backend (`NEXT_PUBLIC_API_URL` in `.env.local`) or use the Playwright admin
-bypass that injects a fake user into `window.__playwright_admin__` (see
-`web/src/app/admin/AdminContent.tsx`).
+in the loop — point at a backend that can authenticate you, or run a demo-only
+backend with `DEMO_MODE=true`.
 
 ---
 

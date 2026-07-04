@@ -47,16 +47,6 @@ export const useRestaurantStore = create<RestaurantState>((set, get) => ({
     if (!options?.force && currentState.data && !currentState.error) return;
     if (currentState.isLoading) return;
 
-    if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'production') {
-      const mock = (window as Window & { __playwright_restaurant__?: RestaurantData }).__playwright_restaurant__;
-      if (mock) {
-        const categoriesCache = new Map<string, MenuCategory>();
-        for (const cat of mock.categories) categoriesCache.set(cat.path, cat);
-        set({ data: mock, variantsCache: new Map(), extrasCache: new Map(), categoriesCache, isLoading: false, error: null });
-        return;
-      }
-    }
-
     set({ isLoading: true, error: null });
 
     try {
