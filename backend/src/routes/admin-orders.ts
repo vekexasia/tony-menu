@@ -33,8 +33,17 @@ admin.get('/orders', ...base, async (c) => {
   const day = Number(c.req.query('day')) || currentOrderDay();
 
   const orderRows = await db
-    .select()
+    .select({
+      id: schema.orders.id,
+      dailyNumber: schema.orders.dailyNumber,
+      status: schema.orders.status,
+      rejectReason: schema.orders.rejectReason,
+      createdAt: schema.orders.createdAt,
+      tableName: schema.tables.name,
+    })
     .from(schema.orders)
+    .leftJoin(schema.tableSessions, eq(schema.orders.tableSessionId, schema.tableSessions.id))
+    .leftJoin(schema.tables, eq(schema.tableSessions.tableId, schema.tables.id))
     .where(eq(schema.orders.orderDay, day))
     .orderBy(desc(schema.orders.dailyNumber));
 
@@ -68,6 +77,7 @@ admin.get('/orders', ...base, async (c) => {
       status: o.status,
       rejectReason: o.rejectReason,
       createdAt: o.createdAt,
+      tableName: o.tableName ?? null,
       items: (itemsByOrder.get(o.id) ?? []).map((i) => ({
         id: i.id,
         name: i.name,

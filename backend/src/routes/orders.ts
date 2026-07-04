@@ -1,10 +1,11 @@
 import { Hono } from 'hono';
-import { eq, inArray, count } from 'drizzle-orm';
+import { eq, and, inArray, isNull, count } from 'drizzle-orm';
 import { requireDb } from '../middleware/db';
 import { parseBody } from '../lib/validate';
 import { SubmitOrderBodySchema, CreateOrderIntentBodySchema, normalizeModulesConfig } from '@menu/schemas';
 import * as schema from '../db/schema';
 import { isDemoMode } from '../lib/demo';
+import { STAFF_SESSION_HEADER, validateStaffSession } from '../lib/staff';
 import type { DbInstance } from '../db';
 import type { AppBindings } from '../types';
 
@@ -20,7 +21,8 @@ const MAX_NUMBERING_RETRIES = 3;
 
 export type CreateOrderResult =
   | { ok: true; orderId: string; dailyNumber: number }
-  | { error: 'stale_items'; staleEntryIds: string[] };
+  | { error: 'stale_items'; staleEntryIds: string[] }
+  | { error: 'invalid_table_session' };
 
 /**
  * The single order-creation path (issue #17). Both the public direct submit
@@ -32,10 +34,23 @@ export async function createOrder(
   db: DbInstance,
   idempotencyKey: string,
   rawLines: { entryId: string; quantity: number }[],
+  tableSessionId?: string | null,
 ): Promise<CreateOrderResult> {
-  // Idempotency: a retried submit returns the already-created order.
+  // Idempotency first: a retried submit returns the already-created order even
+  // if the table session has since closed (no false invalid_table_session).
   const existing = await findByIdempotencyKey(db, idempotencyKey);
   if (existing) return existing;
+
+  // Guard the optional table session (#15): it must exist and be open, so an
+  // invalid id can't 500 on the FK and a closed session can't accept appends.
+  if (tableSessionId != null) {
+    const [session] = await db
+      .select({ id: schema.tableSessions.id })
+      .from(schema.tableSessions)
+      .where(and(eq(schema.tableSessions.id, tableSessionId), isNull(schema.tableSessions.closedAt)))
+      .limit(1);
+    if (!session) return { error: 'invalid_table_session' };
+  }
 
   // Merge duplicate entryIds so one entry can't create two lines.
   const quantities = new Map<string, number>();
@@ -122,6 +137,7 @@ export async function createOrder(
           orderDay,
           dailyNumber,
           idempotencyKey,
+          tableSessionId: tableSessionId ?? null,
         }),
         db.insert(schema.orderItems).values(itemValues),
         ...(itemDestinationValues.length > 0
@@ -161,9 +177,15 @@ export const orderRoutes = new Hono<AppBindings>()
   /**
    * POST /orders
    *
-   * Public direct-submit endpoint (submitMode diner|both). Rate limited in
-   * app.ts. Order creation itself lives in createOrder(), shared with the
-   * waiter intent-consume path (#19).
+   * Direct-submit endpoint. Rate limited in app.ts. Order creation lives in
+   * createOrder(), shared with the waiter intent-consume path (#19).
+   *
+   * Two callers, one path (no duplicate submit route per #15):
+   *  - diner self-submit: requires submitMode diner|both;
+   *  - waiter table order (#15): body carries tableSessionId + a valid
+   *    X-Staff-Session header, which bypasses the diner submitMode gate so
+   *    waiter-only configs can still take table orders. The module must still
+   *    be enabled and in 'send' mode.
    */
   .post('/', requireDb, async (c) => {
     const db = c.get('db');
@@ -171,16 +193,24 @@ export const orderRoutes = new Hono<AppBindings>()
     const body = await parseBody(c, SubmitOrderBodySchema);
     if (body instanceof Response) return body;
 
-    // Direct submit needs: module on, mode 'send' (legacy 'summary' configs stay
-    // summary-only), and a submitMode that lets the diner send ('diner'|'both').
     const ordering = await loadOrdering(db);
-    if (!ordering || !ordering.enabled || ordering.mode !== 'send' || ordering.submitMode === 'waiter') {
+    if (!ordering || !ordering.enabled || ordering.mode !== 'send') {
+      return c.json({ error: 'Not Found' }, 404);
+    }
+
+    if (body.tableSessionId != null) {
+      // Waiter table order: authenticate the staff session instead of the
+      // diner submitMode gate.
+      const session = await validateStaffSession(db, c.req.header(STAFF_SESSION_HEADER));
+      if (!session && !isDemoMode(c.env)) return c.json({ error: 'Unauthorized' }, 401);
+    } else if (ordering.submitMode === 'waiter') {
+      // Diner self-submit is disabled in waiter-only mode.
       return c.json({ error: 'Not Found' }, 404);
     }
 
     if (isDemoMode(c.env)) return c.json({ ok: true, orderId: 'demo-order', dailyNumber: 1 });
 
-    const result = await createOrder(db, body.idempotencyKey, body.lines);
+    const result = await createOrder(db, body.idempotencyKey, body.lines, body.tableSessionId);
     if ('error' in result) return c.json(result, 409);
     return c.json(result);
   })

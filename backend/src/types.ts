@@ -1,4 +1,5 @@
 import type { AuthUser } from './middleware/auth';
+import type { StaffSession } from './lib/staff';
 import type { createDb } from './db/index';
 
 export interface Env {
@@ -40,6 +41,7 @@ export interface AppVariables {
   config: RuntimeConfig;
   user: AuthUser;
   db: NonNullable<ReturnType<typeof createDb>>;
+  staff: StaffSession;
 }
 
 /** Standard Hono app bindings for typed route handlers */

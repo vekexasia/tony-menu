@@ -5,6 +5,7 @@ import { healthRoutes } from './routes/health';
 import { meRoutes } from './routes/me';
 import { catalogRoutes } from './routes/catalog';
 import { orderRoutes } from './routes/orders';
+import { staffRoutes } from './routes/staff';
 import { adminRoutes } from './routes/admin';
 import { requestLogger, rateLimit } from './middleware/logging';
 import type { AppBindings } from './types';
@@ -43,7 +44,7 @@ export function createApp() {
         return null;
       },
       allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-      allowHeaders: ['Content-Type', 'Cf-Access-Jwt-Assertion'],
+      allowHeaders: ['Content-Type', 'Cf-Access-Jwt-Assertion', 'X-Staff-Session'],
       // Required so the browser sends cookies / Access JWT on cross-origin
       // /admin/* calls (frontend on Pages, backend on workers.dev).
       credentials: true,
@@ -64,6 +65,8 @@ export function createApp() {
   // Waiter-handoff intent creation (#19) — same budget, separate mount because
   // Hono's '/orders' middleware does not match subpaths.
   app.use('/orders/intents', rateLimit(10, 60_000));
+  // Staff session actions (waiter mode, #15) — generous per-IP budget.
+  app.use('/staff/*', rateLimit(200, 60_000));
 
   // Runtime config parsing
   app.use('*', async (c, next) => {
@@ -90,6 +93,7 @@ export function createApp() {
   app.route('/admin/me', meRoutes);
   app.route('/catalog', catalogRoutes);
   app.route('/orders', orderRoutes);
+  app.route('/staff', staffRoutes);
   app.route('/admin', adminRoutes);
 
   app.notFound((c) => c.json({ error: 'Not Found' }, 404));

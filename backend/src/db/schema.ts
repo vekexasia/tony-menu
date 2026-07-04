@@ -282,12 +282,15 @@ export const orders = sqliteTable(
     rejectReason: text('reject_reason'),
     // Client-generated idempotency key: retried submits return the existing order.
     idempotencyKey: text('idempotency_key').notNull(),
+    // Optional table session (#15): nullable — direct diner orders carry none.
+    tableSessionId: text('table_session_id').references(() => tableSessions.id, { onDelete: 'set null' }),
     ...timestamps,
   },
   (table) => ({
     dailyNumberIdx: uniqueIndex('orders_day_number_idx').on(table.orderDay, table.dailyNumber),
     idempotencyIdx: uniqueIndex('orders_idempotency_idx').on(table.idempotencyKey),
     dayIdx: index('orders_day_idx').on(table.orderDay),
+    tableSessionIdx: index('orders_table_session_idx').on(table.tableSessionId),
   }),
 );
 
@@ -349,6 +352,63 @@ export const orderIntents = sqliteTable('order_intents', {
   consumedAt: integer('consumed_at'),
   createdAt: integer('created_at').notNull().$defaultFn(() => Date.now()),
 });
+
+// ── Waiter mode (#15) ─────────────────────────────────────────────────────────
+
+/**
+ * Named one-use staff links. A link is exchanged once for a session token
+ * (localStorage on the waiter's device); consuming it sets consumedAt +
+ * sessionToken and the link can't be reused. revokedAt kills the session even
+ * after it was consumed. lastSeenAt is a throttled heartbeat.
+ */
+export const staffLinks = sqliteTable(
+  'staff_links',
+  {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    // Opaque one-use token embedded in the /staff?token=... link.
+    token: text('token').notNull(),
+    // Set on consume; the waiter's device sends it as the staff session header.
+    sessionToken: text('session_token'),
+    consumedAt: integer('consumed_at'),
+    revokedAt: integer('revoked_at'),
+    lastSeenAt: integer('last_seen_at'),
+    ...timestamps,
+  },
+  (table) => ({
+    tokenIdx: uniqueIndex('staff_links_token_idx').on(table.token),
+    sessionTokenIdx: uniqueIndex('staff_links_session_token_idx').on(table.sessionToken),
+  }),
+);
+
+/** Physical tables. Flat list, no floor-plan layout. */
+export const tables = sqliteTable(
+  'tables',
+  {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    active: integer('active', { mode: 'boolean' }).notNull().default(true),
+    sortOrder: integer('sort_order').notNull().default(0),
+    ...timestamps,
+  },
+  (table) => ({
+    sortIdx: index('tables_sort_idx').on(table.sortOrder),
+  }),
+);
+
+/** An open/closed dining session grouping a table's orders (#15). */
+export const tableSessions = sqliteTable(
+  'table_sessions',
+  {
+    id: text('id').primaryKey(),
+    tableId: text('table_id').notNull().references(() => tables.id, { onDelete: 'cascade' }),
+    openedAt: integer('opened_at').notNull().$defaultFn(() => Date.now()),
+    closedAt: integer('closed_at'),
+  },
+  (table) => ({
+    tableIdx: index('table_sessions_table_idx').on(table.tableId),
+  }),
+);
 
 // ── Chat Sessions ─────────────────────────────────────────────────────────────
 
