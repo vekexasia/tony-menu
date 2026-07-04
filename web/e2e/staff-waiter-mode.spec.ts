@@ -2,11 +2,11 @@ import { test, expect } from '@playwright/test';
 import {
   API_URL,
   addBruschettaFromMenu,
+  dismissPopups,
   createStaffLink,
   createTable,
   resetDemo,
   revokeStaffLink,
-  setE2eIp,
   setOrdering,
 } from './fixtures/real-backend';
 
@@ -19,7 +19,6 @@ test.describe.serial('Waiter mode — real backend', () => {
   });
 
   test('consuming a staff link stores a session and shows the floor', async ({ page, request }) => {
-    await setE2eIp(page);
     const table = await createTable(request, `E2E Floor ${Date.now()}`);
     const link = await createStaffLink(request, 'Marco');
 
@@ -37,7 +36,6 @@ test.describe.serial('Waiter mode — real backend', () => {
   });
 
   test('revoked session is locked out', async ({ page, request }) => {
-    await setE2eIp(page);
     await createTable(request);
     const link = await createStaffLink(request, 'Revoked waiter');
     await page.goto(`/staff?token=${link.token}`);
@@ -57,7 +55,6 @@ test.describe.serial('Waiter mode — real backend', () => {
   });
 
   test('takes an order for a table, appends another, and shows the table name on the kitchen board', async ({ page, request }) => {
-    await setE2eIp(page);
     const table = await createTable(request, `E2E Table ${Date.now()}`);
     const link = await createStaffLink(request, 'Marco');
 
@@ -69,23 +66,29 @@ test.describe.serial('Waiter mode — real backend', () => {
     const { sessionId } = await (await openRes).json() as { sessionId: string };
 
     await page.goto(`/staff/table/${sessionId}`);
-    await expect(page.getByTestId('add-order')).toHaveAttribute('href', new RegExp(`selection\\/?\\?staffSession=${sessionId}`));
-
-    await addBruschettaFromMenu(page);
-    await setE2eIp(page);
-    await page.goto(`/it/selection?staffSession=${sessionId}`);
+    const addOrder = page.getByTestId('add-order');
+    await expect(addOrder).toHaveAttribute('href', new RegExp(`menu\\/?\\?staffSession=${sessionId}`));
+    await addOrder.click();
+    await dismissPopups(page);
+    await page.getByText(/bruschetta/i).first().click();
+    await page.getByRole('button', { name: /aggiungi alla selezione|add to selection/i }).click();
+    await page.keyboard.press('Escape');
+    await page.getByRole('link', { name: /la mia selezione|my selection/i }).click();
 
     const orderReq = page.waitForRequest((req) => req.url().includes('/orders') && req.method() === 'POST');
-    const orderRes = page.waitForResponse((res) => res.url().includes('/orders') && res.request().method() === 'POST' && res.status() === 200);
-    await page.getByRole('button', { name: /invia ordine/i }).click();
+    const orderRes = page.waitForResponse((res) => res.url().includes('/orders') && res.request().method() === 'POST');
+    await page.getByRole('button', { name: /invia ordine|send order/i }).click();
     const body = (await orderReq).postDataJSON() as { tableSessionId?: string };
     expect(body.tableSessionId).toBe(sessionId);
-    await orderRes;
+    const response = await orderRes;
+    const responseText = await response.text();
+    expect(responseText).toContain('"ok":true');
+    expect(response.ok()).toBeTruthy();
 
     await expect(page).toHaveURL(new RegExp(`/staff/table/${sessionId}/?$`));
     await expect(page.getByTestId('order-1')).toContainText(/bruschetta/i);
 
-    await expect(page.getByTestId('add-order')).toHaveAttribute('href', new RegExp(`selection\\/?\\?staffSession=${sessionId}`));
+    await expect(page.getByTestId('add-order')).toHaveAttribute('href', new RegExp(`menu\\/?\\?staffSession=${sessionId}`));
 
     await page.goto('/admin/orders');
     const card = page.getByTestId('order-1');

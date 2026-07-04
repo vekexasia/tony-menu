@@ -35,6 +35,10 @@ export const requestLogger = createMiddleware<AppBindings>(async (c, next) => {
  */
 export function rateLimit(maxRequests: number, windowMs: number) {
   return createMiddleware<AppBindings>(async (c, next) => {
+    if (c.env?.E2E_MODE === 'true') {
+      await next();
+      return;
+    }
     const ip = c.req.header('cf-connecting-ip') || 'unknown';
     const limited = checkRateLimit(`ip:${ip}`, maxRequests, windowMs);
     if (limited) return limited;

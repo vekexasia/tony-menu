@@ -118,7 +118,7 @@ export function TableDetail({ sessionId }: { sessionId: string }) {
         )}
 
         <Link
-          href={`/${locale}/selection?staffSession=${encodeURIComponent(sessionId)}`}
+          href={`/${locale}/menu?staffSession=${encodeURIComponent(sessionId)}`}
           data-testid="add-order"
           className="block w-full mt-6 py-3 rounded-full bg-primary text-white font-semibold text-center"
         >

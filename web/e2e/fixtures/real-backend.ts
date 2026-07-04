@@ -103,12 +103,11 @@ export async function addBruschettaFromMenu(page: Page) {
 }
 
 export async function dismissPopups(page: Page) {
-  for (const name of [/^OK$/i, /non ora/i]) {
-    const button = page.getByRole('button', { name }).first();
-    try {
-      await button.click({ timeout: 1500 });
-    } catch {
-      // optional demo popups
-    }
+  const modal = page.locator('.fixed.inset-0').first();
+  await modal.waitFor({ state: 'attached', timeout: 3000 }).catch(() => undefined);
+  const modalButton = modal.locator('button').first();
+  if (await modalButton.count()) {
+    await modalButton.click({ force: true });
+    await expect(page.locator('.fixed.inset-0')).toHaveCount(0, { timeout: 3000 }).catch(() => undefined);
   }
 }

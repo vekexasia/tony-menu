@@ -18,6 +18,7 @@ export interface Env {
   OPENAI_API_KEY?: string;
   BASE_DOMAIN?: string;
   DEMO_MODE?: string;
+  E2E_MODE?: string;
 }
 
 export type AppEnvironment = 'development' | 'staging' | 'production';

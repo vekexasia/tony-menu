@@ -39,6 +39,7 @@ export default function MenuPageClient() {
   // forbids runtime-discovered dynamic route params. The legacy `?type=drinks`
   // value is honored as an alias for any 'drinks'- or 'takeaway'-coded menu.
   const typeParam = searchParams.get("type") ?? undefined;
+  const staffSession = searchParams.get("staffSession");
   const aiChatDevOverride = process.env.NODE_ENV !== 'production' && searchParams.get('aiChat') === '1';
   const hasChatWorker = Boolean(process.env.NEXT_PUBLIC_CHAT_WORKER_URL);
   const { data, isLoading, error, loadRestaurant } = useRestaurantStore();
@@ -265,7 +266,7 @@ export default function MenuPageClient() {
         </div>
         {selectionEnabled && selectionCount > 0 && (
           <Link
-            href={`/${locale}/selection`}
+            href={`/${locale}/selection${staffSession ? `?staffSession=${encodeURIComponent(staffSession)}` : ""}`}
             className="fixed top-4 right-4 z-40 rounded-full bg-primary text-white shadow-lg px-3 py-2 text-xs font-semibold"
             aria-label={selectionLabel}
           >

@@ -9,7 +9,6 @@ import {
   createStaffLink,
   createTable,
   resetDemo,
-  setE2eIp,
   setOrdering,
 } from './fixtures/real-backend';
 
@@ -23,21 +22,21 @@ test.describe.serial('Waiter QR handoff — real backend', () => {
   });
 
   test('diner creates an intent and shows a QR; waiter submits it', async ({ page, context, request }) => {
-    await setE2eIp(page);
     await addBruschettaFromMenu(page);
     await page.getByRole('link', { name: /la mia selezione/i }).click();
 
     const intentReq = page.waitForRequest((req) => req.url().includes('/orders/intents') && req.method() === 'POST');
-    const intentRes = page.waitForResponse((res) => res.url().includes('/orders/intents') && res.request().method() === 'POST' && res.status() === 200);
+    const intentRes = page.waitForResponse((res) => res.url().includes('/orders/intents') && res.request().method() === 'POST');
     await page.getByRole('button', { name: /mostra qr al cameriere/i }).click();
 
     await expect(page.getByTestId('waiter-qr')).toBeVisible();
     expect((await intentReq).postDataJSON()).toMatchObject({ lines: [{ entryId: BRUSCHETTA_ID, quantity: 1 }] });
-    const { token } = await (await intentRes).json() as { token: string };
+    const intentResponse = await intentRes;
+    expect(intentResponse.ok()).toBeTruthy();
+    const { token } = await intentResponse.json() as { token: string };
 
     const staff = await createStaffLink(request);
     const waiterPage = await context.newPage();
-    await setE2eIp(waiterPage);
     await waiterPage.goto(`/staff?token=${staff.token}`);
     await expect(waiterPage).toHaveURL(/\/staff\/?$/);
 
@@ -48,7 +47,6 @@ test.describe.serial('Waiter QR handoff — real backend', () => {
   });
 
   test('already-consumed intent shows a clear error and no submit button', async ({ page, request }) => {
-    await setE2eIp(page);
     const staff = await createStaffLink(request);
     const { sessionToken } = await consumeStaffLinkApi(request, staff.token);
     const { token } = await createIntentApi(request);
