@@ -1,11 +1,11 @@
 import { test, expect, type Page } from '@playwright/test';
-import { MOCK_RESTAURANT, MOCK_USER } from './fixtures/admin-mock';
+import { MOCK_RESTAURANT } from './fixtures/admin-mock';
 
 /**
- * Waiter QR handoff (issue #19): the diner prepares an order and shows a QR
- * linking to /admin/order-review/?token=...; the waiter opens that link,
- * reviews the intent, and submits it. Backend endpoints are mocked at the
- * network layer (same approach as order-submit.spec.ts).
+ * Waiter QR handoff (issues #19 + #15): the diner prepares an order and shows a
+ * QR linking to /order-review?token=...; the waiter (with a staff session)
+ * opens that link, reviews the intent, and submits it. Backend endpoints are
+ * mocked at the network layer (same approach as order-submit.spec.ts).
  */
 
 const TOKEN = 'intent-token-e2e';
@@ -42,10 +42,15 @@ async function setupDiner(page: Page) {
 }
 
 async function setupWaiter(page: Page) {
-  await page.addInitScript(({ restaurant, user }) => {
-    window.__playwright_admin__ = { user, restaurantId: 'demo-restaurant' };
+  await page.addInitScript((restaurant) => {
     window.__playwright_restaurant__ = restaurant as never;
-  }, { restaurant: RESTAURANT_WAITER, user: MOCK_USER });
+    // Seed a staff session so StaffGate lets the waiter in (#15).
+    window.localStorage.setItem('tony-menu-staff-session', 'staff-session-e2e');
+  }, RESTAURANT_WAITER);
+  // StaffGate validates the stored session before rendering.
+  await page.route('**/staff/session', (route) => route.fulfill({
+    status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, name: 'Marco' }),
+  }));
 }
 
 test.describe('Waiter QR handoff', () => {
@@ -68,18 +73,18 @@ test.describe('Waiter QR handoff', () => {
     await expect(page.getByTestId('waiter-qr')).toBeVisible();
     expect(intentBody!.lines).toEqual([{ entryId: 'entry-bruschetta', quantity: 2 }]);
     // No full-cart payload in the QR — it encodes only a link with the token.
-    const reviewPath = `/admin/order-review/?token=${TOKEN}`;
+    const reviewPath = `/order-review/?token=${TOKEN}`;
 
     // ── Waiter side (different page = different device) ──
     const waiterPage = await context.newPage();
     await setupWaiter(waiterPage);
-    await waiterPage.route(`**/admin/order-intents/${TOKEN}`, (route) => route.fulfill({
+    await waiterPage.route(`**/staff/order-intents/${TOKEN}`, (route) => route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify(PENDING_INTENT),
     }));
     let consumed = false;
-    await waiterPage.route(`**/admin/order-intents/${TOKEN}/consume`, async (route) => {
+    await waiterPage.route(`**/staff/order-intents/${TOKEN}/consume`, async (route) => {
       consumed = true;
       await route.fulfill({
         status: 200,
@@ -98,13 +103,13 @@ test.describe('Waiter QR handoff', () => {
 
   test('expired intent shows a clear error and no submit button', async ({ page }) => {
     await setupWaiter(page);
-    await page.route(`**/admin/order-intents/${TOKEN}`, (route) => route.fulfill({
+    await page.route(`**/staff/order-intents/${TOKEN}`, (route) => route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify({ ...PENDING_INTENT, status: 'expired' }),
     }));
 
-    await page.goto(`/admin/order-review/?token=${TOKEN}`);
+    await page.goto(`/order-review/?token=${TOKEN}`);
 
     const alert = page.getByRole('alert').filter({ hasText: /./ });
     await expect(alert).toContainText(/scaduto/i);
@@ -117,7 +122,7 @@ test.describe('Waiter QR handoff', () => {
     // load effect in dev, so the intent must stay pending until the consume
     // attempt actually happens — then the reload finds it consumed.
     let raced = false;
-    await page.route(`**/admin/order-intents/${TOKEN}`, (route) => {
+    await page.route(`**/staff/order-intents/${TOKEN}`, (route) => {
       const status = raced ? 'consumed' : 'pending';
       return route.fulfill({
         status: 200,
@@ -125,7 +130,7 @@ test.describe('Waiter QR handoff', () => {
         body: JSON.stringify({ ...PENDING_INTENT, status, consumedAt: status === 'consumed' ? Date.now() : null }),
       });
     });
-    await page.route(`**/admin/order-intents/${TOKEN}/consume`, (route) => {
+    await page.route(`**/staff/order-intents/${TOKEN}/consume`, (route) => {
       raced = true; // a concurrent waiter won the race
       return route.fulfill({
         status: 409,
@@ -134,7 +139,7 @@ test.describe('Waiter QR handoff', () => {
       });
     });
 
-    await page.goto(`/admin/order-review/?token=${TOKEN}`);
+    await page.goto(`/order-review/?token=${TOKEN}`);
     await page.getByRole('button', { name: /invia ordine/i }).click();
 
     const alert = page.getByRole('alert').filter({ hasText: /./ }).first();

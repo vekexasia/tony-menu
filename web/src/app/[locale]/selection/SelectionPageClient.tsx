@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 import { getLocalizedContentValue } from "@/lib/content-presentation";
 import { ApiError, createOrderIntent, submitOrder } from "@/lib/api";
@@ -24,6 +24,12 @@ type ResolvedLine = {
 export function SelectionPageClient() {
   const params = useParams();
   const locale = params.locale as string;
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  // Staff-context ordering (#15): when a waiter opens the menu from a table, the
+  // submit binds to that table session and returns to it. Thin reuse of the
+  // diner selection UI — no forked picker.
+  const staffSession = searchParams.get("staffSession");
   const t = useTranslations();
   const { data, isLoading, error, loadRestaurant } = useRestaurantStore();
   const [sending, setSending] = useState(false);
@@ -43,8 +49,10 @@ export function SelectionPageClient() {
   const formatMessage = (key: string, values: Record<string, string | number>) => fmt(t, key, values);
 
   const ordering = data?.features?.ordering;
-  const canSend = ordering?.enabled === true && ordering.mode === "send" && ordering.submitMode !== "waiter";
-  const canWaiterQr = ordering?.enabled === true && ordering.mode === "send" && ordering.submitMode !== "diner" && ordering.submitMode !== undefined;
+  // In staff context the waiter always sends directly to the kitchen for the
+  // table, regardless of the diner-facing submitMode.
+  const canSend = !!staffSession || (ordering?.enabled === true && ordering.mode === "send" && ordering.submitMode !== "waiter");
+  const canWaiterQr = !staffSession && ordering?.enabled === true && ordering.mode === "send" && ordering.submitMode !== "diner" && ordering.submitMode !== undefined;
 
   async function handleShowQr(resolved: ResolvedLine[]) {
     if (creatingIntent) return;
@@ -56,7 +64,7 @@ export function SelectionPageClient() {
       });
       // The QR encodes a LINK to the admin review page — small and scannable,
       // no cart payload. The selection is kept: the waiter submits it later.
-      setIntentUrl(`${window.location.origin}/admin/order-review/?token=${result.token}`);
+      setIntentUrl(`${window.location.origin}/order-review/?token=${result.token}`);
     } catch {
       setSubmitError("intent");
     } finally {
@@ -73,10 +81,16 @@ export function SelectionPageClient() {
       const result = await submitOrder({
         idempotencyKey: idempotencyKeyRef.current,
         lines: resolved.map((r) => ({ entryId: r.line.entryId, quantity: r.line.quantity })),
+        ...(staffSession ? { tableSessionId: staffSession } : {}),
       });
       idempotencyKeyRef.current = null;
-      setSentNumber(result.dailyNumber);
       clear();
+      if (staffSession) {
+        // Append-only: back to the table, where the new order shows in the session.
+        router.push(`/staff/table/${staffSession}`);
+        return;
+      }
+      setSentNumber(result.dailyNumber);
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
         // Server-side stale list is authoritative; the local catalog may lag.

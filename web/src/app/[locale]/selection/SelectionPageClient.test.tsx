@@ -20,6 +20,8 @@ vi.mock('@/lib/api', async (importOriginal) => {
 
 vi.mock('next/navigation', () => ({
   useParams: () => ({ locale: 'it' }),
+  useRouter: () => ({ push: vi.fn() }),
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 vi.mock('next/link', () => ({

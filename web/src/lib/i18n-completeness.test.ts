@@ -88,6 +88,9 @@ const allowedAdminSameAsEnglish = new Set([
   'admin.labels.title',
   'admin.layout.nav.analytics',
   'admin.layout.nav.menu',
+  // "Tables" is identical in English and French.
+  'admin.layout.section.tables',
+  'admin.tables.title',
   'admin.layout.section.analytics',
   'admin.layout.section.chatAi',
   'admin.layout.section.items',

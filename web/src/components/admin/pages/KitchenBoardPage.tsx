@@ -207,6 +207,9 @@ export default function KitchenBoardPage() {
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <div className="flex items-center gap-3">
                     <span className="text-lg font-bold text-gray-900">#{order.dailyNumber}</span>
+                    {order.tableName && (
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">{order.tableName}</span>
+                    )}
                     <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: style.bg, color: style.fg }}>
                       {t(`kitchen.status.${order.status}`)}
                     </span>

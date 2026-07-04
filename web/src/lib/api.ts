@@ -38,9 +38,19 @@ import type {
   CreateOrderIntentBody,
   CreateOrderIntentResponse,
   OrderIntentReviewResponse,
+  CreateStaffLinkBody,
+  CreatedStaffLinkResponse,
+  StaffLinkSummary,
+  ConsumeStaffLinkResponse,
+  CreateTableBody,
+  UpdateTableBody,
+  AdminTable,
+  FloorTable,
+  TableSessionDetail,
 } from '@menu/schemas';
 
 export type { CatalogResponse, MeResponse, AnalyticsResponse, ViewedItemRanked, MenuViewBreakdown, HourlyTotal };
+export type { StaffLinkSummary, AdminTable, FloorTable, TableSessionDetail, ConsumeStaffLinkResponse } from '@menu/schemas';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
 const WEB_COMMIT_SHA = process.env.NEXT_PUBLIC_COMMIT_SHA || 'dev';
@@ -60,10 +70,46 @@ interface FetchOptions {
   body?: unknown;
   headers?: Record<string, string>;
   auth?: boolean;
+  /** Attach the stored staff session token (waiter mode, #15). */
+  staff?: boolean;
+}
+
+// ── Staff session (waiter mode, #15) ─────────────────────────────────
+
+const STAFF_SESSION_KEY = 'tony-menu-staff-session';
+
+export function getStaffSession(): string | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    return window.localStorage.getItem(STAFF_SESSION_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function setStaffSession(token: string): void {
+  try {
+    window.localStorage.setItem(STAFF_SESSION_KEY, token);
+  } catch {
+    // ignore
+  }
+}
+
+export function clearStaffSession(): void {
+  try {
+    window.localStorage.removeItem(STAFF_SESSION_KEY);
+  } catch {
+    // ignore
+  }
 }
 
 async function apiFetch<T>(path: string, options: FetchOptions = {}): Promise<T> {
-  const { method = 'GET', body, headers = {}, auth = false } = options;
+  const { method = 'GET', body, headers = {}, auth = false, staff = false } = options;
+
+  if (staff) {
+    const token = getStaffSession();
+    if (token) headers['X-Staff-Session'] = token;
+  }
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
@@ -131,9 +177,13 @@ export function getCatalog() {
   return apiFetch<CatalogResponse>(`/catalog?t=${Date.now()}`);
 }
 
-/** Submit a diner order (public, rate-limited, idempotent via idempotencyKey). */
+/**
+ * Submit an order (public, rate-limited, idempotent via idempotencyKey).
+ * With a tableSessionId (waiter mode, #15) it also sends the staff session
+ * header so the shared /orders route authenticates the waiter.
+ */
 export function submitOrder(body: SubmitOrderBody) {
-  return apiFetch<SubmitOrderResponse>('/orders', { method: 'POST', body });
+  return apiFetch<SubmitOrderResponse>('/orders', { method: 'POST', body, staff: !!body.tableSessionId });
 }
 
 /** Create a waiter-handoff order intent (public); the token goes into the QR link. */
@@ -141,14 +191,80 @@ export function createOrderIntent(body: CreateOrderIntentBody) {
   return apiFetch<CreateOrderIntentResponse>('/orders/intents', { method: 'POST', body });
 }
 
-/** Load an order intent for waiter review (admin). Lines reflect the current menu. */
+/** Load an order intent for waiter review (staff, #15). Lines reflect the current menu. */
 export function fetchOrderIntent(token: string) {
-  return apiFetch<OrderIntentReviewResponse>(`/admin/order-intents/${encodeURIComponent(token)}`, { auth: true });
+  return apiFetch<OrderIntentReviewResponse>(`/staff/order-intents/${encodeURIComponent(token)}`, { staff: true });
 }
 
-/** Consume an intent into a real order (admin). 409: expired | consumed | stale_items. */
-export function consumeOrderIntent(token: string) {
-  return apiFetch<SubmitOrderResponse>(`/admin/order-intents/${encodeURIComponent(token)}/consume`, { method: 'POST', auth: true });
+/** Consume an intent into a real order (staff). 409: expired | consumed | stale_items. Optional table session. */
+export function consumeOrderIntent(token: string, tableSessionId?: string) {
+  return apiFetch<SubmitOrderResponse>(`/staff/order-intents/${encodeURIComponent(token)}/consume`, {
+    method: 'POST',
+    body: tableSessionId ? { tableSessionId } : undefined,
+    staff: true,
+  });
+}
+
+// ── Staff / waiter mode (#15) ────────────────────────────────
+
+/** Exchange a one-use link token for a session (public). */
+export function consumeStaffLink(token: string) {
+  return apiFetch<ConsumeStaffLinkResponse>('/staff/consume', { method: 'POST', body: { token } });
+}
+
+/** Verify the stored staff session is still valid. */
+export function checkStaffSession() {
+  return apiFetch<{ ok: true; name: string }>('/staff/session', { staff: true });
+}
+
+export function fetchFloor() {
+  return apiFetch<{ tables: FloorTable[] }>('/staff/floor', { staff: true });
+}
+
+export function openTableSession(tableId: string) {
+  return apiFetch<{ ok: true; sessionId: string }>(`/staff/tables/${encodeURIComponent(tableId)}/session`, { method: 'POST', staff: true });
+}
+
+export function closeTableSession(sessionId: string) {
+  return apiFetch<{ ok: true }>(`/staff/sessions/${encodeURIComponent(sessionId)}/close`, { method: 'POST', staff: true });
+}
+
+export function fetchTableSession(sessionId: string) {
+  return apiFetch<TableSessionDetail>(`/staff/sessions/${encodeURIComponent(sessionId)}`, { staff: true });
+}
+
+export function serveStaffOrder(orderId: string) {
+  return apiFetch<{ ok: true; status: string }>(`/staff/orders/${encodeURIComponent(orderId)}/serve`, { method: 'PATCH', staff: true });
+}
+
+// ── Admin: staff links + tables (#15) ────────────────────────
+
+export function fetchStaffLinks() {
+  return apiFetch<{ links: StaffLinkSummary[] }>('/admin/staff-links', { auth: true });
+}
+
+export function createStaffLink(data: CreateStaffLinkBody) {
+  return apiFetch<CreatedStaffLinkResponse>('/admin/staff-links', { method: 'POST', body: data, auth: true });
+}
+
+export function revokeStaffLink(id: string) {
+  return apiFetch(`/admin/staff-links/${encodeURIComponent(id)}/revoke`, { method: 'POST', auth: true });
+}
+
+export function fetchTables() {
+  return apiFetch<{ tables: AdminTable[] }>('/admin/tables', { auth: true });
+}
+
+export function createTable(data: CreateTableBody) {
+  return apiFetch<{ ok: true; id: string }>('/admin/tables', { method: 'POST', body: data, auth: true });
+}
+
+export function updateTable(id: string, data: UpdateTableBody) {
+  return apiFetch(`/admin/tables/${encodeURIComponent(id)}`, { method: 'PATCH', body: data, auth: true });
+}
+
+export function deleteTable(id: string) {
+  return apiFetch(`/admin/tables/${encodeURIComponent(id)}`, { method: 'DELETE', auth: true });
 }
 
 /** Fetch an authenticated admin catalog preview, including draft/hidden items. */
@@ -490,6 +606,7 @@ export interface AdminOrder {
   status: 'submitted' | 'ready' | 'served' | 'rejected';
   rejectReason: string | null;
   createdAt: number;
+  tableName: string | null;
   items: AdminOrderItem[];
 }
 

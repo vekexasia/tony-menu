@@ -179,6 +179,8 @@ export default function AdminContent({
     { href: entriesHref, icon: "fa-utensils", label: t("layout.section.items"), count: totalEntries },
     { href: "/admin/hours", icon: "fa-clock", label: t("layout.section.hours") },
     ...(orderingEnabled ? [{ href: "/admin/orders", icon: "fa-bell-concierge", label: t("layout.section.orders") }] : []),
+    ...(orderingEnabled ? [{ href: "/admin/tables", icon: "fa-chair", label: t("layout.section.tables") }] : []),
+    ...(orderingEnabled ? [{ href: "/admin/staff-links", icon: "fa-user-tag", label: t("layout.section.staffLinks") }] : []),
     ...(analyticsEnabled ? [{ href: "/admin/analytics", icon: "fa-chart-simple", label: t("layout.section.analytics") }] : []),
     { href: "/admin/modules", icon: "fa-puzzle-piece", label: "Modules" },
   ];
