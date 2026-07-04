@@ -6,6 +6,11 @@ import { loadEnvConfig } from "@next/env";
 // the same default the server redirects to.
 loadEnvConfig(__dirname, true); // dev=true: match `next dev` env file precedence
 
+// The e2e admin/catalog specs assert direct-backend URLs (localhost:8787), same
+// as CI. Pin the API URL here so a same-origin /api value in .env.local (used by
+// the cloudflared dev tunnel) cannot leak into the test run.
+process.env.NEXT_PUBLIC_API_URL = "http://localhost:8787";
+
 export default defineConfig({
   testDir: "./e2e",
   testIgnore: ["**/chat-live*", "**/fixtures/auth-setup*"],
@@ -19,7 +24,7 @@ export default defineConfig({
     trace: "on-first-retry",
   },
   webServer: {
-    command: "NEXT_IGNORE_INCORRECT_LOCKFILE=1 npm run dev",
+    command: "NEXT_IGNORE_INCORRECT_LOCKFILE=1 NEXT_PUBLIC_API_URL=http://localhost:8787 npm run dev",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
