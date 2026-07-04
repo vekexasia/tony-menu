@@ -187,3 +187,7 @@ https?://([a-z0-9-]+\.)*tonymenu\.app(/[^\s*`]*)?
 # Starlight starter template boilerplate (create-astro default content).
 ^https?://(www\.)?diataxis\.fr(/.*)?$
 @astrojs/starlight(/[a-z-]*)?
+
+# ── Dutch order-flow UI strings (#20) the OPF NER model misreads as person names ──
+^Toon dit aan de kelner$
+^Ongeldige link$
