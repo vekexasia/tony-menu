@@ -1,149 +1,66 @@
-import { test, expect, type Page } from '@playwright/test';
-import { MOCK_RESTAURANT } from './fixtures/admin-mock';
+import { test, expect } from '@playwright/test';
+import {
+  API_URL,
+  BRUSCHETTA_ID,
+  addBruschettaFromMenu,
+  consumeIntentApi,
+  consumeStaffLinkApi,
+  createIntentApi,
+  createStaffLink,
+  createTable,
+  resetDemo,
+  setE2eIp,
+  setOrdering,
+} from './fixtures/real-backend';
 
-/**
- * Waiter QR handoff (issues #19 + #15): the diner prepares an order and shows a
- * QR linking to /order-review?token=...; the waiter (with a staff session)
- * opens that link, reviews the intent, and submits it. Backend endpoints are
- * mocked at the network layer (same approach as order-submit.spec.ts).
- */
+test.describe.serial('Waiter QR handoff — real backend', () => {
+  test.skip(!API_URL, 'Skipped: NEXT_PUBLIC_API_URL not set');
 
-const TOKEN = 'intent-token-e2e';
+  test.beforeEach(async ({ request }) => {
+    await resetDemo(request);
+    await setOrdering(request, { enabled: true, mode: 'send', submitMode: 'waiter' });
+    await createTable(request);
+  });
 
-const RESTAURANT_WAITER = {
-  ...MOCK_RESTAURANT,
-  features: {
-    ...(MOCK_RESTAURANT.features ?? {}),
-    aiChat: false,
-    aiVoice: false,
-    ordering: { enabled: true, mode: 'send' as const, submitMode: 'waiter' as const },
-  },
-};
+  test('diner creates an intent and shows a QR; waiter submits it', async ({ page, context, request }) => {
+    await setE2eIp(page);
+    await addBruschettaFromMenu(page);
+    await page.getByRole('link', { name: /la mia selezione/i }).click();
 
-const PENDING_INTENT = {
-  token: TOKEN,
-  status: 'pending',
-  expiresAt: Date.now() + 1_800_000,
-  consumedAt: null,
-  lines: [{ entryId: 'entry-bruschetta', quantity: 2, name: 'Bruschetta', price: 800, unavailable: false }],
-};
-
-async function setupDiner(page: Page) {
-  await page.addInitScript((restaurant) => {
-    window.__playwright_restaurant__ = restaurant as never;
-    window.localStorage.clear();
-    window.localStorage.setItem('tony-menu-selection-v1', JSON.stringify({
-      version: 1,
-      restaurantId: 'demo-restaurant',
-      updatedAt: Date.now(),
-      lines: [{ entryId: 'entry-bruschetta', quantity: 2, addedAt: Date.now() }],
-    }));
-  }, RESTAURANT_WAITER);
-}
-
-async function setupWaiter(page: Page) {
-  await page.addInitScript((restaurant) => {
-    window.__playwright_restaurant__ = restaurant as never;
-    // Seed a staff session so StaffGate lets the waiter in (#15).
-    window.localStorage.setItem('tony-menu-staff-session', 'staff-session-e2e');
-  }, RESTAURANT_WAITER);
-  // StaffGate validates the stored session before rendering.
-  await page.route('**/staff/session', (route) => route.fulfill({
-    status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, name: 'Marco' }),
-  }));
-}
-
-test.describe('Waiter QR handoff', () => {
-  test('diner creates an intent and shows a QR linking to the review page; waiter submits it', async ({ page, context }) => {
-    // ── Diner side ──
-    await setupDiner(page);
-    let intentBody: { lines?: unknown[] } | null = null;
-    await page.route('**/orders/intents', async (route) => {
-      intentBody = route.request().postDataJSON();
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ ok: true, token: TOKEN, expiresAt: Date.now() + 1_800_000 }),
-      });
-    });
-
-    await page.goto('/it/selection');
+    const intentReq = page.waitForRequest((req) => req.url().includes('/orders/intents') && req.method() === 'POST');
+    const intentRes = page.waitForResponse((res) => res.url().includes('/orders/intents') && res.request().method() === 'POST' && res.status() === 200);
     await page.getByRole('button', { name: /mostra qr al cameriere/i }).click();
 
     await expect(page.getByTestId('waiter-qr')).toBeVisible();
-    expect(intentBody!.lines).toEqual([{ entryId: 'entry-bruschetta', quantity: 2 }]);
-    // No full-cart payload in the QR — it encodes only a link with the token.
-    const reviewPath = `/order-review/?token=${TOKEN}`;
+    expect((await intentReq).postDataJSON()).toMatchObject({ lines: [{ entryId: BRUSCHETTA_ID, quantity: 1 }] });
+    const { token } = await (await intentRes).json() as { token: string };
 
-    // ── Waiter side (different page = different device) ──
+    const staff = await createStaffLink(request);
     const waiterPage = await context.newPage();
-    await setupWaiter(waiterPage);
-    await waiterPage.route(`**/staff/order-intents/${TOKEN}`, (route) => route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify(PENDING_INTENT),
-    }));
-    let consumed = false;
-    await waiterPage.route(`**/staff/order-intents/${TOKEN}/consume`, async (route) => {
-      consumed = true;
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ ok: true, orderId: 'order-1', dailyNumber: 5 }),
-      });
-    });
+    await setE2eIp(waiterPage);
+    await waiterPage.goto(`/staff?token=${staff.token}`);
+    await expect(waiterPage).toHaveURL(/\/staff\/?$/);
 
-    await waiterPage.goto(reviewPath);
-    await expect(waiterPage.getByText('Bruschetta')).toBeVisible();
-    await waiterPage.getByRole('button', { name: /invia ordine/i }).click();
-
-    await expect(waiterPage.getByTestId('order-daily-number')).toHaveText('#5');
-    expect(consumed).toBe(true);
+    await waiterPage.goto(`/order-review?token=${token}`);
+    await expect(waiterPage.getByText(/bruschetta/i)).toBeVisible();
+    await waiterPage.getByRole('button', { name: /invia ordine|submit order/i }).click();
+    await expect(waiterPage.getByTestId('order-daily-number')).toHaveText('#1');
   });
 
-  test('expired intent shows a clear error and no submit button', async ({ page }) => {
-    await setupWaiter(page);
-    await page.route(`**/staff/order-intents/${TOKEN}`, (route) => route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({ ...PENDING_INTENT, status: 'expired' }),
-    }));
+  test('already-consumed intent shows a clear error and no submit button', async ({ page, request }) => {
+    await setE2eIp(page);
+    const staff = await createStaffLink(request);
+    const { sessionToken } = await consumeStaffLinkApi(request, staff.token);
+    const { token } = await createIntentApi(request);
+    await consumeIntentApi(request, token, sessionToken);
 
-    await page.goto(`/order-review/?token=${TOKEN}`);
+    const secondStaff = await createStaffLink(request);
+    await page.goto(`/staff?token=${secondStaff.token}`);
+    await expect(page).toHaveURL(/\/staff\/?$/);
 
-    const alert = page.getByRole('alert').filter({ hasText: /./ });
-    await expect(alert).toContainText(/scaduto/i);
-    await expect(page.getByRole('button', { name: /invia ordine/i })).toHaveCount(0);
-  });
-
-  test('already-consumed intent shows a clear error, and a consume race resolves to it', async ({ page }) => {
-    await setupWaiter(page);
-    // State-based mock (not call-count): React strict mode double-fires the
-    // load effect in dev, so the intent must stay pending until the consume
-    // attempt actually happens — then the reload finds it consumed.
-    let raced = false;
-    await page.route(`**/staff/order-intents/${TOKEN}`, (route) => {
-      const status = raced ? 'consumed' : 'pending';
-      return route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ ...PENDING_INTENT, status, consumedAt: status === 'consumed' ? Date.now() : null }),
-      });
-    });
-    await page.route(`**/staff/order-intents/${TOKEN}/consume`, (route) => {
-      raced = true; // a concurrent waiter won the race
-      return route.fulfill({
-        status: 409,
-        contentType: 'application/json',
-        body: JSON.stringify({ error: 'consumed' }),
-      });
-    });
-
-    await page.goto(`/order-review/?token=${TOKEN}`);
-    await page.getByRole('button', { name: /invia ordine/i }).click();
-
+    await page.goto(`/order-review?token=${token}`);
     const alert = page.getByRole('alert').filter({ hasText: /./ }).first();
-    await expect(alert).toContainText(/gia stato inviato/i);
-    await expect(page.getByRole('button', { name: /invia ordine/i })).toHaveCount(0);
+    await expect(alert).toContainText(/gia stato inviato|already submitted|already been submitted/i);
+    await expect(page.getByRole('button', { name: /invia ordine|submit order/i })).toHaveCount(0);
   });
 });

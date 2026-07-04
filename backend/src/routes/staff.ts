@@ -9,7 +9,6 @@ import {
   type OrderStatus,
 } from '@menu/schemas';
 import * as schema from '../db/schema';
-import { isDemoMode } from '../lib/demo';
 import { createOrder } from './orders';
 import { checkRateLimit } from '../lib/rate-limit';
 import type { AppBindings } from '../types';
@@ -347,8 +346,6 @@ staff.post('/order-intents/:token/consume', ...staffBase, async (c) => {
     .set({ consumedAt: Date.now() })
     .where(and(eq(schema.orderIntents.id, token), isNull(schema.orderIntents.consumedAt)));
   if (claim.meta.changes === 0) return c.json({ error: 'consumed' }, 409);
-
-  if (isDemoMode(c.env)) return c.json({ ok: true, orderId: 'demo-order', dailyNumber: 1 });
 
   let result;
   try {

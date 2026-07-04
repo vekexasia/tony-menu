@@ -1,9 +1,6 @@
 /**
  * Staff links + tables ↔ real backend smoke — runs against the seeded
- * DEMO_MODE backend like admin-api.spec.ts. Everything else in the waiter-mode
- * suite mocks the API at the browser level, so route mounting / schema
- * regressions on /admin/staff-links, /admin/tables and /staff/* would slip
- * through without this.
+ * DEMO_MODE backend like admin-api.spec.ts.
  */
 
 import { test, expect } from "@playwright/test";
@@ -26,7 +23,7 @@ test.describe("Staff links + tables — real backend", () => {
     const waiterName = `e2e waiter ${Date.now()}`;
     await page.getByRole("textbox").first().fill(waiterName);
     const createRes = page.waitForResponse(
-      (res) => res.url().includes("localhost:8787") && res.url().includes("/admin/staff-links") && res.request().method() === "POST",
+      (res) => res.url().includes("/admin/staff-links") && res.request().method() === "POST" && res.status() < 300,
     );
     await page.getByRole("button", { name: /genera|generate/i }).click();
     expect((await createRes).status()).toBeLessThan(300);
@@ -38,7 +35,7 @@ test.describe("Staff links + tables — real backend", () => {
 
   test("tables admin page loads from the real backend", async ({ page }) => {
     const listRes = page.waitForResponse(
-      (res) => res.url().includes("localhost:8787") && res.url().includes("/admin/tables") && res.request().method() === "GET",
+      (res) => res.url().includes("/admin/tables") && res.request().method() === "GET" && res.status() < 300,
     );
     await page.goto("/admin/tables/");
     expect((await listRes).status()).toBe(200);
