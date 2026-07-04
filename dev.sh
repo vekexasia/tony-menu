@@ -19,9 +19,13 @@ start_pane() {
 echo "Starting risto dev servers..."
 start_pane "backend"     "$ROOT/backend"                        "npx wrangler dev --port 8787 --persist-to .wrangler/state"
 start_pane "chat-worker" "$ROOT/web/workers/chat"         "npx wrangler dev --port 8788"
-start_pane "next-dev"    "$ROOT/web"                      "npm run dev"
+# Same-origin API/chat paths so the app works through the tunnel (next.config.ts dev rewrites).
+start_pane "next-dev"    "$ROOT/web"                      "NEXT_PUBLIC_API_URL=/api NEXT_PUBLIC_CHAT_WORKER_URL=/chat npm run dev"
+# TryCloudflare quick tunnel: everything (app + /api + /chat proxies) rides one tunnel to :3000.
+start_pane "cf-tunnel"   "$ROOT"                          "cloudflared tunnel --url http://localhost:3000 2>&1 | tee /tmp/cf-tunnel.log | grep --line-buffered -o 'https://[a-z0-9-]*\\.trycloudflare\\.com'"
 echo ""
 echo "Services:"
 echo "  Next.js  → http://localhost:3000/it/menu/?aiChat=1"
 echo "  Backend  → http://localhost:8787"
 echo "  Chat     → http://localhost:8788"
+echo "  Tunnel   → see cf-tunnel tab for the public https://*.trycloudflare.com URL"
