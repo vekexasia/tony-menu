@@ -613,7 +613,8 @@
     "orderReview.increase": "Mennyiség növelése",
     "orderReview.remove": "Fogás eltávolítása",
     "orderReview.addItem": "Fogás hozzáadása",
-    "orderReview.addItemPlaceholder": "Fogás keresése..."
+    "orderReview.addItemPlaceholder": "Fogás keresése...",
+    "orderReview.selectTable": "Válassz asztalt"
   },
   "outOfStock": "OUT OF STOCK",
   "staff": {

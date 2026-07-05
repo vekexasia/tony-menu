@@ -613,7 +613,8 @@
     "orderReview.increase": "Menge erhöhen",
     "orderReview.remove": "Gericht entfernen",
     "orderReview.addItem": "Gericht hinzufügen",
-    "orderReview.addItemPlaceholder": "Nach einem Gericht suchen..."
+    "orderReview.addItemPlaceholder": "Nach einem Gericht suchen...",
+    "orderReview.selectTable": "Tisch auswählen"
   },
   "outOfStock": "AUSVERKAUFT",
   "staff": {

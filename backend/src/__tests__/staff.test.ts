@@ -287,14 +287,21 @@ describe('ready -> served staff transition', () => {
     expect(body.orders[0].events.map((e) => e.status)).toEqual(['submitted', 'served']);
   });
 
-  it('QR consume without a table logs actor staff, diner direct submit logs diner', async () => {
+  it('QR consume requires a table and logs actor staff, diner direct submit logs diner', async () => {
     const db = staffDb();
+    await seedTable(db);
     const session = await openSession(db, await createLink(db));
+    const open = await testRequest('/staff/tables/table-1/session', { method: 'POST', headers: staffHeaders(session), env: makeDbEnv(db) });
+    const sessionId = ((await open.json()) as { sessionId: string }).sessionId;
     const intentRes = await testRequest('/orders/intents', {
       method: 'POST', body: { lines: [{ entryId: 'entry-1', quantity: 1 }] }, headers: { 'cf-connecting-ip': `10.6.0.${++ipCounter}` }, env: makeDbEnv(db),
     });
     const token = ((await intentRes.json()) as { token: string }).token;
-    const consume = await testRequest(`/staff/order-intents/${token}/consume`, { method: 'POST', headers: staffHeaders(session), env: makeDbEnv(db) });
+    const missingTable = await testRequest(`/staff/order-intents/${token}/consume`, { method: 'POST', headers: staffHeaders(session), env: makeDbEnv(db) });
+    expect(missingTable.status).toBe(400);
+    expect((db.raw.prepare('SELECT consumed_at FROM order_intents WHERE id = ?').get(token) as { consumed_at: number | null }).consumed_at).toBeNull();
+
+    const consume = await testRequest(`/staff/order-intents/${token}/consume`, { method: 'POST', body: { tableSessionId: sessionId }, headers: staffHeaders(session), env: makeDbEnv(db) });
     const staffOrderId = ((await consume.json()) as { orderId: string }).orderId;
     const staffEvent = db.raw.prepare('SELECT actor FROM order_events WHERE order_id = ?').get(staffOrderId) as { actor: string };
     expect(staffEvent.actor).toBe('staff');
@@ -323,9 +330,12 @@ describe('staff order-intents gating', () => {
     expect((await testRequest(`/staff/order-intents/${token}/consume`, { method: 'POST', env: makeDbEnv(db) })).status).toBe(401);
   });
 
-  it('reviews and consumes with a staff session (no table = tableSessionId null)', async () => {
+  it('reviews and consumes with a staff session and selected table', async () => {
     const db = staffDb();
+    await seedTable(db);
     const session = await openSession(db, await createLink(db));
+    const open = await testRequest('/staff/tables/table-1/session', { method: 'POST', headers: staffHeaders(session), env: makeDbEnv(db) });
+    const sessionId = ((await open.json()) as { sessionId: string }).sessionId;
     const intentRes = await testRequest('/orders/intents', {
       method: 'POST', body: { lines: [{ entryId: 'entry-1', quantity: 3 }] }, headers: { 'cf-connecting-ip': `10.5.0.${++ipCounter}` }, env: makeDbEnv(db),
     });
@@ -335,15 +345,18 @@ describe('staff order-intents gating', () => {
     expect(review.status).toBe(200);
     expect(((await review.json()) as { status: string }).status).toBe('pending');
 
-    const consume = await testRequest(`/staff/order-intents/${token}/consume`, { method: 'POST', headers: staffHeaders(session), env: makeDbEnv(db) });
+    const consume = await testRequest(`/staff/order-intents/${token}/consume`, { method: 'POST', body: { tableSessionId: sessionId }, headers: staffHeaders(session), env: makeDbEnv(db) });
     expect(consume.status).toBe(200);
     const orderId = ((await consume.json()) as { orderId: string }).orderId;
-    expect((db.raw.prepare('SELECT table_session_id FROM orders WHERE id = ?').get(orderId) as { table_session_id: string | null }).table_session_id).toBeNull();
+    expect((db.raw.prepare('SELECT table_session_id FROM orders WHERE id = ?').get(orderId) as { table_session_id: string | null }).table_session_id).toBe(sessionId);
   });
 
   it('consumes with a lines override, creating the edited order (not the frozen snapshot)', async () => {
     const db = staffDb();
+    await seedTable(db);
     const session = await openSession(db, await createLink(db));
+    const open = await testRequest('/staff/tables/table-1/session', { method: 'POST', headers: staffHeaders(session), env: makeDbEnv(db) });
+    const sessionId = ((await open.json()) as { sessionId: string }).sessionId;
     const intentRes = await testRequest('/orders/intents', {
       method: 'POST', body: { lines: [{ entryId: 'entry-1', quantity: 1 }] }, headers: { 'cf-connecting-ip': `10.5.0.${++ipCounter}` }, env: makeDbEnv(db),
     });
@@ -352,7 +365,7 @@ describe('staff order-intents gating', () => {
     // Waiter edits: bump entry-1 to 3 and add entry-2.
     const consume = await testRequest(`/staff/order-intents/${token}/consume`, {
       method: 'POST',
-      body: { lines: [{ entryId: 'entry-1', quantity: 3 }, { entryId: 'entry-2', quantity: 2 }] },
+      body: { tableSessionId: sessionId, lines: [{ entryId: 'entry-1', quantity: 3 }, { entryId: 'entry-2', quantity: 2 }] },
       headers: staffHeaders(session),
       env: makeDbEnv(db),
     });
@@ -364,7 +377,10 @@ describe('staff order-intents gating', () => {
 
   it('rejects a lines override with a stale (hidden) item as 409 stale_items, leaving the intent reusable', async () => {
     const db = staffDb();
+    await seedTable(db);
     const session = await openSession(db, await createLink(db));
+    const open = await testRequest('/staff/tables/table-1/session', { method: 'POST', headers: staffHeaders(session), env: makeDbEnv(db) });
+    const sessionId = ((await open.json()) as { sessionId: string }).sessionId;
     db.raw.prepare("UPDATE menu_entries SET hidden = 1 WHERE id = 'entry-2'").run();
     const intentRes = await testRequest('/orders/intents', {
       method: 'POST', body: { lines: [{ entryId: 'entry-1', quantity: 1 }] }, headers: { 'cf-connecting-ip': `10.5.0.${++ipCounter}` }, env: makeDbEnv(db),
@@ -373,7 +389,7 @@ describe('staff order-intents gating', () => {
 
     const consume = await testRequest(`/staff/order-intents/${token}/consume`, {
       method: 'POST',
-      body: { lines: [{ entryId: 'entry-1', quantity: 1 }, { entryId: 'entry-2', quantity: 1 }] },
+      body: { tableSessionId: sessionId, lines: [{ entryId: 'entry-1', quantity: 1 }, { entryId: 'entry-2', quantity: 1 }] },
       headers: staffHeaders(session),
       env: makeDbEnv(db),
     });
@@ -385,14 +401,17 @@ describe('staff order-intents gating', () => {
 
   it('rejects a malformed lines override (400)', async () => {
     const db = staffDb();
+    await seedTable(db);
     const session = await openSession(db, await createLink(db));
+    const open = await testRequest('/staff/tables/table-1/session', { method: 'POST', headers: staffHeaders(session), env: makeDbEnv(db) });
+    const sessionId = ((await open.json()) as { sessionId: string }).sessionId;
     const intentRes = await testRequest('/orders/intents', {
       method: 'POST', body: { lines: [{ entryId: 'entry-1', quantity: 1 }] }, headers: { 'cf-connecting-ip': `10.5.0.${++ipCounter}` }, env: makeDbEnv(db),
     });
     const token = ((await intentRes.json()) as { token: string }).token;
     const consume = await testRequest(`/staff/order-intents/${token}/consume`, {
       method: 'POST',
-      body: { lines: [{ entryId: 'entry-1', quantity: 0 }] },
+      body: { tableSessionId: sessionId, lines: [{ entryId: 'entry-1', quantity: 0 }] },
       headers: staffHeaders(session),
       env: makeDbEnv(db),
     });

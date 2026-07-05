@@ -120,18 +120,16 @@ export default function OrderReviewPage() {
   }, [search, catalog, lines, locale]);
 
   async function handleSubmit() {
-    if (!token || submitting || !lines || lines.length === 0) return;
+    if (!token || submitting || !lines || lines.length === 0 || !selectedTableId) return;
     setSubmitError(null);
     setSubmitting(true);
     try {
-      let tableSessionId: string | undefined;
       const table = tables.find((tb) => tb.id === selectedTableId);
-      if (table) {
-        tableSessionId = table.sessionId ?? (await openTableSession(table.id)).sessionId;
-      }
+      if (!table) return;
+      const tableSessionId = table.sessionId ?? (await openTableSession(table.id)).sessionId;
       const result = await consumeOrderIntent(token, { tableSessionId, lines });
       setDailyNumber(result.dailyNumber);
-      setSubmittedSessionId(tableSessionId ?? null);
+      setSubmittedSessionId(tableSessionId);
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
         const body = err.body as { error?: string } | undefined;
@@ -311,7 +309,7 @@ export default function OrderReviewPage() {
               onChange={(e) => setSelectedTableId(e.target.value)}
               className="mt-2 w-full h-11 rounded-xl border border-gray-200 bg-white px-3 text-sm font-medium text-gray-800"
             >
-              <option value="">{t("orderReview.noTable")}</option>
+              <option value="" disabled>{t("orderReview.selectTable")}</option>
               {tables.map((table) => (
                 <option key={table.id} value={table.id}>
                   {table.name}{table.sessionId ? " · open" : ""}
@@ -322,7 +320,7 @@ export default function OrderReviewPage() {
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={submitting || hasUnavailable || lines.length === 0}
+            disabled={submitting || hasUnavailable || lines.length === 0 || !selectedTableId}
             className="w-full mt-6 py-3 rounded-full bg-primary text-white font-semibold disabled:opacity-50"
           >
             {submitting ? t("orderReview.submitting") : t("orderReview.submit")}

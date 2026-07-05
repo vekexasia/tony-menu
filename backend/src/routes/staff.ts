@@ -346,18 +346,16 @@ staff.get('/order-intents/:token', ...staffBase, async (c) => {
 
 /**
  * POST /staff/order-intents/:token/consume — consume into a real order via the
- * shared createOrder path. Optionally binds it to a table session (body
- * tableSessionId); the diner QR carries no table, so v1 review submits none.
+ * shared createOrder path. A waiter must bind every consumed QR to a table.
  */
 staff.post('/order-intents/:token/consume', ...staffBase, async (c) => {
   const db = c.get('db');
   const token = c.req.param('token');
 
-  // Body is optional (a bare consume submits the frozen snapshot); default to {}.
   const raw = await c.req.json().catch(() => ({}));
   const parsed = ConsumeOrderIntentBodySchema.safeParse(raw ?? {});
   if (!parsed.success) return c.json({ error: 'Invalid request' }, 400);
-  const tableSessionId = parsed.data.tableSessionId ?? null;
+  const tableSessionId = parsed.data.tableSessionId;
   const overrideLines = parsed.data.lines;
   const [intent] = await db
     .select()

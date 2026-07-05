@@ -100,9 +100,13 @@ export async function consumeStaffLinkApi(request: APIRequestContext, token: str
   return await res.json() as { ok: true; sessionToken: string; name: string };
 }
 
-export async function consumeIntentApi(request: APIRequestContext, token: string, staffSession: string) {
+export async function consumeIntentApi(request: APIRequestContext, token: string, staffSession: string, tableId = SEEDED_TABLE.id) {
+  const open = await request.post(`${API_BASE}/staff/tables/${tableId}/session`, { headers: { 'X-Staff-Session': staffSession } });
+  expect(open.ok()).toBeTruthy();
+  const { sessionId } = await open.json() as { sessionId: string };
   const res = await request.post(`${API_BASE}/staff/order-intents/${token}/consume`, {
     headers: { 'X-Staff-Session': staffSession },
+    data: { tableSessionId: sessionId },
   });
   expect(res.ok()).toBeTruthy();
   return await res.json() as { ok: true; orderId: string; dailyNumber: number };

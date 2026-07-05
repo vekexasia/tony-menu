@@ -105,12 +105,12 @@ export interface OrderIntentReviewResponse {
 }
 
 /**
- * Consume body (staff): optional table binding and an optional lines override.
+ * Consume body (staff): required table binding plus optional lines override.
  * When `lines` is present the waiter's edited selection is created instead of
  * the frozen intent snapshot (the intent row itself stays immutable).
  */
 export const ConsumeOrderIntentBodySchema = z.object({
-  tableSessionId: z.string().min(1).optional(),
+  tableSessionId: z.string().min(1),
   lines: z.array(SubmitOrderLineSchema).min(1).max(100).optional(),
 });
 export type ConsumeOrderIntentBody = z.infer<typeof ConsumeOrderIntentBodySchema>;

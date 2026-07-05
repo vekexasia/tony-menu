@@ -613,7 +613,8 @@
     "orderReview.increase": "Aumenta quantità",
     "orderReview.remove": "Rimuovi piatto",
     "orderReview.addItem": "Aggiungi un piatto",
-    "orderReview.addItemPlaceholder": "Cerca un piatto..."
+    "orderReview.addItemPlaceholder": "Cerca un piatto...",
+    "orderReview.selectTable": "Scegli un tavolo"
   },
   "outOfStock": "ESAURITO",
   "staff": {

@@ -613,7 +613,8 @@
     "orderReview.increase": "Increase quantity",
     "orderReview.remove": "Remove item",
     "orderReview.addItem": "Add an item",
-    "orderReview.addItemPlaceholder": "Search for a dish..."
+    "orderReview.addItemPlaceholder": "Search for a dish...",
+    "orderReview.selectTable": "Select a table"
   },
   "outOfStock": "OUT OF STOCK",
   "staff": {

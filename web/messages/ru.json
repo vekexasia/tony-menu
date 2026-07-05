@@ -613,7 +613,8 @@
     "orderReview.increase": "Увеличить количество",
     "orderReview.remove": "Удалить блюдо",
     "orderReview.addItem": "Добавить блюдо",
-    "orderReview.addItemPlaceholder": "Найти блюдо..."
+    "orderReview.addItemPlaceholder": "Найти блюдо...",
+    "orderReview.selectTable": "Выберите стол"
   },
   "outOfStock": "НЕТ В НАЛИЧИИ",
   "staff": {

@@ -613,7 +613,8 @@
     "orderReview.increase": "Cresi la quantità",
     "orderReview.remove": "Cava via el piato",
     "orderReview.addItem": "Zonta un piato",
-    "orderReview.addItemPlaceholder": "Serca un piato..."
+    "orderReview.addItemPlaceholder": "Serca un piato...",
+    "orderReview.selectTable": "Sielzi na tavola"
   },
   "outOfStock": "FINIO",
   "staff": {

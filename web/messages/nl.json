@@ -613,7 +613,8 @@
     "orderReview.increase": "Aantal verhogen",
     "orderReview.remove": "Gerecht verwijderen",
     "orderReview.addItem": "Een gerecht toevoegen",
-    "orderReview.addItemPlaceholder": "Zoek een gerecht..."
+    "orderReview.addItemPlaceholder": "Zoek een gerecht...",
+    "orderReview.selectTable": "Kies een tafel"
   },
   "outOfStock": "UITVERKOCHT",
   "staff": {

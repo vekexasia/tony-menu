@@ -613,7 +613,8 @@
     "orderReview.increase": "Aumentar quantidade",
     "orderReview.remove": "Remover prato",
     "orderReview.addItem": "Adicionar um prato",
-    "orderReview.addItemPlaceholder": "Procurar um prato..."
+    "orderReview.addItemPlaceholder": "Procurar um prato...",
+    "orderReview.selectTable": "Escolhe uma mesa"
   },
   "outOfStock": "ESGOTADO",
   "staff": {

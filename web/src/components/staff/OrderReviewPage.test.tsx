@@ -26,6 +26,8 @@ vi.mock("@/lib/i18n", () => ({
     "orderReview.submitting": "Submitting...",
     "orderReview.expired": "This prepared order has expired.",
     "orderReview.consumed": "This prepared order was already submitted.",
+    "orderReview.tableLabel": "Table",
+    "orderReview.selectTable": "Select a table",
     "orderReview.notFoundTitle": "Order not found",
     "orderReview.notFoundText": "This QR code does not match any prepared order.",
   }[key] ?? key),
@@ -50,7 +52,7 @@ beforeEach(() => {
   apiMocks.fetchFloor.mockReset();
   apiMocks.openTableSession.mockReset();
   apiMocks.getCatalog.mockReset();
-  apiMocks.fetchFloor.mockResolvedValue({ tables: [] });
+  apiMocks.fetchFloor.mockResolvedValue({ tables: [{ id: "t1", name: "Sala 1", sessionId: "sess-1", open: true }] });
   apiMocks.getCatalog.mockResolvedValue({ categories: [] });
 });
 
@@ -63,10 +65,21 @@ describe("OrderReviewPage", () => {
 
     expect(await screen.findByText("Bruschetta")).toBeInTheDocument();
     expect(screen.getByText("27.00 €")).toBeInTheDocument(); // total 2×7.50 + 12.00
+    fireEvent.change(screen.getByLabelText("Table"), { target: { value: "t1" } });
     fireEvent.click(screen.getByRole("button", { name: /submit order/i }));
 
     expect(await screen.findByTestId("order-daily-number")).toHaveTextContent("#9");
-    expect(apiMocks.consumeOrderIntent).toHaveBeenCalledWith("tok-123", { tableSessionId: undefined, lines: [{ entryId: "e1", quantity: 2 }, { entryId: "e2", quantity: 1 }] });
+    expect(apiMocks.consumeOrderIntent).toHaveBeenCalledWith("tok-123", { tableSessionId: "sess-1", lines: [{ entryId: "e1", quantity: 2 }, { entryId: "e2", quantity: 1 }] });
+  });
+
+  it("requires selecting a table before consuming the intent", async () => {
+    apiMocks.fetchOrderIntent.mockResolvedValue(PENDING_INTENT);
+    render(<OrderReviewPage />);
+
+    await screen.findByText("Bruschetta");
+    expect(screen.getByRole("button", { name: /submit order/i })).toBeDisabled();
+    fireEvent.change(screen.getByLabelText("Table"), { target: { value: "t1" } });
+    expect(screen.getByRole("button", { name: /submit order/i })).toBeEnabled();
   });
 
   it("blocks submit while items became unavailable after intent creation", async () => {
@@ -107,6 +120,8 @@ describe("OrderReviewPage", () => {
 
     render(<OrderReviewPage />);
 
+    await screen.findByText("Bruschetta");
+    fireEvent.change(screen.getByLabelText("Table"), { target: { value: "t1" } });
     fireEvent.click(await screen.findByRole("button", { name: /submit order/i }));
 
     await waitFor(() => expect(screen.queryByRole("button", { name: /submit order/i })).not.toBeInTheDocument());
@@ -146,11 +161,12 @@ describe("OrderReviewPage", () => {
     fireEvent.click(screen.getByTestId("review-remove-e2"));
     fireEvent.change(screen.getByTestId("review-add-search"), { target: { value: "tira" } });
     fireEvent.click(await screen.findByTestId("review-add-e3"));
+    fireEvent.change(screen.getByLabelText("Table"), { target: { value: "t1" } });
 
     fireEvent.click(screen.getByRole("button", { name: /submit order/i }));
     await screen.findByTestId("order-daily-number");
     expect(apiMocks.consumeOrderIntent).toHaveBeenCalledWith("tok-123", {
-      tableSessionId: undefined,
+      tableSessionId: "sess-1",
       lines: [{ entryId: "e1", quantity: 3 }, { entryId: "e3", quantity: 1 }],
     });
   });
@@ -171,12 +187,13 @@ describe("OrderReviewPage", () => {
     // Submit blocked while the stale line is present.
     expect(screen.getByRole("button", { name: /submit order/i })).toBeDisabled();
     fireEvent.click(screen.getByTestId("review-remove-e2"));
+    fireEvent.change(screen.getByLabelText("Table"), { target: { value: "t1" } });
     expect(screen.getByRole("button", { name: /submit order/i })).toBeEnabled();
 
     fireEvent.click(screen.getByRole("button", { name: /submit order/i }));
     await screen.findByTestId("order-daily-number");
     expect(apiMocks.consumeOrderIntent).toHaveBeenCalledWith("tok-123", {
-      tableSessionId: undefined,
+      tableSessionId: "sess-1",
       lines: [{ entryId: "e1", quantity: 1 }],
     });
   });
