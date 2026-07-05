@@ -109,6 +109,7 @@
   "selection.qrExpires": "Deze code verloopt na 30 minuten.",
   "selection.qrBack": "Terug naar selectie",
   "selection.qrError": "De QR-code kon niet worden voorbereid. Probeer opnieuw.",
+  "selection.qrRateLimit": "Te veel verzoeken. Wacht een minuut en probeer opnieuw.",
   "admin": {
     "common.cancel": "Annuleren",
     "common.save": "Opslaan",

@@ -20,28 +20,39 @@ async function addBruschetta(page: Page) {
 test.describe.configure({ mode: 'serial' });
 
 test.describe('Menu selection diner flow', () => {
-  test('adds an item, opens the selection page, changes quantity, and clears it', async ({ page, request }) => {
+  test('adds an item, opens the selection as a modal, changes quantity, and clears it', async ({ page, request }) => {
     await setupDemoMenuSelection(request, true);
     await addBruschetta(page);
     await page.keyboard.press('Escape');
+    // Wait for the item-detail sheet to finish closing before clicking the pill,
+    // so its overlay does not intercept the click.
+    await expect(page.getByRole('button', { name: /aggiungi alla selezione/i })).toHaveCount(0);
 
-    const headerLink = page.getByRole('link', { name: /la mia selezione \(1\)/i });
-    await expect(headerLink).toBeVisible({ timeout: 10000 });
-    await headerLink.click({ force: true });
+    const pill = page.getByRole('button', { name: /la mia selezione \(1\)/i });
+    await expect(pill).toBeVisible({ timeout: 10000 });
+    await pill.click();
 
-    await expect(page).toHaveURL(/\/it\/selection/);
-    await expect(page.getByRole('heading', { name: /la mia selezione/i })).toBeVisible();
-    await expect(page.getByText('Antipasti')).toBeVisible();
-    await expect(page.getByText(ITEM)).toBeVisible();
-    await expect(page.locator('main')).not.toContainText('€');
+    // Opens as a modal over the menu — no navigation away from /menu.
+    await expect(page).toHaveURL(/\/it\/menu/);
+    const dialog = page.getByRole('dialog');
+    await expect(dialog.getByRole('heading', { name: /la mia selezione/i })).toBeVisible();
+    await expect(dialog.getByText('Antipasti')).toBeVisible();
+    await expect(dialog.getByText(ITEM)).toBeVisible();
+    await expect(dialog).not.toContainText('€');
 
-    await page.getByRole('button', { name: new RegExp(`aumenta quantita di ${ITEM}`, 'i') }).click();
-    await expect(page.locator('main')).toContainText('2');
+    await dialog.getByRole('button', { name: new RegExp(`aumenta quantita di ${ITEM}`, 'i') }).click();
+    await expect(dialog).toContainText('2');
 
-    await page.getByRole('button', { name: new RegExp(`diminuisci quantita di ${ITEM}`, 'i') }).click();
-    await page.getByRole('button', { name: new RegExp(`diminuisci quantita di ${ITEM}`, 'i') }).click();
-    await expect(page.getByText(ITEM)).not.toBeVisible();
-    await expect(page.getByText(/la tua selezione e vuota/i)).toBeVisible();
+    await dialog.getByRole('button', { name: new RegExp(`diminuisci quantita di ${ITEM}`, 'i') }).click();
+    await dialog.getByRole('button', { name: new RegExp(`diminuisci quantita di ${ITEM}`, 'i') }).click();
+    await expect(dialog.getByText(ITEM)).not.toBeVisible();
+    await expect(dialog.getByText(/la tua selezione e vuota/i)).toBeVisible();
+
+    // Dismiss the modal (Escape) — the menu is still there, no navigation.
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(page).toHaveURL(/\/it\/menu/);
+    await expect(page.getByText(ITEM).first()).toBeVisible();
   });
 });
 

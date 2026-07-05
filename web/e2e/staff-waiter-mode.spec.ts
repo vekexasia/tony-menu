@@ -71,7 +71,7 @@ test.describe.serial('Waiter mode — real backend', () => {
     await page.getByText(/bruschetta/i).first().click();
     await page.getByRole('button', { name: /aggiungi alla selezione|add to selection/i }).click();
     await page.keyboard.press('Escape');
-    await page.getByRole('link', { name: /la mia selezione|my selection/i }).click();
+    await page.getByRole('button', { name: /la mia selezione|my selection/i }).click();
 
     const orderReq = page.waitForRequest((req) => req.url().includes('/orders') && req.method() === 'POST');
     const orderRes = page.waitForResponse((res) => res.url().includes('/orders') && res.request().method() === 'POST');

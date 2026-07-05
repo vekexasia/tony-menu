@@ -109,6 +109,7 @@
   "selection.qrExpires": "Sto codice el scade dopo 30 minuti.",
   "selection.qrBack": "Torna ala selezion",
   "selection.qrError": "No se ga podesto preparar el QR. Prova ancora.",
+  "selection.qrRateLimit": "Massa richieste. Speta un minuto e prova ancora.",
   "admin": {
     "common.cancel": "Anuła",
     "common.save": "Salva",

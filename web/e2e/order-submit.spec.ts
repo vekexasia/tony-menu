@@ -15,7 +15,7 @@ test.describe.serial('Direct order submit — real backend', () => {
     const orderReq = page.waitForRequest((req) => req.url().includes('/orders') && req.method() === 'POST');
     const orderRes = page.waitForResponse((res) => res.url().includes('/orders') && res.request().method() === 'POST');
 
-    await page.getByRole('link', { name: /la mia selezione/i }).click();
+    await page.getByRole('button', { name: /la mia selezione/i }).click();
     await expect(page.getByText(/bruschetta/i).first()).toBeVisible();
     await page.getByRole('button', { name: /invia ordine/i }).click();
 
@@ -32,7 +32,7 @@ test.describe.serial('Direct order submit — real backend', () => {
 
   test('refuses stale items listing them, keeping the selection intact', async ({ page, request }) => {
     await addBruschettaFromMenu(page);
-    await page.getByRole('link', { name: /la mia selezione/i }).click();
+    await page.getByRole('button', { name: /la mia selezione/i }).click();
     await expect(page.getByRole('button', { name: /invia ordine/i })).toBeEnabled();
 
     await updateEntry(request, BRUSCHETTA_ID, { outOfStock: true });

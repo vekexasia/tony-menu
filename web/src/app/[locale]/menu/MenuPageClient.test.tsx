@@ -8,6 +8,7 @@ const chatPanelMock = vi.fn(() => <div data-testid="chat-panel" />);
 
 vi.mock('next/navigation', () => ({
   useParams: () => ({ locale: 'it' }),
+  useRouter: () => ({ push: vi.fn() }),
   useSearchParams: () => new URLSearchParams(''),
 }));
 
@@ -17,6 +18,9 @@ vi.mock('@/lib/i18n', () => ({
 
 vi.mock('@/lib/api', () => ({
   recordView: vi.fn(),
+  createOrderIntent: vi.fn(),
+  submitOrder: vi.fn(),
+  ApiError: class ApiError extends Error { constructor(public status: number, message: string, public body?: unknown) { super(message); } },
 }));
 
 vi.mock('next/image', () => ({
@@ -192,7 +196,27 @@ describe('MenuPageClient', () => {
 
     render(<MenuPageClient />);
 
-    const selectionLink = await screen.findByRole('link', { name: /selection.link/i });
-    expect(selectionLink).toHaveAttribute('href', '/it/selection');
+    const pill = await screen.findByRole('button', { name: /selection.link/i });
+    expect(pill).toBeInTheDocument();
+  });
+
+  it('opens the selection as a modal over the menu without navigating away', async () => {
+    localStorage.setItem(SELECTION_STORAGE_KEY, JSON.stringify({
+      version: 1,
+      restaurantId: 'demo-restaurant',
+      updatedAt: Date.now(),
+      lines: [{ entryId: 'entry-bruschetta', quantity: 2, addedAt: Date.now() }],
+    }));
+    useRestaurantStore.setState({ data: { ...menuData, features: { aiChat: true, ordering: { enabled: true, mode: 'summary' } } } as unknown as RestaurantData, isLoading: false });
+
+    render(<MenuPageClient />);
+
+    const pill = await screen.findByRole('button', { name: /selection.link/i });
+    fireEvent.click(pill);
+
+    // The shared selection content is now visible in the modal — no route change.
+    expect(await screen.findByText('selection.title')).toBeInTheDocument();
+    // The menu is still mounted behind the overlay (Dialog marks it inert, so query by text).
+    expect(screen.getByText('poweredByTonyMenu')).toBeInTheDocument();
   });
 });

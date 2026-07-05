@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState, useRef, useMemo } from "react";
+import { Dialog, DialogPanel } from "@headlessui/react";
 import { useTranslations } from "@/lib/i18n";
 import Image from "next/image";
-import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { useRestaurantStore, useCategories, useLabels } from "@/stores/restaurantStore";
 import { MenuItemDetail } from "@/components/menu/MenuItemDetail";
+import { SelectionContent } from "@/components/menu/SelectionContent";
 import { MenuItemListView } from "@/components/menu/views/MenuItemListView";
 import { RestaurantInfoModal } from "@/components/menu/RestaurantInfoModal";
 import { PromotionPopup } from "@/components/menu/PromotionPopup";
@@ -39,7 +40,6 @@ export default function MenuPageClient() {
   // forbids runtime-discovered dynamic route params. The legacy `?type=drinks`
   // value is honored as an alias for any 'drinks'- or 'takeaway'-coded menu.
   const typeParam = searchParams.get("type") ?? undefined;
-  const staffSession = searchParams.get("staffSession");
   const aiChatDevOverride = process.env.NODE_ENV !== 'production' && searchParams.get('aiChat') === '1';
   const hasChatWorker = Boolean(process.env.NEXT_PUBLIC_CHAT_WORKER_URL);
   const { data, isLoading, error, loadRestaurant } = useRestaurantStore();
@@ -47,6 +47,7 @@ export default function MenuPageClient() {
   const allLabels = useLabels();
   const initializeSelection = useSelectionStore((state) => state.initialize);
   const selectionCount = useSelectionStore((state) => state.count());
+  const [showSelection, setShowSelection] = useState(false);
   const [showNotice, setShowNotice] = useState(true);
   const [showPromo, setShowPromo] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -265,13 +266,14 @@ export default function MenuPageClient() {
           </div>
         </div>
         {selectionEnabled && selectionCount > 0 && (
-          <Link
-            href={`/${locale}/selection${staffSession ? `?staffSession=${encodeURIComponent(staffSession)}` : ""}`}
+          <button
+            type="button"
+            onClick={() => setShowSelection(true)}
             className="fixed top-4 right-4 z-40 rounded-full bg-primary text-white shadow-lg px-3 py-2 text-xs font-semibold"
             aria-label={selectionLabel}
           >
             {selectionLabel}
-          </Link>
+          </button>
         )}
         <div className="relative -mt-20 mx-3 z-20">
           <button onClick={() => setShowInfoModal(true)} className="w-full bg-white rounded-xl shadow-lg p-4 text-center">
@@ -397,6 +399,15 @@ export default function MenuPageClient() {
 
       {hasChatWorker && (data?.features?.aiChat === true || aiChatDevOverride) && <ChatPanel locale={locale} voiceEnabled={data?.features?.aiVoice === true} />}
       <MenuItemDetail item={selectedItem} onClose={() => setSelectedItem(null)} locale={locale} selectionEnabled={selectionEnabled} />
+
+      <Dialog as="div" className="relative z-50" open={showSelection} onClose={() => setShowSelection(false)}>
+        <div className="fixed inset-0 bg-black/60" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-end justify-center">
+          <DialogPanel className="w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-t-3xl bg-gray-100 px-4 py-6">
+            <SelectionContent onClose={() => setShowSelection(false)} />
+          </DialogPanel>
+        </div>
+      </Dialog>
 
       {data && <RestaurantInfoModal restaurant={data} isOpen={showInfoModal} onClose={() => setShowInfoModal(false)} />}
       {data.promotion && <PromotionPopup promotion={data.promotion} open={showPromo} onClose={handlePromoClose} />}

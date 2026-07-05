@@ -109,6 +109,7 @@
   "selection.qrExpires": "This code expires after 30 minutes.",
   "selection.qrBack": "Back to selection",
   "selection.qrError": "Could not prepare the QR code. Please try again.",
+  "selection.qrRateLimit": "Too many requests. Please wait a minute and try again.",
   "admin": {
     "common.cancel": "Cancel",
     "common.save": "Save",

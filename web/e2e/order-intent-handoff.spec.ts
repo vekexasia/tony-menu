@@ -23,7 +23,7 @@ test.describe.serial('Waiter QR handoff — real backend', () => {
   test('diner creates an intent and shows a QR; waiter submits it', async ({ page, context, request }) => {
     const table = SEEDED_TABLE;
     await addBruschettaFromMenu(page);
-    await page.getByRole('link', { name: /la mia selezione/i }).click();
+    await page.getByRole('button', { name: /la mia selezione/i }).click();
 
     const intentReq = page.waitForRequest((req) => req.url().includes('/orders/intents') && req.method() === 'POST');
     const intentRes = page.waitForResponse((res) => res.url().includes('/orders/intents') && res.request().method() === 'POST');

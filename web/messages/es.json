@@ -109,6 +109,7 @@
   "selection.qrExpires": "Este codigo caduca despues de 30 minutos.",
   "selection.qrBack": "Volver a la seleccion",
   "selection.qrError": "No se pudo preparar el codigo QR. Intentalo de nuevo.",
+  "selection.qrRateLimit": "Demasiadas solicitudes. Espera un minuto e intentalo de nuevo.",
   "admin": {
     "common.cancel": "Cancelar",
     "common.save": "Guardar",

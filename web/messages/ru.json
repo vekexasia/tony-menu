@@ -109,6 +109,7 @@
   "selection.qrExpires": "Этот код истекает через 30 минут.",
   "selection.qrBack": "Назад к выбору",
   "selection.qrError": "Не удалось подготовить QR-код. Попробуйте еще раз.",
+  "selection.qrRateLimit": "Слишком много запросов. Подождите минуту и попробуйте снова.",
   "admin": {
     "common.cancel": "Отмена",
     "common.save": "Сохранить",

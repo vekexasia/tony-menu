@@ -109,6 +109,7 @@
   "selection.qrExpires": "Ez a kód 30 perc után lejár.",
   "selection.qrBack": "Vissza a választáshoz",
   "selection.qrError": "Nem sikerült előkészíteni a QR-kódot. Próbáld újra.",
+  "selection.qrRateLimit": "Túl sok kérés. Várj egy percet, és próbáld újra.",
   "admin": {
     "common.cancel": "Mégse",
     "common.save": "Mentés",

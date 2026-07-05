@@ -109,6 +109,7 @@
   "selection.qrExpires": "Ce code expire apres 30 minutes.",
   "selection.qrBack": "Retour a la selection",
   "selection.qrError": "Impossible de preparer le QR code. Reessayez.",
+  "selection.qrRateLimit": "Trop de requetes. Attends une minute et reessaye.",
   "admin": {
     "common.cancel": "Annuler",
     "common.save": "Enregistrer",

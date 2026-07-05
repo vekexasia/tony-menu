@@ -250,6 +250,36 @@ describe('SelectionPageClient', () => {
     expect(useSelectionStore.getState().lines).toHaveLength(1);
   });
 
+  it('reuses a cached intent when reopening the QR with an unchanged cart', async () => {
+    storeSelection([{ entryId: 'entry-bruschetta', quantity: 2, addedAt: 1 }]);
+    setSendMode('waiter');
+    createOrderIntentMock.mockResolvedValue({ ok: true, token: 'tok-123', expiresAt: Date.now() + 1_800_000 });
+
+    render(<SelectionPageClient />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'selection.showQr' }));
+    expect(await screen.findByTestId('waiter-qr')).toBeInTheDocument();
+    // Close the QR dialog and wait for it to unmount.
+    fireEvent.click(screen.getByRole('button', { name: 'selection.qrBack' }));
+    await waitFor(() => expect(screen.queryByTestId('waiter-qr')).not.toBeInTheDocument());
+    // Reopen with the same cart — no second POST.
+    fireEvent.click(screen.getByRole('button', { name: 'selection.showQr' }));
+    expect(await screen.findByTestId('waiter-qr')).toBeInTheDocument();
+
+    expect(createOrderIntentMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows a rate-limit error when intent creation is throttled (429)', async () => {
+    storeSelection([{ entryId: 'entry-bruschetta', quantity: 1, addedAt: 1 }]);
+    setSendMode('waiter');
+    createOrderIntentMock.mockRejectedValue(new ApiError(429, 'rate_limited'));
+
+    render(<SelectionPageClient />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'selection.showQr' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('selection.qrRateLimit');
+  });
+
   it('shows both send and QR buttons when submitMode is both', async () => {
     storeSelection([{ entryId: 'entry-bruschetta', quantity: 1, addedAt: 1 }]);
     setSendMode('both');
