@@ -291,3 +291,19 @@ export const tables = [
   { id: 'demo-table-terrazza-3', name: 'Terrazza 3', sortOrder: 8 },
   { id: 'demo-table-terrazza-4', name: 'Terrazza 4', sortOrder: 9 },
 ];
+
+// Stable demo waiter links. QR: /staff?token=demo-staff-link-marco
+export const demoStaffLinks = [
+  {
+    id: 'demo-staff-marco',
+    name: 'Marco Demo',
+    token: 'demo-staff-link-marco',
+    sessionToken: 'demo-staff-session-marco',
+  },
+  {
+    id: 'demo-staff-giulia',
+    name: 'Giulia Demo',
+    token: 'demo-staff-link-giulia',
+    sessionToken: 'demo-staff-session-giulia',
+  },
+];

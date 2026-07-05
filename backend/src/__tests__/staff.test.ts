@@ -93,6 +93,24 @@ describe('one-use staff link exchange', () => {
     expect(((await second.json()) as { error: string }).error).toBe('consumed');
   });
 
+  it('reuses seeded demo waiter links only in demo mode', async () => {
+    const db = staffDb();
+    const now = Date.now();
+    db.raw.prepare('INSERT INTO staff_links (id, name, token, session_token, consumed_at, last_seen_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+      .run('demo-staff-marco', 'Marco Demo', 'demo-staff-link-marco', 'demo-staff-session-marco', now, now, now, now);
+
+    const prod = await testRequest('/staff/consume', {
+      method: 'POST', body: { token: 'demo-staff-link-marco' }, headers: { 'cf-connecting-ip': `10.2.0.${++ipCounter}` }, env: makeDbEnv(db),
+    });
+    expect(prod.status).toBe(409);
+
+    const demo = await testRequest('/staff/consume', {
+      method: 'POST', body: { token: 'demo-staff-link-marco' }, headers: { 'cf-connecting-ip': `10.2.0.${++ipCounter}` }, env: makeDbEnv(db, { DEMO_MODE: 'true' }),
+    });
+    expect(demo.status).toBe(200);
+    expect(await demo.json()).toMatchObject({ ok: true, sessionToken: 'demo-staff-session-marco', name: 'Marco Demo' });
+  });
+
   it('404s an unknown token', async () => {
     const db = staffDb();
     const res = await testRequest('/staff/consume', {

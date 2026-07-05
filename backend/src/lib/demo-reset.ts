@@ -10,6 +10,7 @@ import {
   orderDestinations,
   entryDestinations,
   tables,
+  demoStaffLinks,
   drinkCategoryIds,
   FOOD_MENU_ID,
   DRINKS_MENU_ID,
@@ -25,6 +26,7 @@ export async function resetDemoData(env: Env): Promise<void> {
     env.DB.prepare('DELETE FROM orders'),
     env.DB.prepare('DELETE FROM order_intents'),
     env.DB.prepare('DELETE FROM table_sessions'),
+    env.DB.prepare('DELETE FROM staff_links'),
     env.DB.prepare('DELETE FROM tables'),
     env.DB.prepare('DELETE FROM entry_destinations'),
     env.DB.prepare('DELETE FROM order_destinations'),
@@ -84,6 +86,9 @@ export async function resetDemoData(env: Env): Promise<void> {
   }
   for (const table of tables) {
     statements.push(env.DB.prepare('INSERT INTO tables (id, name, active, sort_order, created_at, updated_at) VALUES (?, ?, 1, ?, ?, ?)').bind(table.id, table.name, table.sortOrder, now, now));
+  }
+  for (const staff of demoStaffLinks) {
+    statements.push(env.DB.prepare('INSERT INTO staff_links (id, name, token, session_token, consumed_at, last_seen_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').bind(staff.id, staff.name, staff.token, staff.sessionToken, now, now, now, now));
   }
 
   const demoLabels = [
