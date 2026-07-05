@@ -638,7 +638,10 @@
     "table.status.submitted": "Submitted",
     "table.status.ready": "Ready",
     "table.status.served": "Served",
-    "table.status.rejected": "Rejected"
+    "table.status.rejected": "Rejected",
+    "table.actor.diner": "guest",
+    "table.actor.staff": "waiter",
+    "table.actor.admin": "kitchen"
   },
   "selection.cancel": "Cancel"
 }

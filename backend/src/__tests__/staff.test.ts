@@ -265,6 +265,50 @@ describe('ready -> served staff transition', () => {
     const again = await testRequest(`/staff/orders/${orderId}/serve`, { method: 'PATCH', headers: staffHeaders(session), env: makeDbEnv(db) });
     expect(again.status).toBe(409);
   });
+
+  it('logs the lifecycle changelog with the right actors', async () => {
+    const db = staffDb();
+    await seedTable(db);
+    const session = await openSession(db, await createLink(db));
+    const open = await testRequest('/staff/tables/table-1/session', { method: 'POST', headers: staffHeaders(session), env: makeDbEnv(db) });
+    const sessionId = ((await open.json()) as { sessionId: string }).sessionId;
+    const orderId = await submittedOrder(db, sessionId, session);
+
+    db.raw.prepare("UPDATE orders SET status = 'ready' WHERE id = ?").run(orderId);
+    await testRequest(`/staff/orders/${orderId}/serve`, { method: 'PATCH', headers: staffHeaders(session), env: makeDbEnv(db) });
+
+    const events = db.raw.prepare('SELECT status, actor FROM order_events WHERE order_id = ? ORDER BY created_at').all(orderId) as Array<{ status: string; actor: string }>;
+    expect(events.map((e) => e.status)).toEqual(['submitted', 'served']);
+    expect(events.map((e) => e.actor)).toEqual(['staff', 'staff']);
+
+    // The session detail exposes them.
+    const detail = await testRequest(`/staff/sessions/${sessionId}`, { headers: staffHeaders(session), env: makeDbEnv(db) });
+    const body = (await detail.json()) as { orders: Array<{ events: Array<{ status: string; actor: string | null }> }> };
+    expect(body.orders[0].events.map((e) => e.status)).toEqual(['submitted', 'served']);
+  });
+
+  it('QR consume without a table logs actor staff, diner direct submit logs diner', async () => {
+    const db = staffDb();
+    const session = await openSession(db, await createLink(db));
+    const intentRes = await testRequest('/orders/intents', {
+      method: 'POST', body: { lines: [{ entryId: 'entry-1', quantity: 1 }] }, headers: { 'cf-connecting-ip': `10.6.0.${++ipCounter}` }, env: makeDbEnv(db),
+    });
+    const token = ((await intentRes.json()) as { token: string }).token;
+    const consume = await testRequest(`/staff/order-intents/${token}/consume`, { method: 'POST', headers: staffHeaders(session), env: makeDbEnv(db) });
+    const staffOrderId = ((await consume.json()) as { orderId: string }).orderId;
+    const staffEvent = db.raw.prepare('SELECT actor FROM order_events WHERE order_id = ?').get(staffOrderId) as { actor: string };
+    expect(staffEvent.actor).toBe('staff');
+
+    const direct = await testRequest('/orders', {
+      method: 'POST',
+      body: { idempotencyKey: `idem-diner-${++ipCounter}`, lines: [{ entryId: 'entry-1', quantity: 1 }] },
+      headers: { 'cf-connecting-ip': `10.6.0.${++ipCounter}` },
+      env: makeDbEnv(db),
+    });
+    const dinerOrderId = ((await direct.json()) as { orderId: string }).orderId;
+    const dinerEvent = db.raw.prepare('SELECT actor FROM order_events WHERE order_id = ?').get(dinerOrderId) as { actor: string };
+    expect(dinerEvent.actor).toBe('diner');
+  });
 });
 
 describe('staff order-intents gating', () => {

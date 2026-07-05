@@ -638,7 +638,10 @@
     "table.status.submitted": "Mandado",
     "table.status.ready": "Pronto",
     "table.status.served": "Servio",
-    "table.status.rejected": "Rifiutado"
+    "table.status.rejected": "Rifiutado",
+    "table.actor.diner": "cliente",
+    "table.actor.staff": "camarier",
+    "table.actor.admin": "cusina"
   },
   "selection.cancel": "Anula"
 }

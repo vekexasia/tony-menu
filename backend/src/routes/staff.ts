@@ -206,6 +206,19 @@ staff.get('/sessions/:id', ...staffBase, async (c) => {
   const itemRows = orderIds.length > 0
     ? await db.select().from(schema.orderItems).where(inArray(schema.orderItems.orderId, orderIds))
     : [];
+  const eventRows = orderIds.length > 0
+    ? await db
+        .select()
+        .from(schema.orderEvents)
+        .where(inArray(schema.orderEvents.orderId, orderIds))
+        .orderBy(asc(schema.orderEvents.createdAt))
+    : [];
+  const eventsByOrder = new Map<string, typeof eventRows>();
+  for (const e of eventRows) {
+    const list = eventsByOrder.get(e.orderId) ?? [];
+    list.push(e);
+    eventsByOrder.set(e.orderId, list);
+  }
   const itemsByOrder = new Map<string, typeof itemRows>();
   for (const i of itemRows) {
     const list = itemsByOrder.get(i.orderId) ?? [];
@@ -228,6 +241,11 @@ staff.get('/sessions/:id', ...staffBase, async (c) => {
         name: i.name,
         price: i.price,
         quantity: i.quantity,
+      })),
+      events: (eventsByOrder.get(o.id) ?? []).map((e) => ({
+        status: e.status,
+        actor: e.actor,
+        at: e.createdAt,
       })),
     })),
   });
@@ -256,10 +274,18 @@ staff.patch('/orders/:orderId/serve', ...staffBase, async (c) => {
     return c.json({ error: 'illegal_transition', from: order.status, to: 'served' }, 409);
   }
 
-  await db
-    .update(schema.orders)
-    .set({ status: 'served', updatedAt: Date.now() })
-    .where(eq(schema.orders.id, orderId));
+  await db.batch([
+    db
+      .update(schema.orders)
+      .set({ status: 'served', updatedAt: Date.now() })
+      .where(eq(schema.orders.id, orderId)),
+    db.insert(schema.orderEvents).values({
+      id: crypto.randomUUID(),
+      orderId,
+      status: 'served',
+      actor: 'staff',
+    }),
+  ]);
   return c.json({ ok: true, status: 'served' });
 });
 
@@ -350,7 +376,7 @@ staff.post('/order-intents/:token/consume', ...staffBase, async (c) => {
 
   let result;
   try {
-    result = await createOrder(db, `intent:${token}`, overrideLines ?? intent.lines ?? [], tableSessionId);
+    result = await createOrder(db, `intent:${token}`, overrideLines ?? intent.lines ?? [], tableSessionId, 'staff');
   } catch (error) {
     await releaseClaim(db, token);
     throw error;

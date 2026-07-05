@@ -638,7 +638,10 @@
     "table.status.submitted": "Elküldve",
     "table.status.ready": "Kész",
     "table.status.served": "Felszolgálva",
-    "table.status.rejected": "Elutasítva"
+    "table.status.rejected": "Elutasítva",
+    "table.actor.diner": "vendég",
+    "table.actor.staff": "pincér",
+    "table.actor.admin": "konyha"
   },
   "selection.cancel": "Mégse"
 }

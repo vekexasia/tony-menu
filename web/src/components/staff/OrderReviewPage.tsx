@@ -62,7 +62,9 @@ export default function OrderReviewPage() {
       for (const entry of cat.entries) {
         info.set(entry.id, {
           name: getLocalizedContentValue({ name: entry.name, i18n: entry.i18n ?? undefined }, "name", locale),
-          price: entry.price,
+          // NOTE: unit seam — the public catalog serves euros (catalog.ts divides by 100),
+          // the orders domain uses integer cents. This is the only crossing point; normalize here.
+          price: Math.round(entry.price * 100),
           unavailable: entry.hidden || entry.outOfStock,
         });
       }
@@ -111,7 +113,7 @@ export default function OrderReviewPage() {
       for (const entry of cat.entries) {
         if (entry.hidden || entry.outOfStock || inOrder.has(entry.id)) continue;
         const name = getLocalizedContentValue({ name: entry.name, i18n: entry.i18n ?? undefined }, "name", locale);
-        if (name.toLowerCase().includes(q)) out.push({ id: entry.id, name, price: entry.price });
+        if (name.toLowerCase().includes(q)) out.push({ id: entry.id, name, price: Math.round(entry.price * 100) });
       }
     }
     return out.slice(0, 8);

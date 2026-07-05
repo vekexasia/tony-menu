@@ -75,12 +75,20 @@ export interface StaffOrderItem {
   quantity: number;
 }
 
+export interface StaffOrderEvent {
+  status: string;
+  actor: string | null;
+  at: number;
+}
+
 export interface StaffOrder {
   id: string;
   dailyNumber: number;
   status: 'submitted' | 'ready' | 'served' | 'rejected';
   createdAt: number;
   items: StaffOrderItem[];
+  /** Lifecycle changelog, oldest first: submitted → ready → served/rejected. */
+  events: StaffOrderEvent[];
 }
 
 export interface TableSessionDetail {

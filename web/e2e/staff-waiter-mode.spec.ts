@@ -85,6 +85,8 @@ test.describe.serial('Waiter mode — real backend', () => {
 
     await expect(page).toHaveURL(new RegExp(`/staff/table/${sessionId}/?$`));
     await expect(page.getByTestId('order-1')).toContainText(/bruschetta/i);
+    // Lifecycle changelog: the submitted event shows with time + actor.
+    await expect(page.getByTestId('order-1-events')).toContainText(/inviato|submitted/i);
 
     await expect(page.getByTestId('add-order')).toHaveAttribute('href', new RegExp(`menu\\/?\\?staffSession=${sessionId}`));
 

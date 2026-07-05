@@ -638,7 +638,10 @@
     "table.status.submitted": "Gesendet",
     "table.status.ready": "Bereit",
     "table.status.served": "Serviert",
-    "table.status.rejected": "Abgelehnt"
+    "table.status.rejected": "Abgelehnt",
+    "table.actor.diner": "Gast",
+    "table.actor.staff": "Kellner",
+    "table.actor.admin": "Küche"
   },
   "selection.cancel": "Abbrechen"
 }

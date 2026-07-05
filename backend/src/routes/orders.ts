@@ -34,6 +34,7 @@ export async function createOrder(
   idempotencyKey: string,
   rawLines: { entryId: string; quantity: number }[],
   tableSessionId?: string | null,
+  actor: 'diner' | 'staff' = tableSessionId ? 'staff' : 'diner',
 ): Promise<CreateOrderResult> {
   // Idempotency first: a retried submit returns the already-created order even
   // if the table session has since closed (no false invalid_table_session).
@@ -142,6 +143,12 @@ export async function createOrder(
         ...(itemDestinationValues.length > 0
           ? [db.insert(schema.orderItemDestinations).values(itemDestinationValues)]
           : []),
+        db.insert(schema.orderEvents).values({
+          id: crypto.randomUUID(),
+          orderId,
+          status: 'submitted',
+          actor,
+        }),
       ]);
       return { ok: true, orderId, dailyNumber };
     } catch (error) {

@@ -19,6 +19,7 @@ export async function resetDemoData(env: Env): Promise<void> {
   if (!env.DB) throw new Error('Database not configured');
 
   const statements: D1PreparedStatement[] = [
+    env.DB.prepare('DELETE FROM order_events'),
     env.DB.prepare('DELETE FROM order_item_destinations'),
     env.DB.prepare('DELETE FROM order_items'),
     env.DB.prepare('DELETE FROM orders'),

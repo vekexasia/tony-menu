@@ -111,6 +111,17 @@ export function TableDetail({ sessionId }: { sessionId: string }) {
                       <li key={item.id}>{item.quantity}× {item.name}</li>
                     ))}
                   </ul>
+                  {order.events.length > 0 && (
+                    <ol className="mt-3 border-t border-gray-100 pt-2 space-y-0.5" data-testid={`order-${order.dailyNumber}-events`}>
+                      {order.events.map((event, idx) => (
+                        <li key={idx} className="text-xs text-gray-400">
+                          {new Date(event.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          {" · "}{t(`table.status.${event.status}`)}
+                          {event.actor ? ` · ${t(`table.actor.${event.actor}`)}` : ""}
+                        </li>
+                      ))}
+                    </ol>
+                  )}
                 </div>
               );
             })}

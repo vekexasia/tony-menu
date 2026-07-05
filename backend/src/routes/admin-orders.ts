@@ -115,14 +115,22 @@ admin.patch('/orders/:orderId/status', ...base, async (c) => {
     return c.json({ error: 'illegal_transition', from: order.status, to: body.status }, 409);
   }
 
-  await db
-    .update(schema.orders)
-    .set({
+  await db.batch([
+    db
+      .update(schema.orders)
+      .set({
+        status: body.status,
+        rejectReason: body.status === 'rejected' ? body.rejectReason : null,
+        updatedAt: Date.now(),
+      })
+      .where(eq(schema.orders.id, orderId)),
+    db.insert(schema.orderEvents).values({
+      id: crypto.randomUUID(),
+      orderId,
       status: body.status,
-      rejectReason: body.status === 'rejected' ? body.rejectReason : null,
-      updatedAt: Date.now(),
-    })
-    .where(eq(schema.orders.id, orderId));
+      actor: 'admin',
+    }),
+  ]);
 
   return c.json({ ok: true, status: body.status });
 });

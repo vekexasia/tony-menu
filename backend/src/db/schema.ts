@@ -337,6 +337,22 @@ export const orderItemDestinations = sqliteTable(
   }),
 );
 
+/** Order lifecycle changelog: one row per status event (submitted/ready/served/rejected). */
+export const orderEvents = sqliteTable(
+  'order_events',
+  {
+    id: text('id').primaryKey(),
+    orderId: text('order_id').notNull().references(() => orders.id, { onDelete: 'cascade' }),
+    status: text('status').notNull(),
+    // 'diner' | 'staff' | 'admin' — who moved it. Free-form text, no FK.
+    actor: text('actor'),
+    createdAt: integer('created_at').notNull().$defaultFn(() => Date.now()),
+  },
+  (table) => ({
+    orderIdx: index('order_events_order_idx').on(table.orderId),
+  }),
+);
+
 /**
  * Waiter-handoff order intents (#19): the diner prepares a cart and shows a QR
  * linking to the admin review page; a waiter consumes the intent into a real

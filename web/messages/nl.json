@@ -638,7 +638,10 @@
     "table.status.submitted": "Verzonden",
     "table.status.ready": "Klaar",
     "table.status.served": "Geserveerd",
-    "table.status.rejected": "Geweigerd"
+    "table.status.rejected": "Geweigerd",
+    "table.actor.diner": "gast",
+    "table.actor.staff": "ober",
+    "table.actor.admin": "keuken"
   },
   "selection.cancel": "Annuleren"
 }

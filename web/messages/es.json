@@ -638,7 +638,10 @@
     "table.status.submitted": "Enviado",
     "table.status.ready": "Listo",
     "table.status.served": "Servido",
-    "table.status.rejected": "Rechazado"
+    "table.status.rejected": "Rechazado",
+    "table.actor.diner": "cliente",
+    "table.actor.staff": "camarero",
+    "table.actor.admin": "cocina"
   },
   "selection.cancel": "Cancelar"
 }

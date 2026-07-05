@@ -124,18 +124,22 @@ describe("OrderReviewPage", () => {
   it("edits lines (qty, remove, add from catalog) and submits the edited override", async () => {
     apiMocks.fetchOrderIntent.mockResolvedValue(PENDING_INTENT);
     apiMocks.consumeOrderIntent.mockResolvedValue({ ok: true, orderId: "o1", dailyNumber: 3 });
+    // Real catalog serves prices in EUROS (backend divides cents by 100);
+    // intent lines are cents. Regression guard for the 0.07 € bug.
     apiMocks.getCatalog.mockResolvedValue({
       categories: [
         { id: "c1", entries: [
-          { id: "e1", name: "Bruschetta", price: 750, hidden: false, outOfStock: false, i18n: null },
-          { id: "e2", name: "Pasta", price: 1200, hidden: false, outOfStock: false, i18n: null },
-          { id: "e3", name: "Tiramisu", price: 650, hidden: false, outOfStock: false, i18n: null },
+          { id: "e1", name: "Bruschetta", price: 7.5, hidden: false, outOfStock: false, i18n: null },
+          { id: "e2", name: "Pasta", price: 12, hidden: false, outOfStock: false, i18n: null },
+          { id: "e3", name: "Tiramisu", price: 6.5, hidden: false, outOfStock: false, i18n: null },
         ] },
       ],
     });
 
     render(<OrderReviewPage />);
     await screen.findByText("Bruschetta");
+    // Catalog euro prices must render as euros, not cents/100.
+    expect(screen.getByTestId("review-line-e1")).toHaveTextContent("15.00 €"); // 2 × 7.50
 
     // Bump e1 to 3, remove e2, add e3 via the search picker.
     fireEvent.click(screen.getByTestId("review-line-e1").querySelector('[aria-label="orderReview.increase"]')!);

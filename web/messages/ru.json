@@ -638,7 +638,10 @@
     "table.status.submitted": "Отправлен",
     "table.status.ready": "Готов",
     "table.status.served": "Подан",
-    "table.status.rejected": "Отклонён"
+    "table.status.rejected": "Отклонён",
+    "table.actor.diner": "гость",
+    "table.actor.staff": "официант",
+    "table.actor.admin": "кухня"
   },
   "selection.cancel": "Отмена"
 }

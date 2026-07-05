@@ -638,7 +638,10 @@
     "table.status.submitted": "Envoyee",
     "table.status.ready": "Prete",
     "table.status.served": "Servie",
-    "table.status.rejected": "Refusee"
+    "table.status.rejected": "Refusee",
+    "table.actor.diner": "client",
+    "table.actor.staff": "serveur",
+    "table.actor.admin": "cuisine"
   },
   "selection.cancel": "Annuler"
 }
