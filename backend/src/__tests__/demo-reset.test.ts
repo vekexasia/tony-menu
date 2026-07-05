@@ -26,9 +26,8 @@ describe('demo reset', () => {
     expect(dests.map((d) => d.name)).toEqual(['Cucina', 'Bar']);
     const tableCount = db.raw.prepare('SELECT count(*) c FROM tables').get() as { c: number };
     expect(tableCount.c).toBe(10);
-    const waiter = db.raw.prepare("SELECT name, token, session_token, consumed_at FROM staff_links WHERE id = 'demo-staff-marco'").get() as { name: string; token: string; session_token: string; consumed_at: number | null };
-    expect(waiter).toMatchObject({ name: 'Marco Demo', token: 'demo-staff-link-marco', session_token: 'demo-staff-session-marco' });
-    expect(waiter.consumed_at).not.toBeNull();
+    const waiter = db.raw.prepare("SELECT name, token, session_token, consumed_at FROM staff_links WHERE id = 'demo-staff-marco'").get() as { name: string; token: string; session_token: string | null; consumed_at: number | null };
+    expect(waiter).toEqual({ name: 'Marco Demo', token: 'demo-staff-link-marco', session_token: null, consumed_at: null });
     const barGlass = db.raw.prepare("SELECT destination_id FROM entry_destinations WHERE entry_id = 'demo-entry-prosecco'").get() as { destination_id: string };
     expect(barGlass.destination_id).toBe('demo-dest-bar');
   });

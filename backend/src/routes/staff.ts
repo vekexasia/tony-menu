@@ -40,7 +40,6 @@ staff.post('/consume', requireDb, async (c) => {
       id: schema.staffLinks.id,
       name: schema.staffLinks.name,
       consumedAt: schema.staffLinks.consumedAt,
-      sessionToken: schema.staffLinks.sessionToken,
       revokedAt: schema.staffLinks.revokedAt,
     })
     .from(schema.staffLinks)
@@ -48,13 +47,7 @@ staff.post('/consume', requireDb, async (c) => {
     .limit(1);
 
   if (!link || link.revokedAt !== null) return c.json({ error: 'invalid' }, 404);
-  if (link.consumedAt !== null) {
-    // Demo waiters need stable QR codes; keep normal one-use links one-use.
-    if (c.env.DEMO_MODE === 'true' && body.token.startsWith('demo-staff-link-') && link.sessionToken) {
-      return c.json({ ok: true, sessionToken: link.sessionToken, name: link.name });
-    }
-    return c.json({ error: 'consumed' }, 409);
-  }
+  if (link.consumedAt !== null) return c.json({ error: 'consumed' }, 409);
 
   const sessionToken = crypto.randomUUID();
   const claim = await db

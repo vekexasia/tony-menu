@@ -298,12 +298,10 @@ export const demoStaffLinks = [
     id: 'demo-staff-marco',
     name: 'Marco Demo',
     token: 'demo-staff-link-marco',
-    sessionToken: 'demo-staff-session-marco',
   },
   {
     id: 'demo-staff-giulia',
     name: 'Giulia Demo',
     token: 'demo-staff-link-giulia',
-    sessionToken: 'demo-staff-session-giulia',
   },
 ];

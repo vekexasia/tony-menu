@@ -88,7 +88,7 @@ export async function resetDemoData(env: Env): Promise<void> {
     statements.push(env.DB.prepare('INSERT INTO tables (id, name, active, sort_order, created_at, updated_at) VALUES (?, ?, 1, ?, ?, ?)').bind(table.id, table.name, table.sortOrder, now, now));
   }
   for (const staff of demoStaffLinks) {
-    statements.push(env.DB.prepare('INSERT INTO staff_links (id, name, token, session_token, consumed_at, last_seen_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').bind(staff.id, staff.name, staff.token, staff.sessionToken, now, now, now, now));
+    statements.push(env.DB.prepare('INSERT INTO staff_links (id, name, token, created_at, updated_at) VALUES (?, ?, ?, ?, ?)').bind(staff.id, staff.name, staff.token, now, now));
   }
 
   const demoLabels = [
