@@ -602,7 +602,9 @@
     "staffLinks.revokeConfirm": "Revoquer ce serveur ? Sa session prendra fin immediatement.",
     "staffLinks.statusUnused": "Non utilise",
     "staffLinks.statusActive": "Actif",
-    "staffLinks.statusRevoked": "Revoque"
+    "staffLinks.statusRevoked": "Revoque",
+    "orderReview.tableLabel": "Table à servir",
+    "orderReview.noTable": "Aucune table"
   },
   "outOfStock": "ÉPUISÉ",
   "staff": {
@@ -628,5 +630,6 @@
     "table.status.ready": "Prete",
     "table.status.served": "Servie",
     "table.status.rejected": "Refusee"
-  }
+  },
+  "selection.cancel": "Annuler"
 }

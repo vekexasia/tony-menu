@@ -602,7 +602,9 @@
     "staffLinks.revokeConfirm": "Revocar a este camarero? Su sesion terminara de inmediato.",
     "staffLinks.statusUnused": "Sin usar",
     "staffLinks.statusActive": "Activo",
-    "staffLinks.statusRevoked": "Revocado"
+    "staffLinks.statusRevoked": "Revocado",
+    "orderReview.tableLabel": "Mesa",
+    "orderReview.noTable": "Sin mesa"
   },
   "outOfStock": "AGOTADO",
   "staff": {
@@ -628,5 +630,6 @@
     "table.status.ready": "Listo",
     "table.status.served": "Servido",
     "table.status.rejected": "Rechazado"
-  }
+  },
+  "selection.cancel": "Cancelar"
 }

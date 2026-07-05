@@ -38,6 +38,7 @@ export function SelectionPageClient() {
   const [creatingIntent, setCreatingIntent] = useState(false);
   const [submitError, setSubmitError] = useState<"stale" | "generic" | "intent" | null>(null);
   const [staleEntryIds, setStaleEntryIds] = useState<string[]>([]);
+  const [confirmClear, setConfirmClear] = useState(false);
   // One idempotency key per submit attempt session: retries after a network
   // failure reuse it, a successful send resets it.
   const idempotencyKeyRef = useRef<string | null>(null);
@@ -113,6 +114,9 @@ export function SelectionPageClient() {
   useEffect(() => {
     if (data?.id) initializeSelection(data.id);
   }, [data?.id, initializeSelection]);
+  useEffect(() => {
+    if (lines.length === 0) setConfirmClear(false);
+  }, [lines.length]);
 
   const resolvedLines = useMemo(() => {
     const entryById = new Map<string, { entry: MenuEntry; category: MenuCategory }>();
@@ -343,16 +347,35 @@ export function SelectionPageClient() {
               </>
             )}
 
-            <button
-              type="button"
-              // ponytail NOTE: this is a public-facing "clear selection" confirm, not an admin delete; ConfirmDeleteModal (admin-styled) doesn't fit here.
-              onClick={() => {
-                if (confirm(t("selection.clearConfirm"))) clear();
-              }}
-              className={`w-full ${canSend || canWaiterQr ? "mt-3" : "mt-6"} py-3 rounded-full bg-white border border-red-200 text-red-600 font-semibold`}
-            >
-              {t("selection.clear")}
-            </button>
+            {confirmClear ? (
+              <div className={`w-full ${canSend || canWaiterQr ? "mt-3" : "mt-6"} rounded-2xl border border-red-200 bg-red-50 p-4`}>
+                <p className="text-sm text-red-700 font-medium">{t("selection.clearConfirm")}</p>
+                <div className="mt-3 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => { clear(); setConfirmClear(false); }}
+                    className="flex-1 py-2.5 rounded-full bg-red-600 text-white font-semibold"
+                  >
+                    {t("selection.clear")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmClear(false)}
+                    className="flex-1 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 font-semibold"
+                  >
+                    {t("selection.cancel")}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setConfirmClear(true)}
+                className={`w-full ${canSend || canWaiterQr ? "mt-3" : "mt-6"} py-3 rounded-full bg-white border border-red-200 text-red-600 font-semibold`}
+              >
+                {t("selection.clear")}
+              </button>
+            )}
           </>
         )}
       </div>

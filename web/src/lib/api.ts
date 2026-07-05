@@ -606,6 +606,7 @@ export interface AdminOrder {
   status: 'submitted' | 'ready' | 'served' | 'rejected';
   rejectReason: string | null;
   createdAt: number;
+  updatedAt: number;
   tableName: string | null;
   items: AdminOrderItem[];
 }

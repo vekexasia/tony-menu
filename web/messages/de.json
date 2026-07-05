@@ -602,7 +602,9 @@
     "staffLinks.revokeConfirm": "Diesen Kellner widerrufen? Seine Sitzung endet sofort.",
     "staffLinks.statusUnused": "Unbenutzt",
     "staffLinks.statusActive": "Aktiv",
-    "staffLinks.statusRevoked": "Widerrufen"
+    "staffLinks.statusRevoked": "Widerrufen",
+    "orderReview.tableLabel": "Tisch",
+    "orderReview.noTable": "Kein Tisch"
   },
   "outOfStock": "AUSVERKAUFT",
   "staff": {
@@ -628,5 +630,6 @@
     "table.status.ready": "Bereit",
     "table.status.served": "Serviert",
     "table.status.rejected": "Abgelehnt"
-  }
+  },
+  "selection.cancel": "Abbrechen"
 }

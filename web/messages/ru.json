@@ -602,7 +602,9 @@
     "staffLinks.revokeConfirm": "Отозвать этого официанта? Его сессия завершится немедленно.",
     "staffLinks.statusUnused": "Не использована",
     "staffLinks.statusActive": "Активна",
-    "staffLinks.statusRevoked": "Отозвана"
+    "staffLinks.statusRevoked": "Отозвана",
+    "orderReview.tableLabel": "Стол",
+    "orderReview.noTable": "Без стола"
   },
   "outOfStock": "НЕТ В НАЛИЧИИ",
   "staff": {
@@ -628,5 +630,6 @@
     "table.status.ready": "Готов",
     "table.status.served": "Подан",
     "table.status.rejected": "Отклонён"
-  }
+  },
+  "selection.cancel": "Отмена"
 }

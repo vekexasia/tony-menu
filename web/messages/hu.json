@@ -602,7 +602,9 @@
     "staffLinks.revokeConfirm": "Visszavonod ezt a pincért? A munkamenete azonnal megszűnik.",
     "staffLinks.statusUnused": "Használatlan",
     "staffLinks.statusActive": "Aktív",
-    "staffLinks.statusRevoked": "Visszavonva"
+    "staffLinks.statusRevoked": "Visszavonva",
+    "orderReview.tableLabel": "Asztal",
+    "orderReview.noTable": "Nincs asztal"
   },
   "outOfStock": "OUT OF STOCK",
   "staff": {
@@ -628,5 +630,6 @@
     "table.status.ready": "Kész",
     "table.status.served": "Felszolgálva",
     "table.status.rejected": "Elutasítva"
-  }
+  },
+  "selection.cancel": "Mégse"
 }

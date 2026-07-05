@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { ApiError, consumeOrderIntent, fetchOrderIntent } from "@/lib/api";
-import type { OrderIntentReviewResponse } from "@menu/schemas";
+import { ApiError, consumeOrderIntent, fetchFloor, fetchOrderIntent, openTableSession } from "@/lib/api";
+import type { FloorTable, OrderIntentReviewResponse } from "@menu/schemas";
 import { useTranslations } from "@/lib/i18n";
 
 /**
@@ -21,6 +21,8 @@ export default function OrderReviewPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<"expired" | "consumed" | "stale" | "generic" | null>(null);
   const [dailyNumber, setDailyNumber] = useState<number | null>(null);
+  const [tables, setTables] = useState<FloorTable[]>([]);
+  const [selectedTableId, setSelectedTableId] = useState("");
 
   const load = useCallback(() => {
     if (!token) return;
@@ -32,12 +34,21 @@ export default function OrderReviewPage() {
 
   useEffect(load, [load]);
 
+  useEffect(() => {
+    fetchFloor().then((res) => setTables(res.tables)).catch(() => setTables([]));
+  }, []);
+
   async function handleSubmit() {
     if (!token || submitting) return;
     setSubmitError(null);
     setSubmitting(true);
     try {
-      const result = await consumeOrderIntent(token);
+      let tableSessionId: string | undefined;
+      const table = tables.find((t) => t.id === selectedTableId);
+      if (table) {
+        tableSessionId = table.sessionId ?? (await openTableSession(table.id)).sessionId;
+      }
+      const result = await consumeOrderIntent(token, tableSessionId);
       setDailyNumber(result.dailyNumber);
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
@@ -122,6 +133,21 @@ export default function OrderReviewPage() {
 
       {status === "pending" && (
         <>
+          <label className="block mt-6 text-sm font-semibold text-gray-700">
+            {t("orderReview.tableLabel")}
+            <select
+              value={selectedTableId}
+              onChange={(e) => setSelectedTableId(e.target.value)}
+              className="mt-2 w-full h-11 rounded-xl border border-gray-200 bg-white px-3 text-sm font-medium text-gray-800"
+            >
+              <option value="">{t("orderReview.noTable")}</option>
+              {tables.map((table) => (
+                <option key={table.id} value={table.id}>
+                  {table.name}{table.sessionId ? " · open" : ""}
+                </option>
+              ))}
+            </select>
+          </label>
           <button
             type="button"
             onClick={handleSubmit}

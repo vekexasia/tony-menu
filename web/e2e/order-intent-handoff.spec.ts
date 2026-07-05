@@ -18,10 +18,10 @@ test.describe.serial('Waiter QR handoff — real backend', () => {
   test.beforeEach(async ({ request }) => {
     await resetDemo(request);
     await setOrdering(request, { enabled: true, mode: 'send', submitMode: 'waiter' });
-    await createTable(request);
   });
 
   test('diner creates an intent and shows a QR; waiter submits it', async ({ page, context, request }) => {
+    const table = await createTable(request, `QR Table ${Date.now()}`);
     await addBruschettaFromMenu(page);
     await page.getByRole('link', { name: /la mia selezione/i }).click();
 
@@ -42,8 +42,11 @@ test.describe.serial('Waiter QR handoff — real backend', () => {
 
     await waiterPage.goto(`/order-review?token=${token}`);
     await expect(waiterPage.getByText(/bruschetta/i)).toBeVisible();
+    await waiterPage.getByLabel(/table|tavolo/i).selectOption({ label: table.name });
     await waiterPage.getByRole('button', { name: /invia ordine|submit order/i }).click();
     await expect(waiterPage.getByTestId('order-daily-number')).toHaveText('#1');
+    await waiterPage.goto('/admin/orders');
+    await expect(waiterPage.getByTestId('order-1')).toContainText(table.name);
   });
 
   test('already-consumed intent shows a clear error and no submit button', async ({ page, request }) => {

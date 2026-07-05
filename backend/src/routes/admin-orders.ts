@@ -40,6 +40,7 @@ admin.get('/orders', ...base, async (c) => {
       rejectReason: schema.orders.rejectReason,
       createdAt: schema.orders.createdAt,
       tableName: schema.tables.name,
+      updatedAt: schema.orders.updatedAt,
     })
     .from(schema.orders)
     .leftJoin(schema.tableSessions, eq(schema.orders.tableSessionId, schema.tableSessions.id))
@@ -77,6 +78,7 @@ admin.get('/orders', ...base, async (c) => {
       status: o.status,
       rejectReason: o.rejectReason,
       createdAt: o.createdAt,
+      updatedAt: o.updatedAt,
       tableName: o.tableName ?? null,
       items: (itemsByOrder.get(o.id) ?? []).map((i) => ({
         id: i.id,

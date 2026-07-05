@@ -52,6 +52,7 @@ export default function KitchenBoardPage() {
   const [error, setError] = useState<string | null>(null);
   const [newAlert, setNewAlert] = useState<number | null>(null);
   const [newDestName, setNewDestName] = useState("");
+  const [now, setNow] = useState(() => Date.now());
   const knownIds = useRef<Set<string> | null>(null);
 
   useEffect(() => {
@@ -87,10 +88,15 @@ export default function KitchenBoardPage() {
     return () => clearInterval(timer);
   }, [orderingEnabled, refresh]);
 
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(timer);
+  }, []);
+
   const transition = async (order: AdminOrder, status: "ready" | "served" | "rejected", reason?: string) => {
     try {
       await updateOrderStatus(order.id, status === "rejected" ? { status, rejectReason: reason } : { status });
-      setOrders((prev) => prev?.map((o) => o.id === order.id ? { ...o, status, rejectReason: reason ?? null } : o) ?? null);
+      setOrders((prev) => prev?.map((o) => o.id === order.id ? { ...o, status, rejectReason: reason ?? null, updatedAt: Date.now() } : o) ?? null);
       setRejectingId(null);
       setRejectReason("");
     } catch (err) {
@@ -214,7 +220,7 @@ export default function KitchenBoardPage() {
                       {t(`kitchen.status.${order.status}`)}
                     </span>
                     <span className="text-xs text-gray-400">
-                      {new Date(order.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      {new Date(order.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · {elapsedLabel(now - order.updatedAt)}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -358,4 +364,13 @@ function TabButton({ active, onClick, label }: { active: boolean; onClick: () =>
       {label}
     </button>
   );
+}
+
+function elapsedLabel(ms: number): string {
+  const minutes = Math.max(0, Math.floor(ms / 60_000));
+  if (minutes < 1) return "now";
+  if (minutes < 60) return `${minutes}m`;
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return rest ? `${hours}h ${rest}m` : `${hours}h`;
 }

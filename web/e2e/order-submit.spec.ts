@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { API_URL, BRUSCHETTA_ID, addBruschettaFromMenu, resetDemo, setE2eIp, setOrdering, updateEntry } from './fixtures/real-backend';
+import { API_URL, BRUSCHETTA_ID, addBruschettaFromMenu, resetDemo, setOrdering, updateEntry } from './fixtures/real-backend';
 
 test.describe.serial('Direct order submit — real backend', () => {
   test.skip(!API_URL, 'Skipped: NEXT_PUBLIC_API_URL not set');

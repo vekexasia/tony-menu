@@ -602,7 +602,9 @@
     "staffLinks.revokeConfirm": "Revogar este empregado? A sessao termina de imediato.",
     "staffLinks.statusUnused": "Nao usada",
     "staffLinks.statusActive": "Ativa",
-    "staffLinks.statusRevoked": "Revogada"
+    "staffLinks.statusRevoked": "Revogada",
+    "orderReview.tableLabel": "Mesa",
+    "orderReview.noTable": "Sem mesa"
   },
   "outOfStock": "ESGOTADO",
   "staff": {
@@ -628,5 +630,6 @@
     "table.status.ready": "Pronto",
     "table.status.served": "Servido",
     "table.status.rejected": "Recusado"
-  }
+  },
+  "selection.cancel": "Cancelar"
 }

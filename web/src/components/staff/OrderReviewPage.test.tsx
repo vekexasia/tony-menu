@@ -5,6 +5,8 @@ import { ApiError } from "@/lib/api";
 const apiMocks = vi.hoisted(() => ({
   fetchOrderIntent: vi.fn(),
   consumeOrderIntent: vi.fn(),
+  fetchFloor: vi.fn(),
+  openTableSession: vi.fn(),
 }));
 vi.mock("@/lib/api", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/api")>();
@@ -43,6 +45,9 @@ const PENDING_INTENT = {
 beforeEach(() => {
   apiMocks.fetchOrderIntent.mockReset();
   apiMocks.consumeOrderIntent.mockReset();
+  apiMocks.fetchFloor.mockReset();
+  apiMocks.openTableSession.mockReset();
+  apiMocks.fetchFloor.mockResolvedValue({ tables: [] });
 });
 
 describe("OrderReviewPage", () => {
@@ -57,7 +62,7 @@ describe("OrderReviewPage", () => {
     fireEvent.click(screen.getByRole("button", { name: /submit order/i }));
 
     expect(await screen.findByTestId("order-daily-number")).toHaveTextContent("#9");
-    expect(apiMocks.consumeOrderIntent).toHaveBeenCalledWith("tok-123");
+    expect(apiMocks.consumeOrderIntent).toHaveBeenCalledWith("tok-123", undefined);
   });
 
   it("blocks submit while items became unavailable after intent creation", async () => {

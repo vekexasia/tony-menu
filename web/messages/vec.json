@@ -602,7 +602,9 @@
     "staffLinks.revokeConfirm": "Revocar sto cameriere? La so session la vien sarada subito.",
     "staffLinks.statusUnused": "No doparado",
     "staffLinks.statusActive": "Ativo",
-    "staffLinks.statusRevoked": "Revocado"
+    "staffLinks.statusRevoked": "Revocado",
+    "orderReview.tableLabel": "Tavola",
+    "orderReview.noTable": "Nissuna tavola"
   },
   "outOfStock": "FINIO",
   "staff": {
@@ -628,5 +630,6 @@
     "table.status.ready": "Pronto",
     "table.status.served": "Servio",
     "table.status.rejected": "Rifiutado"
-  }
+  },
+  "selection.cancel": "Anula"
 }

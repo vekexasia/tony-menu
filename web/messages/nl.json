@@ -602,7 +602,9 @@
     "staffLinks.revokeConfirm": "Deze ober intrekken? De sessie eindigt onmiddellijk.",
     "staffLinks.statusUnused": "Ongebruikt",
     "staffLinks.statusActive": "Actief",
-    "staffLinks.statusRevoked": "Ingetrokken"
+    "staffLinks.statusRevoked": "Ingetrokken",
+    "orderReview.tableLabel": "Tafel",
+    "orderReview.noTable": "Geen tafel"
   },
   "outOfStock": "UITVERKOCHT",
   "staff": {
@@ -628,5 +630,6 @@
     "table.status.ready": "Klaar",
     "table.status.served": "Geserveerd",
     "table.status.rejected": "Geweigerd"
-  }
+  },
+  "selection.cancel": "Annuleren"
 }

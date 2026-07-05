@@ -140,11 +140,11 @@ describe('SelectionPageClient', () => {
 
   it('clears all lines after confirmation', async () => {
     storeSelection([{ entryId: 'entry-bruschetta', quantity: 1, addedAt: 1 }]);
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
 
     render(<SelectionPageClient />);
 
     fireEvent.click(await screen.findByRole('button', { name: 'selection.clear' }));
+    fireEvent.click(screen.getByRole('button', { name: 'selection.clear' }));
 
     expect(useSelectionStore.getState().lines).toEqual([]);
     expect(screen.getByText('selection.empty')).toBeInTheDocument();

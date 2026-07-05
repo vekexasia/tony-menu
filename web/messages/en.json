@@ -602,7 +602,9 @@
     "staffLinks.revokeConfirm": "Revoke this waiter? Their session will end immediately.",
     "staffLinks.statusUnused": "Unused",
     "staffLinks.statusActive": "Active",
-    "staffLinks.statusRevoked": "Revoked"
+    "staffLinks.statusRevoked": "Revoked",
+    "orderReview.tableLabel": "Table",
+    "orderReview.noTable": "No table"
   },
   "outOfStock": "OUT OF STOCK",
   "staff": {
@@ -628,5 +630,6 @@
     "table.status.ready": "Ready",
     "table.status.served": "Served",
     "table.status.rejected": "Rejected"
-  }
+  },
+  "selection.cancel": "Cancel"
 }
