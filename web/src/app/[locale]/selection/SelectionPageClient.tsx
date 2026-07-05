@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
+import { Dialog, DialogPanel } from "@headlessui/react";
 import { getLocalizedContentValue } from "@/lib/content-presentation";
 import { ApiError, createOrderIntent, submitOrder } from "@/lib/api";
 import { useTranslations } from "@/lib/i18n";
@@ -190,29 +191,6 @@ export function SelectionPageClient() {
     );
   }
 
-  if (intentUrl !== null) {
-    return (
-      <main className="min-h-screen bg-gray-100 px-4 py-6">
-        <div className="max-w-2xl mx-auto">
-          <section className="bg-white rounded-2xl shadow-sm p-8 text-center">
-            <h1 className="text-xl font-bold text-gray-800">{t("selection.qrTitle")}</h1>
-            <p className="text-sm text-gray-500 mt-2">{t("selection.qrDescription")}</p>
-            <div className="flex justify-center mt-6" data-testid="waiter-qr">
-              <QRCodeSVG value={intentUrl} size={220} marginSize={2} />
-            </div>
-            <p className="text-xs text-gray-400 mt-4">{t("selection.qrExpires")}</p>
-            <button
-              type="button"
-              onClick={() => setIntentUrl(null)}
-              className="inline-block mt-6 px-4 py-2 rounded-full bg-primary text-white text-sm font-semibold"
-            >
-              {t("selection.qrBack")}
-            </button>
-          </section>
-        </div>
-      </main>
-    );
-  }
 
   if (sentNumber !== null) {
     return (
@@ -232,6 +210,7 @@ export function SelectionPageClient() {
   }
 
   return (
+    <>
     <main className="min-h-screen bg-gray-100 px-4 py-6">
       <div className="max-w-2xl mx-auto">
         <Link href={`/${locale}/menu`} className="inline-flex items-center text-sm text-gray-500 mb-4">
@@ -380,5 +359,27 @@ export function SelectionPageClient() {
         )}
       </div>
     </main>
+
+    <Dialog as="div" className="relative z-50" open={intentUrl !== null} onClose={() => setIntentUrl(null)}>
+      <div className="fixed inset-0 bg-black/60" aria-hidden="true" />
+      <div className="fixed inset-0 flex items-center justify-center p-4">
+        <DialogPanel className="w-full max-w-sm rounded-2xl bg-white p-8 text-center shadow-xl">
+          <h1 className="text-xl font-bold text-gray-800">{t("selection.qrTitle")}</h1>
+          <p className="text-sm text-gray-500 mt-2">{t("selection.qrDescription")}</p>
+          <div className="flex justify-center mt-6" data-testid="waiter-qr">
+            {intentUrl && <QRCodeSVG value={intentUrl} size={220} marginSize={2} />}
+          </div>
+          <p className="text-xs text-gray-400 mt-4">{t("selection.qrExpires")}</p>
+          <button
+            type="button"
+            onClick={() => setIntentUrl(null)}
+            className="inline-block mt-6 px-4 py-2 rounded-full bg-primary text-white text-sm font-semibold"
+          >
+            {t("selection.qrBack")}
+          </button>
+        </DialogPanel>
+      </div>
+    </Dialog>
+    </>
   );
 }
