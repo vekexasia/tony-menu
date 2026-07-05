@@ -612,6 +612,7 @@ export interface AdminOrder {
   createdAt: number;
   updatedAt: number;
   tableName: string | null;
+  submittedBy: string | null;
   items: AdminOrderItem[];
 }
 

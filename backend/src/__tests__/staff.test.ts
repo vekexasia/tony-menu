@@ -295,14 +295,16 @@ describe('ready -> served staff transition', () => {
     db.raw.prepare("UPDATE orders SET status = 'ready' WHERE id = ?").run(orderId);
     await testRequest(`/staff/orders/${orderId}/serve`, { method: 'PATCH', headers: staffHeaders(session), env: makeDbEnv(db) });
 
-    const events = db.raw.prepare('SELECT status, actor FROM order_events WHERE order_id = ? ORDER BY created_at').all(orderId) as Array<{ status: string; actor: string }>;
+    const events = db.raw.prepare('SELECT status, actor, actor_name FROM order_events WHERE order_id = ? ORDER BY created_at').all(orderId) as Array<{ status: string; actor: string; actor_name: string | null }>;
     expect(events.map((e) => e.status)).toEqual(['submitted', 'served']);
     expect(events.map((e) => e.actor)).toEqual(['staff', 'staff']);
+    expect(events.map((e) => e.actor_name)).toEqual(['Marco', 'Marco']);
 
     // The session detail exposes them.
     const detail = await testRequest(`/staff/sessions/${sessionId}`, { headers: staffHeaders(session), env: makeDbEnv(db) });
-    const body = (await detail.json()) as { orders: Array<{ events: Array<{ status: string; actor: string | null }> }> };
+    const body = (await detail.json()) as { orders: Array<{ events: Array<{ status: string; actor: string | null; actorName: string | null }> }> };
     expect(body.orders[0].events.map((e) => e.status)).toEqual(['submitted', 'served']);
+    expect(body.orders[0].events.map((e) => e.actorName)).toEqual(['Marco', 'Marco']);
   });
 
   it('QR consume requires a table and logs actor staff, diner direct submit logs diner', async () => {
@@ -321,8 +323,9 @@ describe('ready -> served staff transition', () => {
 
     const consume = await testRequest(`/staff/order-intents/${token}/consume`, { method: 'POST', body: { tableSessionId: sessionId }, headers: staffHeaders(session), env: makeDbEnv(db) });
     const staffOrderId = ((await consume.json()) as { orderId: string }).orderId;
-    const staffEvent = db.raw.prepare('SELECT actor FROM order_events WHERE order_id = ?').get(staffOrderId) as { actor: string };
+    const staffEvent = db.raw.prepare('SELECT actor, actor_name FROM order_events WHERE order_id = ?').get(staffOrderId) as { actor: string; actor_name: string | null };
     expect(staffEvent.actor).toBe('staff');
+    expect(staffEvent.actor_name).toBe('Marco');
 
     const direct = await testRequest('/orders', {
       method: 'POST',

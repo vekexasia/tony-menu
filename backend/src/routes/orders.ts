@@ -35,6 +35,7 @@ export async function createOrder(
   rawLines: { entryId: string; quantity: number }[],
   tableSessionId?: string | null,
   actor: 'diner' | 'staff' = tableSessionId ? 'staff' : 'diner',
+  actorName?: string | null,
 ): Promise<CreateOrderResult> {
   // Idempotency first: a retried submit returns the already-created order even
   // if the table session has since closed (no false invalid_table_session).
@@ -148,6 +149,7 @@ export async function createOrder(
           orderId,
           status: 'submitted',
           actor,
+          actorName: actorName ?? null,
         }),
       ]);
       return { ok: true, orderId, dailyNumber };
@@ -204,17 +206,19 @@ export const orderRoutes = new Hono<AppBindings>()
       return c.json({ error: 'Not Found' }, 404);
     }
 
+    let staffName: string | null = null;
     if (body.tableSessionId != null) {
       // Waiter table order: authenticate the staff session instead of the
       // diner submitMode gate.
       const session = await validateStaffSession(db, c.req.header(STAFF_SESSION_HEADER));
       if (!session) return c.json({ error: 'Unauthorized' }, 401);
+      staffName = session.name;
     } else if (ordering.submitMode === 'waiter') {
       // Diner self-submit is disabled in waiter-only mode.
       return c.json({ error: 'Not Found' }, 404);
     }
 
-    const result = await createOrder(db, body.idempotencyKey, body.lines, body.tableSessionId);
+    const result = await createOrder(db, body.idempotencyKey, body.lines, body.tableSessionId, body.tableSessionId ? 'staff' : 'diner', staffName);
     if ('error' in result) return c.json(result, 409);
     return c.json(result);
   })

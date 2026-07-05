@@ -78,6 +78,7 @@ export interface StaffOrderItem {
 export interface StaffOrderEvent {
   status: string;
   actor: string | null;
+  actorName: string | null;
   at: number;
 }
 

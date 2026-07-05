@@ -117,7 +117,7 @@ export function TableDetail({ sessionId }: { sessionId: string }) {
                         <li key={idx} className="text-xs text-gray-400">
                           {new Date(event.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                           {" · "}{t(`table.status.${event.status}`)}
-                          {event.actor ? ` · ${t(`table.actor.${event.actor}`)}` : ""}
+                          {event.actorName ? ` · ${event.actorName}` : (event.actor ? ` · ${t(`table.actor.${event.actor}`)}` : "")}
                         </li>
                       ))}
                     </ol>

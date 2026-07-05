@@ -245,6 +245,7 @@ staff.get('/sessions/:id', ...staffBase, async (c) => {
       events: (eventsByOrder.get(o.id) ?? []).map((e) => ({
         status: e.status,
         actor: e.actor,
+        actorName: e.actorName,
         at: e.createdAt,
       })),
     })),
@@ -284,6 +285,7 @@ staff.patch('/orders/:orderId/serve', ...staffBase, async (c) => {
       orderId,
       status: 'served',
       actor: 'staff',
+      actorName: c.get('staff').name,
     }),
   ]);
   return c.json({ ok: true, status: 'served' });
@@ -374,7 +376,7 @@ staff.post('/order-intents/:token/consume', ...staffBase, async (c) => {
 
   let result;
   try {
-    result = await createOrder(db, `intent:${token}`, overrideLines ?? intent.lines ?? [], tableSessionId, 'staff');
+    result = await createOrder(db, `intent:${token}`, overrideLines ?? intent.lines ?? [], tableSessionId, 'staff', c.get('staff').name);
   } catch (error) {
     await releaseClaim(db, token);
     throw error;

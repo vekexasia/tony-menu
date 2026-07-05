@@ -346,6 +346,7 @@ export const orderEvents = sqliteTable(
     status: text('status').notNull(),
     // 'diner' | 'staff' | 'admin' — who moved it. Free-form text, no FK.
     actor: text('actor'),
+    actorName: text('actor_name'),
     createdAt: integer('created_at').notNull().$defaultFn(() => Date.now()),
   },
   (table) => ({

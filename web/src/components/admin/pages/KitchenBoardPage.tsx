@@ -216,6 +216,9 @@ export default function KitchenBoardPage() {
                     {order.tableName && (
                       <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">{order.tableName}</span>
                     )}
+                    {order.submittedBy && (
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">{order.submittedBy}</span>
+                    )}
                     <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: style.bg, color: style.fg }}>
                       {t(`kitchen.status.${order.status}`)}
                     </span>
@@ -246,7 +249,7 @@ export default function KitchenBoardPage() {
                     <li key={item.id}>
                       {item.quantity}× {item.name}
                       {item.destinations.length > 0 && (
-                        <span className="text-xs text-gray-400"> — {item.destinations.map((d) => d.destinationName).join(", ")}</span>
+                        <span className="text-xs text-gray-400"> — {item.destinations.map((d) => `${d.destinationName}${d.printedAt ? ' ✓' : ''}`).join(", ")}</span>
                       )}
                     </li>
                   ))}
@@ -295,17 +298,18 @@ export default function KitchenBoardPage() {
                 <div className="font-bold text-gray-900 mb-2">#{order.dailyNumber}</div>
                 <ul className="space-y-1.5">
                   {rows.map(({ item, dest }) => (
-                    <li key={dest.id} className="flex items-center gap-2 text-sm">
+                    <li key={dest.id} className={`flex items-center gap-2 text-sm rounded-lg px-2 py-1 ${dest.printedAt !== null ? "bg-green-50" : ""}`}>
                       <input
                         type="checkbox"
                         checked={dest.printedAt !== null}
                         onChange={(e) => togglePrinted(dest.id, e.target.checked)}
-                        className="w-4 h-4"
+                        className="w-4 h-4 accent-primary"
                         aria-label={`${t("kitchen.markDone")} ${item.name}`}
                       />
                       <span className={dest.printedAt !== null ? "line-through text-gray-400" : "text-gray-700"}>
                         {item.quantity}× {item.name}
                       </span>
+                      {dest.printedAt !== null && <span className="ml-auto text-xs font-semibold text-green-700">Done</span>}
                     </li>
                   ))}
                 </ul>

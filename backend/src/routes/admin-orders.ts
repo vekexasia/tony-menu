@@ -56,6 +56,13 @@ admin.get('/orders', ...base, async (c) => {
   const destRows = itemIds.length > 0
     ? await db.select().from(schema.orderItemDestinations).where(inArray(schema.orderItemDestinations.orderItemId, itemIds))
     : [];
+  const eventRows = orderIds.length > 0
+    ? await db.select().from(schema.orderEvents).where(inArray(schema.orderEvents.orderId, orderIds))
+    : [];
+  const submittedBy = new Map<string, string>();
+  for (const e of eventRows) {
+    if (e.status === 'submitted' && e.actorName) submittedBy.set(e.orderId, e.actorName);
+  }
 
   const destsByItem = new Map<string, typeof destRows>();
   for (const d of destRows) {
@@ -80,6 +87,7 @@ admin.get('/orders', ...base, async (c) => {
       createdAt: o.createdAt,
       updatedAt: o.updatedAt,
       tableName: o.tableName ?? null,
+      submittedBy: submittedBy.get(o.id) ?? null,
       items: (itemsByOrder.get(o.id) ?? []).map((i) => ({
         id: i.id,
         name: i.name,
@@ -129,6 +137,7 @@ admin.patch('/orders/:orderId/status', ...base, async (c) => {
       orderId,
       status: body.status,
       actor: 'admin',
+      actorName: null,
     }),
   ]);
 
