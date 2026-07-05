@@ -20,6 +20,14 @@ describe('demo reset', () => {
     expect(settings).toEqual({ name: 'Trattoria Demo', publication_state: 'published' });
     expect(visitorEntry).toBeUndefined();
     expect(demoEntry).toEqual({ name: 'Ricotta and spinach ravioli' });
+
+    // Seed adds departments, entry assignments and 10 tables.
+    const dests = db.raw.prepare('SELECT name FROM order_destinations ORDER BY sort_order').all() as { name: string }[];
+    expect(dests.map((d) => d.name)).toEqual(['Cucina', 'Bar']);
+    const tableCount = db.raw.prepare('SELECT count(*) c FROM tables').get() as { c: number };
+    expect(tableCount.c).toBe(10);
+    const barGlass = db.raw.prepare("SELECT destination_id FROM entry_destinations WHERE entry_id = 'demo-entry-prosecco'").get() as { destination_id: string };
+    expect(barGlass.destination_id).toBe('demo-dest-bar');
   });
 
   it('wipes ordering data (orders, intents, destinations) on reset', async () => {
@@ -37,10 +45,16 @@ describe('demo reset', () => {
 
     await resetDemoData(makeDbEnv(db, { DEMO_MODE: 'true' }));
 
-    for (const table of ['orders', 'order_items', 'order_item_destinations', 'order_intents', 'order_destinations', 'entry_destinations']) {
+    // Transactional data is fully wiped.
+    for (const table of ['orders', 'order_items', 'order_item_destinations', 'order_intents']) {
       const { c } = db.raw.prepare(`SELECT count(*) c FROM ${table}`).get() as { c: number };
       expect(c, table).toBe(0);
     }
+    // Destinations/assignments are wiped then re-seeded from the demo fixture:
+    // the visitor's rows are gone, the seed's Cucina/Bar are present.
+    const dests = db.raw.prepare('SELECT id FROM order_destinations ORDER BY sort_order').all() as { id: string }[];
+    expect(dests.map((d) => d.id)).toEqual(['demo-dest-cucina', 'demo-dest-bar']);
+    expect(db.raw.prepare("SELECT count(*) c FROM entry_destinations WHERE destination_id = 'dest-1'").get()).toEqual({ c: 0 });
   });
 
   it('exposes a demo-only reset endpoint', async () => {

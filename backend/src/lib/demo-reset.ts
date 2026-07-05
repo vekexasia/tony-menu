@@ -7,6 +7,9 @@ import {
   entries,
   variants,
   extras,
+  orderDestinations,
+  entryDestinations,
+  tables,
   drinkCategoryIds,
   FOOD_MENU_ID,
   DRINKS_MENU_ID,
@@ -20,6 +23,8 @@ export async function resetDemoData(env: Env): Promise<void> {
     env.DB.prepare('DELETE FROM order_items'),
     env.DB.prepare('DELETE FROM orders'),
     env.DB.prepare('DELETE FROM order_intents'),
+    env.DB.prepare('DELETE FROM table_sessions'),
+    env.DB.prepare('DELETE FROM tables'),
     env.DB.prepare('DELETE FROM entry_destinations'),
     env.DB.prepare('DELETE FROM order_destinations'),
     env.DB.prepare('DELETE FROM catalog_views'),
@@ -69,6 +74,15 @@ export async function resetDemoData(env: Env): Promise<void> {
   }
   for (const extra of extras) {
     statements.push(env.DB.prepare('INSERT INTO menu_extras (id, name, type, max, options, i18n, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').bind(extra.id, extra.name, extra.type, extra.max, JSON.stringify(extra.options), JSON.stringify(extra.i18n), now, now));
+  }
+  for (const dest of orderDestinations) {
+    statements.push(env.DB.prepare('INSERT INTO order_destinations (id, name, sort_order, created_at, updated_at) VALUES (?, ?, ?, ?, ?)').bind(dest.id, dest.name, dest.sortOrder, now, now));
+  }
+  for (const ed of entryDestinations) {
+    statements.push(env.DB.prepare('INSERT INTO entry_destinations (entry_id, destination_id) VALUES (?, ?)').bind(ed.entryId, ed.destinationId));
+  }
+  for (const table of tables) {
+    statements.push(env.DB.prepare('INSERT INTO tables (id, name, active, sort_order, created_at, updated_at) VALUES (?, ?, 1, ?, ?, ?)').bind(table.id, table.name, table.sortOrder, now, now));
   }
 
   const demoLabels = [

@@ -262,3 +262,32 @@ export const variants = [
 export const extras = [
   { id: 'demo-extra-bread', name: 'Extra bread', type: 'zeroorone', max: 1, options: [{ id: 'bread', name: 'Extra bread', price: 150, i18n: { it: { name: 'Pane extra' } } }], i18n: { it: { name: 'Pane extra' } } },
 ];
+
+// Order-routing departments (#18): food to the kitchen, drinks to the bar.
+export const CUCINA_ID = 'demo-dest-cucina';
+export const BAR_ID = 'demo-dest-bar';
+
+export const orderDestinations = [
+  { id: CUCINA_ID, name: 'Cucina', sortOrder: 0 },
+  { id: BAR_ID, name: 'Bar', sortOrder: 1 },
+];
+
+// Entry → department: every food entry to Cucina, drink glasses to Bar.
+export const entryDestinations = entries.map((entry) => ({
+  entryId: entry.id,
+  destinationId: drinkCategoryIds.has(entry.categoryId) ? BAR_ID : CUCINA_ID,
+}));
+
+// 10 tables across two areas — the area is encoded in the flat name (no area entity).
+export const tables = [
+  { id: 'demo-table-sala-1', name: 'Sala 1', sortOrder: 0 },
+  { id: 'demo-table-sala-2', name: 'Sala 2', sortOrder: 1 },
+  { id: 'demo-table-sala-3', name: 'Sala 3', sortOrder: 2 },
+  { id: 'demo-table-sala-4', name: 'Sala 4', sortOrder: 3 },
+  { id: 'demo-table-sala-5', name: 'Sala 5', sortOrder: 4 },
+  { id: 'demo-table-sala-6', name: 'Sala 6', sortOrder: 5 },
+  { id: 'demo-table-terrazza-1', name: 'Terrazza 1', sortOrder: 6 },
+  { id: 'demo-table-terrazza-2', name: 'Terrazza 2', sortOrder: 7 },
+  { id: 'demo-table-terrazza-3', name: 'Terrazza 3', sortOrder: 8 },
+  { id: 'demo-table-terrazza-4', name: 'Terrazza 4', sortOrder: 9 },
+];
