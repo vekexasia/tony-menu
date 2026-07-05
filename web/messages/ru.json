@@ -604,7 +604,15 @@
     "staffLinks.statusActive": "Активна",
     "staffLinks.statusRevoked": "Отозвана",
     "orderReview.tableLabel": "Стол",
-    "orderReview.noTable": "Без стола"
+    "orderReview.noTable": "Без стола",
+    "orderReview.goToFloor": "В зал",
+    "orderReview.goToTable": "К столу",
+    "orderReview.emptyOrder": "Заказ пуст. Добавьте хотя бы одно блюдо.",
+    "orderReview.decrease": "Уменьшить количество",
+    "orderReview.increase": "Увеличить количество",
+    "orderReview.remove": "Удалить блюдо",
+    "orderReview.addItem": "Добавить блюдо",
+    "orderReview.addItemPlaceholder": "Найти блюдо..."
   },
   "outOfStock": "НЕТ В НАЛИЧИИ",
   "staff": {

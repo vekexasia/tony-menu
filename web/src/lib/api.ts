@@ -33,6 +33,7 @@ import type {
   ModulesConfig,
   ImageUploadResponse,
   SubmitOrderBody,
+  SubmitOrderLine,
   SubmitOrderResponse,
   UpdateOrderStatusBody,
   CreateOrderIntentBody,
@@ -196,11 +197,14 @@ export function fetchOrderIntent(token: string) {
   return apiFetch<OrderIntentReviewResponse>(`/staff/order-intents/${encodeURIComponent(token)}`, { staff: true });
 }
 
-/** Consume an intent into a real order (staff). 409: expired | consumed | stale_items. Optional table session. */
-export function consumeOrderIntent(token: string, tableSessionId?: string) {
+/** Consume an intent into a real order (staff). 409: expired | consumed | stale_items. Optional table session + edited lines override. */
+export function consumeOrderIntent(token: string, opts?: { tableSessionId?: string; lines?: SubmitOrderLine[] }) {
+  const body: Record<string, unknown> = {};
+  if (opts?.tableSessionId) body.tableSessionId = opts.tableSessionId;
+  if (opts?.lines) body.lines = opts.lines;
   return apiFetch<SubmitOrderResponse>(`/staff/order-intents/${encodeURIComponent(token)}/consume`, {
     method: 'POST',
-    body: tableSessionId ? { tableSessionId } : undefined,
+    body: Object.keys(body).length > 0 ? body : undefined,
     staff: true,
   });
 }

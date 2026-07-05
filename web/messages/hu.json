@@ -604,7 +604,15 @@
     "staffLinks.statusActive": "Aktív",
     "staffLinks.statusRevoked": "Visszavonva",
     "orderReview.tableLabel": "Asztal",
-    "orderReview.noTable": "Nincs asztal"
+    "orderReview.noTable": "Nincs asztal",
+    "orderReview.goToFloor": "Ugrás a teremhez",
+    "orderReview.goToTable": "Ugrás az asztalhoz",
+    "orderReview.emptyOrder": "A rendelés üres. Adj hozzá legalább egy fogást.",
+    "orderReview.decrease": "Mennyiség csökkentése",
+    "orderReview.increase": "Mennyiség növelése",
+    "orderReview.remove": "Fogás eltávolítása",
+    "orderReview.addItem": "Fogás hozzáadása",
+    "orderReview.addItemPlaceholder": "Fogás keresése..."
   },
   "outOfStock": "OUT OF STOCK",
   "staff": {

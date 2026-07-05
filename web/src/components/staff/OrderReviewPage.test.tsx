@@ -7,6 +7,7 @@ const apiMocks = vi.hoisted(() => ({
   consumeOrderIntent: vi.fn(),
   fetchFloor: vi.fn(),
   openTableSession: vi.fn(),
+  getCatalog: vi.fn(),
 }));
 vi.mock("@/lib/api", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/api")>();
@@ -18,6 +19,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("@/lib/i18n", () => ({
+  useLocale: () => "it",
   useTranslations: () => (key: string) => ({
     "orderReview.unavailable": "No longer available",
     "orderReview.submit": "Submit order",
@@ -47,7 +49,9 @@ beforeEach(() => {
   apiMocks.consumeOrderIntent.mockReset();
   apiMocks.fetchFloor.mockReset();
   apiMocks.openTableSession.mockReset();
+  apiMocks.getCatalog.mockReset();
   apiMocks.fetchFloor.mockResolvedValue({ tables: [] });
+  apiMocks.getCatalog.mockResolvedValue({ categories: [] });
 });
 
 describe("OrderReviewPage", () => {
@@ -62,7 +66,7 @@ describe("OrderReviewPage", () => {
     fireEvent.click(screen.getByRole("button", { name: /submit order/i }));
 
     expect(await screen.findByTestId("order-daily-number")).toHaveTextContent("#9");
-    expect(apiMocks.consumeOrderIntent).toHaveBeenCalledWith("tok-123", undefined);
+    expect(apiMocks.consumeOrderIntent).toHaveBeenCalledWith("tok-123", { tableSessionId: undefined, lines: [{ entryId: "e1", quantity: 2 }, { entryId: "e2", quantity: 1 }] });
   });
 
   it("blocks submit while items became unavailable after intent creation", async () => {
@@ -115,5 +119,61 @@ describe("OrderReviewPage", () => {
     render(<OrderReviewPage />);
 
     expect(await screen.findByRole("alert")).toHaveTextContent(/not found|does not match/i);
+  });
+
+  it("edits lines (qty, remove, add from catalog) and submits the edited override", async () => {
+    apiMocks.fetchOrderIntent.mockResolvedValue(PENDING_INTENT);
+    apiMocks.consumeOrderIntent.mockResolvedValue({ ok: true, orderId: "o1", dailyNumber: 3 });
+    apiMocks.getCatalog.mockResolvedValue({
+      categories: [
+        { id: "c1", entries: [
+          { id: "e1", name: "Bruschetta", price: 750, hidden: false, outOfStock: false, i18n: null },
+          { id: "e2", name: "Pasta", price: 1200, hidden: false, outOfStock: false, i18n: null },
+          { id: "e3", name: "Tiramisu", price: 650, hidden: false, outOfStock: false, i18n: null },
+        ] },
+      ],
+    });
+
+    render(<OrderReviewPage />);
+    await screen.findByText("Bruschetta");
+
+    // Bump e1 to 3, remove e2, add e3 via the search picker.
+    fireEvent.click(screen.getByTestId("review-line-e1").querySelector('[aria-label="orderReview.increase"]')!);
+    fireEvent.click(screen.getByTestId("review-remove-e2"));
+    fireEvent.change(screen.getByTestId("review-add-search"), { target: { value: "tira" } });
+    fireEvent.click(await screen.findByTestId("review-add-e3"));
+
+    fireEvent.click(screen.getByRole("button", { name: /submit order/i }));
+    await screen.findByTestId("order-daily-number");
+    expect(apiMocks.consumeOrderIntent).toHaveBeenCalledWith("tok-123", {
+      tableSessionId: undefined,
+      lines: [{ entryId: "e1", quantity: 3 }, { entryId: "e3", quantity: 1 }],
+    });
+  });
+
+  it("lets the waiter remove a stale line that otherwise blocks submit", async () => {
+    apiMocks.fetchOrderIntent.mockResolvedValue({
+      ...PENDING_INTENT,
+      lines: [
+        { entryId: "e1", quantity: 1, name: "Bruschetta", price: 750, unavailable: false },
+        { entryId: "e2", quantity: 1, name: "Pasta", price: 1200, unavailable: true },
+      ],
+    });
+    apiMocks.consumeOrderIntent.mockResolvedValue({ ok: true, orderId: "o1", dailyNumber: 4 });
+
+    render(<OrderReviewPage />);
+    await screen.findByText("Bruschetta");
+
+    // Submit blocked while the stale line is present.
+    expect(screen.getByRole("button", { name: /submit order/i })).toBeDisabled();
+    fireEvent.click(screen.getByTestId("review-remove-e2"));
+    expect(screen.getByRole("button", { name: /submit order/i })).toBeEnabled();
+
+    fireEvent.click(screen.getByRole("button", { name: /submit order/i }));
+    await screen.findByTestId("order-daily-number");
+    expect(apiMocks.consumeOrderIntent).toHaveBeenCalledWith("tok-123", {
+      tableSessionId: undefined,
+      lines: [{ entryId: "e1", quantity: 1 }],
+    });
   });
 });

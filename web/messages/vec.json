@@ -604,7 +604,15 @@
     "staffLinks.statusActive": "Ativo",
     "staffLinks.statusRevoked": "Revocado",
     "orderReview.tableLabel": "Tavola",
-    "orderReview.noTable": "Nissuna tavola"
+    "orderReview.noTable": "Nissuna tavola",
+    "orderReview.goToFloor": "Va in sala",
+    "orderReview.goToTable": "Va al tavolo",
+    "orderReview.emptyOrder": "L'ordine el xe vodo. Zonta almanco un piato.",
+    "orderReview.decrease": "Cala la quantità",
+    "orderReview.increase": "Cresi la quantità",
+    "orderReview.remove": "Cava via el piato",
+    "orderReview.addItem": "Zonta un piato",
+    "orderReview.addItemPlaceholder": "Serca un piato..."
   },
   "outOfStock": "FINIO",
   "staff": {

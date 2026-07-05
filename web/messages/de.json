@@ -604,7 +604,15 @@
     "staffLinks.statusActive": "Aktiv",
     "staffLinks.statusRevoked": "Widerrufen",
     "orderReview.tableLabel": "Tisch",
-    "orderReview.noTable": "Kein Tisch"
+    "orderReview.noTable": "Kein Tisch",
+    "orderReview.goToFloor": "Zum Saal",
+    "orderReview.goToTable": "Zum Tisch",
+    "orderReview.emptyOrder": "Die Bestellung ist leer. Füge mindestens ein Gericht hinzu.",
+    "orderReview.decrease": "Menge verringern",
+    "orderReview.increase": "Menge erhöhen",
+    "orderReview.remove": "Gericht entfernen",
+    "orderReview.addItem": "Gericht hinzufügen",
+    "orderReview.addItemPlaceholder": "Nach einem Gericht suchen..."
   },
   "outOfStock": "AUSVERKAUFT",
   "staff": {

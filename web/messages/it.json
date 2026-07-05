@@ -604,7 +604,15 @@
     "staffLinks.statusActive": "Attivo",
     "staffLinks.statusRevoked": "Revocato",
     "orderReview.tableLabel": "Tavolo",
-    "orderReview.noTable": "Nessun tavolo"
+    "orderReview.noTable": "Nessun tavolo",
+    "orderReview.goToFloor": "Vai alla sala",
+    "orderReview.goToTable": "Vai al tavolo",
+    "orderReview.emptyOrder": "L'ordine è vuoto. Aggiungi almeno un piatto.",
+    "orderReview.decrease": "Diminuisci quantità",
+    "orderReview.increase": "Aumenta quantità",
+    "orderReview.remove": "Rimuovi piatto",
+    "orderReview.addItem": "Aggiungi un piatto",
+    "orderReview.addItemPlaceholder": "Cerca un piatto..."
   },
   "outOfStock": "ESAURITO",
   "staff": {

@@ -604,7 +604,15 @@
     "staffLinks.statusActive": "Activo",
     "staffLinks.statusRevoked": "Revocado",
     "orderReview.tableLabel": "Mesa",
-    "orderReview.noTable": "Sin mesa"
+    "orderReview.noTable": "Sin mesa",
+    "orderReview.goToFloor": "Ir a la sala",
+    "orderReview.goToTable": "Ir a la mesa",
+    "orderReview.emptyOrder": "El pedido está vacío. Añade al menos un plato.",
+    "orderReview.decrease": "Disminuir cantidad",
+    "orderReview.increase": "Aumentar cantidad",
+    "orderReview.remove": "Quitar plato",
+    "orderReview.addItem": "Añadir un plato",
+    "orderReview.addItemPlaceholder": "Buscar un plato..."
   },
   "outOfStock": "AGOTADO",
   "staff": {

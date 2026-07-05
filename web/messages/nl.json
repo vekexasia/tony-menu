@@ -604,7 +604,15 @@
     "staffLinks.statusActive": "Actief",
     "staffLinks.statusRevoked": "Ingetrokken",
     "orderReview.tableLabel": "Tafel",
-    "orderReview.noTable": "Geen tafel"
+    "orderReview.noTable": "Geen tafel",
+    "orderReview.goToFloor": "Naar de zaal",
+    "orderReview.goToTable": "Naar de tafel",
+    "orderReview.emptyOrder": "De bestelling is leeg. Voeg minstens één gerecht toe.",
+    "orderReview.decrease": "Aantal verlagen",
+    "orderReview.increase": "Aantal verhogen",
+    "orderReview.remove": "Gerecht verwijderen",
+    "orderReview.addItem": "Een gerecht toevoegen",
+    "orderReview.addItemPlaceholder": "Zoek een gerecht..."
   },
   "outOfStock": "UITVERKOCHT",
   "staff": {
