@@ -7,9 +7,9 @@ import {
   consumeStaffLinkApi,
   createIntentApi,
   createStaffLink,
-  createTable,
   resetDemo,
   setOrdering,
+  SEEDED_TABLE,
 } from './fixtures/real-backend';
 
 test.describe.serial('Waiter QR handoff — real backend', () => {
@@ -21,7 +21,7 @@ test.describe.serial('Waiter QR handoff — real backend', () => {
   });
 
   test('diner creates an intent and shows a QR; waiter submits it', async ({ page, context, request }) => {
-    const table = await createTable(request, `QR Table ${Date.now()}`);
+    const table = SEEDED_TABLE;
     await addBruschettaFromMenu(page);
     await page.getByRole('link', { name: /la mia selezione/i }).click();
 
@@ -47,6 +47,41 @@ test.describe.serial('Waiter QR handoff — real backend', () => {
     await expect(waiterPage.getByTestId('order-daily-number')).toHaveText('#1');
     await waiterPage.goto('/admin/orders');
     await expect(waiterPage.getByTestId('order-1')).toContainText(table.name);
+  });
+
+  test('waiter edits the intent (bump qty, add item, bind table) then submits the override', async ({ page, request }) => {
+    const table = SEEDED_TABLE;
+    const { token } = await createIntentApi(request); // bruschetta x2
+    const staff = await createStaffLink(request);
+
+    await page.goto(`/staff?token=${staff.token}`);
+    await expect(page).toHaveURL(/\/staff\/?$/);
+    await page.goto(`/order-review?token=${token}`);
+    await expect(page.getByText(/bruschetta/i)).toBeVisible();
+
+    // Bump bruschetta from 2 to 3.
+    await page.getByTestId(`review-line-${BRUSCHETTA_ID}`).getByLabel(/aumenta quantità|increase/i).click();
+    // Add prosecco via the flat catalog picker.
+    await page.getByTestId('review-add-search').fill('prosecco');
+    await page.getByTestId('review-add-demo-entry-prosecco').click();
+
+    await page.getByLabel(/table|tavolo/i).selectOption({ label: table.name });
+    const consumeReq = page.waitForRequest((req) => req.url().includes(`/order-intents/${token}/consume`) && req.method() === 'POST');
+    await page.getByRole('button', { name: /invia ordine|submit order/i }).click();
+    const body = (await consumeReq).postDataJSON() as { lines: { entryId: string; quantity: number }[] };
+    expect(body.lines).toContainEqual({ entryId: BRUSCHETTA_ID, quantity: 3 });
+    expect(body.lines).toContainEqual({ entryId: 'demo-entry-prosecco', quantity: 1 });
+
+    await expect(page.getByTestId('order-daily-number')).toHaveText('#1');
+    // Post-submit navigation: floor + table buttons.
+    await expect(page.getByTestId('review-go-floor')).toBeVisible();
+    await expect(page.getByTestId('review-go-table')).toBeVisible();
+
+    await page.goto('/admin/orders');
+    const card = page.getByTestId('order-1');
+    await expect(card).toContainText(table.name);
+    await expect(card).toContainText(/prosecco/i);
+    await expect(card).toContainText('3');
   });
 
   test('already-consumed intent shows a clear error and no submit button', async ({ page, request }) => {

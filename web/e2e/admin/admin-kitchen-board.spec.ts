@@ -2,21 +2,20 @@ import { test, expect, type APIRequestContext } from '@playwright/test';
 import {
   API_URL,
   BRUSCHETTA_ID,
-  createDestination,
+  PROSECCO_ID,
   resetDemo,
   setOrdering,
+  submitLinesApi,
   submitOrderApi,
-  updateEntry,
+  SEEDED_CUCINA,
+  SEEDED_BAR,
 } from '../fixtures/real-backend';
 
+// Rides the demo seed: bruschetta → Cucina, prosecco → Bar (entry_destinations).
 async function seedOrder(request: APIRequestContext) {
   await resetDemo(request);
   await setOrdering(request, { enabled: true, mode: 'send', submitMode: 'diner' });
-  const pizza = await createDestination(request, 'Pizza');
-  const fries = await createDestination(request, 'Friggitoria');
-  await updateEntry(request, BRUSCHETTA_ID, { destinationIds: [pizza.id, fries.id] });
   await submitOrderApi(request);
-  return { pizza, fries };
 }
 
 test.describe.serial('Kitchen board — real backend', () => {
@@ -67,18 +66,21 @@ test.describe.serial('Kitchen board — real backend', () => {
   });
 
   test('each department marks its own row done independently', async ({ page, request }) => {
-    await seedOrder(request);
+    await resetDemo(request);
+    await setOrdering(request, { enabled: true, mode: 'send', submitMode: 'diner' });
+    // One order spanning both seeded departments: bruschetta → Cucina, prosecco → Bar.
+    await submitLinesApi(request, [{ entryId: BRUSCHETTA_ID, quantity: 2 }, { entryId: PROSECCO_ID, quantity: 1 }]);
     await page.goto('/admin/orders');
 
-    await page.getByRole('button', { name: 'Pizza', exact: true }).click();
-    const pizzaOrder = page.getByTestId('dept-order-1');
-    await expect(pizzaOrder).toContainText(/bruschetta/i);
-    await pizzaOrder.getByRole('checkbox').check();
-    await expect(pizzaOrder.getByRole('checkbox')).toBeChecked();
+    await page.getByRole('button', { name: SEEDED_CUCINA.name, exact: true }).click();
+    const cucinaOrder = page.getByTestId('dept-order-1');
+    await expect(cucinaOrder).toContainText(/bruschetta/i);
+    await cucinaOrder.getByRole('checkbox').check();
+    await expect(cucinaOrder.getByRole('checkbox')).toBeChecked();
 
-    await page.getByRole('button', { name: 'Friggitoria' }).click();
-    const friesOrder = page.getByTestId('dept-order-1');
-    await expect(friesOrder).toContainText(/bruschetta/i);
-    await expect(friesOrder.getByRole('checkbox')).not.toBeChecked();
+    await page.getByRole('button', { name: SEEDED_BAR.name, exact: true }).click();
+    const barOrder = page.getByTestId('dept-order-1');
+    await expect(barOrder).toContainText(/prosecco/i);
+    await expect(barOrder.getByRole('checkbox')).not.toBeChecked();
   });
 });

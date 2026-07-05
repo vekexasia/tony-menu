@@ -3,6 +3,12 @@ import { expect, type APIRequestContext, type Page } from '@playwright/test';
 export const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const API_BASE = API_URL ?? 'http://localhost:8787';
 export const BRUSCHETTA_ID = 'demo-entry-bruschetta';
+export const PROSECCO_ID = 'demo-entry-prosecco';
+
+// Seeded demo fixtures (see backend/src/lib/demo-seed-data.ts). Restored by resetDemo.
+export const SEEDED_TABLE = { id: 'demo-table-sala-1', name: 'Sala 1' };
+export const SEEDED_CUCINA = { id: 'demo-dest-cucina', name: 'Cucina' };
+export const SEEDED_BAR = { id: 'demo-dest-bar', name: 'Bar' };
 
 let ip = 1;
 export function e2eIp() {
@@ -55,6 +61,15 @@ export async function createDestination(request: APIRequestContext, name: string
 export async function updateEntry(request: APIRequestContext, entryId: string, data: Record<string, unknown>) {
   const res = await request.put(`${API_BASE}/admin/entries/${entryId}`, { data });
   expect(res.ok()).toBeTruthy();
+}
+
+export async function submitLinesApi(request: APIRequestContext, lines: { entryId: string; quantity: number }[]) {
+  const res = await request.post(`${API_BASE}/orders`, {
+    headers: { 'cf-connecting-ip': e2eIp() },
+    data: { idempotencyKey: crypto.randomUUID(), lines },
+  });
+  expect(res.ok()).toBeTruthy();
+  return await res.json() as { ok: true; orderId: string; dailyNumber: number };
 }
 
 export async function submitOrderApi(request: APIRequestContext, entryId = BRUSCHETTA_ID, headers?: Record<string, string>, tableSessionId?: string) {

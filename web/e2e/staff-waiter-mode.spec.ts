@@ -3,10 +3,10 @@ import {
   API_URL,
   dismissPopups,
   createStaffLink,
-  createTable,
   resetDemo,
   revokeStaffLink,
   setOrdering,
+  SEEDED_TABLE,
 } from './fixtures/real-backend';
 
 test.describe.serial('Waiter mode — real backend', () => {
@@ -18,13 +18,13 @@ test.describe.serial('Waiter mode — real backend', () => {
   });
 
   test('consuming a staff link stores a session and shows the floor', async ({ page, request }) => {
-    const table = await createTable(request, `E2E Floor ${Date.now()}`);
     const link = await createStaffLink(request, 'Marco');
 
     await page.goto(`/staff?token=${link.token}`);
 
     await expect(page.getByTestId('floor-grid')).toBeVisible();
-    await expect(page.getByTestId(`table-${table.id}`)).toContainText(table.name);
+    // Rides the demo seed: Sala 1 is one of the 10 seeded tables.
+    await expect(page.getByTestId(`table-${SEEDED_TABLE.id}`)).toContainText(SEEDED_TABLE.name);
     await expect(page).toHaveURL(/\/staff\/?$/);
     expect(await page.evaluate(() => window.localStorage.getItem('tony-menu-staff-session'))).toEqual(expect.any(String));
   });
@@ -35,7 +35,6 @@ test.describe.serial('Waiter mode — real backend', () => {
   });
 
   test('revoked session is locked out', async ({ page, request }) => {
-    await createTable(request);
     const link = await createStaffLink(request, 'Revoked waiter');
     await page.goto(`/staff?token=${link.token}`);
     await expect(page.getByTestId('floor-grid')).toBeVisible();
@@ -54,7 +53,7 @@ test.describe.serial('Waiter mode — real backend', () => {
   });
 
   test('takes an order for a table, appends another, and shows the table name on the kitchen board', async ({ page, request }) => {
-    const table = await createTable(request, `E2E Table ${Date.now()}`);
+    const table = SEEDED_TABLE;
     const link = await createStaffLink(request, 'Marco');
 
     await page.goto(`/staff?token=${link.token}`);
