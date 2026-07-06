@@ -43,6 +43,7 @@ const openCheck = {
 beforeEach(() => {
   for (const m of Object.values(apiMocks)) if (typeof m === "function" && "mockReset" in m) (m as ReturnType<typeof vi.fn>).mockReset();
   apiMocks.fetchAdminTableDetail.mockResolvedValue(sessionNoCheck);
+  window.print = vi.fn();
 });
 
 describe("AdminTableDetailPage", () => {
@@ -148,5 +149,31 @@ describe("AdminTableDetailPage", () => {
     });
     render(<AdminTableDetailPage tableId="t1" />);
     expect(await screen.findByTestId("history-payment-h1")).toHaveTextContent("tableDetail.paymentMethod.cash");
+  });
+
+  it("prints a receipt-only view for the current open check", async () => {
+    apiMocks.fetchAdminTableDetail.mockResolvedValue({ ...sessionNoCheck, currentSession: { ...sessionNoCheck.currentSession, check: openCheck } });
+    render(<AdminTableDetailPage tableId="t1" />);
+    fireEvent.click(await screen.findByTestId("print-receipt-current"));
+    const receipt = await screen.findByTestId("print-receipt");
+    expect(receipt).toHaveTextContent("Sala · 1");
+    expect(receipt).toHaveTextContent("Bruschetta");
+    expect(receipt).toHaveTextContent("€ 15,00");
+    await waitFor(() => expect(window.print).toHaveBeenCalled());
+  });
+
+  it("reprints the selected historical frozen check, not the current check", async () => {
+    apiMocks.fetchAdminTableDetail.mockResolvedValue({
+      ...sessionNoCheck,
+      currentSession: { ...sessionNoCheck.currentSession, check: openCheck },
+      history: [{ sessionId: "h1", openedAt: 1, closedAt: 2, check: { ...openCheck, id: "old", status: "settled", settledAt: 2, lines: [{ name: "Old wine", quantity: 1, unitPrice: 999 }], subtotal: 999, total: 999, paymentMethod: "cash" } }],
+    });
+    render(<AdminTableDetailPage tableId="t1" />);
+    fireEvent.click(await screen.findByTestId("history-h1-toggle"));
+    fireEvent.click(await screen.findByTestId("reprint-receipt-h1"));
+    const receipt = await screen.findByTestId("print-receipt");
+    expect(receipt).toHaveTextContent("Old wine");
+    expect(receipt).toHaveTextContent("€ 9,99");
+    expect(receipt).not.toHaveTextContent("Bruschetta");
   });
 });

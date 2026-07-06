@@ -82,10 +82,11 @@
 /* Reset body defaults for admin */
 .adm-root { height: 100vh; overflow: hidden; }
 
-/* Check printing (#15): print only the check card, hide the rest of the admin chrome. */
+/* Receipt printing (#27): print only the selected frozen receipt snapshot. */
+.print-receipt { display: none; }
 @media print {
   body * { visibility: hidden; }
-  .print-check, .print-check * { visibility: visible; }
-  .print-check { position: absolute; inset: 0; margin: 0; border: none; }
+  .print-receipt, .print-receipt * { visibility: visible; }
+  .print-receipt { display: block; position: absolute; inset: 0; margin: 0; }
   .print-hide { display: none !important; }
 }

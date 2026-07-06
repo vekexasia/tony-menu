@@ -35,6 +35,7 @@ export default function AdminTableDetailPage({ tableId }: { tableId: string }) {
   const [confirming, setConfirming] = useState<"close" | "settle" | "void" | null>(null);
   const [expandedHistory, setExpandedHistory] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [receiptToPrint, setReceiptToPrint] = useState<{ check: CheckDTO; heading: string } | null>(null);
   const [orderModal, setOrderModal] = useState(false);
 
   const refresh = useCallback(async () => {
@@ -52,6 +53,10 @@ export default function AdminTableDetailPage({ tableId }: { tableId: string }) {
     const timer = setInterval(refresh, POLL_MS);
     return () => clearInterval(timer);
   }, [refresh]);
+
+  useEffect(() => {
+    if (receiptToPrint) window.print();
+  }, [receiptToPrint]);
 
   const run = async (fn: () => Promise<unknown>) => {
     setBusy(true);
@@ -140,6 +145,7 @@ export default function AdminTableDetailPage({ tableId }: { tableId: string }) {
           onUpdate={(patch) => run(() => updateCheck(check.id, patch))}
           onSettle={(body) => run(() => settleCheck(check.id, body))}
           onVoid={() => run(() => voidCheck(check.id))}
+          onPrint={() => setReceiptToPrint({ check, heading })}
         />
       )}
 
@@ -150,6 +156,7 @@ export default function AdminTableDetailPage({ tableId }: { tableId: string }) {
             {history.map((h) => (
               <div key={h.sessionId} className="rounded-xl border border-gray-200 bg-white p-4" data-testid={`history-${h.sessionId}`}>
                 <button
+                  data-testid={`history-${h.sessionId}-toggle`}
                   type="button"
                   onClick={() => setExpandedHistory((prev) => (prev === h.sessionId ? null : h.sessionId))}
                   className="w-full flex items-center justify-between gap-3 text-left"
@@ -173,7 +180,8 @@ export default function AdminTableDetailPage({ tableId }: { tableId: string }) {
                     <ReadOnlyLines check={h.check} t={t} />
                     <button
                       type="button"
-                      onClick={() => window.print()}
+                      onClick={() => setReceiptToPrint({ check: h.check!, heading })}
+                      data-testid={`reprint-receipt-${h.sessionId}`}
                       className="mt-3 px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 text-xs font-semibold"
                     >
                       {t("tableDetail.reprint")}
@@ -185,6 +193,8 @@ export default function AdminTableDetailPage({ tableId }: { tableId: string }) {
           </div>
         </section>
       )}
+
+      {receiptToPrint && <ReceiptView check={receiptToPrint.check} heading={receiptToPrint.heading} t={t} />}
 
       {orderModal && currentSession && !check && (
         <AdminAddOrderModal
@@ -358,7 +368,7 @@ function AdminAddOrderModal({ t, onClose, onSubmit }: { t: T; onClose: () => voi
 }
 
 function CheckCard({
-  check, t, busy, confirming, setConfirming, onUpdate, onSettle, onVoid,
+  check, t, busy, confirming, setConfirming, onUpdate, onSettle, onVoid, onPrint,
 }: {
   check: CheckDTO;
   t: T;
@@ -368,6 +378,7 @@ function CheckCard({
   onUpdate: (patch: { discount?: CheckDiscount | null; adjustments?: CheckAdjustment[] }) => void;
   onSettle: (body: { paymentMethod: PaymentMethod; note?: string }) => void;
   onVoid: () => void;
+  onPrint: () => void;
 }) {
   const [discountType, setDiscountType] = useState<"percent" | "amount">(check.discount?.type ?? "percent");
   const [discountValue, setDiscountValue] = useState<string>(
@@ -402,7 +413,7 @@ function CheckCard({
   };
 
   return (
-    <section className="mt-4 rounded-xl border-2 border-primary/30 bg-white p-4 print-check" data-testid="check-card">
+    <section className="mt-4 rounded-xl border-2 border-primary/30 bg-white p-4" data-testid="check-card">
       <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">{t("tableDetail.check")}</h2>
       <ReadOnlyLines check={check} t={t} />
 
@@ -454,7 +465,7 @@ function CheckCard({
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2 print-hide">
-        <button type="button" onClick={() => window.print()} className="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 text-xs font-semibold">{t("tableDetail.print")}</button>
+        <button type="button" onClick={onPrint} data-testid="print-receipt-current" className="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 text-xs font-semibold">{t("tableDetail.print")}</button>
         {confirming === "settle" ? (
           <div data-testid="settlement-sheet" className="w-full rounded-xl border border-green-100 bg-green-50 p-3 space-y-3">
             <div className="flex items-center justify-between gap-3">
@@ -498,6 +509,23 @@ function CheckCard({
         ) : (
           <button type="button" onClick={() => setConfirming("void")} className="px-3 py-1.5 rounded-lg text-red-500 text-xs font-semibold">{t("tableDetail.void")}</button>
         )}
+      </div>
+    </section>
+  );
+}
+
+function ReceiptView({ check, heading, t }: { check: CheckDTO; heading: string; t: T }) {
+  return (
+    <section className="print-receipt bg-white p-6 text-gray-900" data-testid="print-receipt">
+      <h1 className="text-xl font-bold">{heading}</h1>
+      <p className="text-sm text-gray-500">{new Date(check.createdAt).toLocaleString()} · {t(`tableDetail.checkStatus.${check.status}`)}</p>
+      {check.paymentMethod && <p className="text-sm text-gray-500">{t(`tableDetail.paymentMethod.${check.paymentMethod}`)}</p>}
+      <div className="mt-4">
+        <ReadOnlyLines check={check} t={t} />
+      </div>
+      <div className="mt-4 flex items-center justify-between border-t border-gray-200 pt-3">
+        <span className="font-semibold">{t("tableDetail.total")}</span>
+        <span className="text-2xl font-bold">{euros(check.total)}</span>
       </div>
     </section>
   );
