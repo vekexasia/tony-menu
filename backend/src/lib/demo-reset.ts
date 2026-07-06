@@ -13,6 +13,8 @@ import {
   areas,
   demoStaffLinks,
   drinkCategoryIds,
+  CUCINA_ID,
+  BAR_ID,
   FOOD_MENU_ID,
   DRINKS_MENU_ID,
 } from './demo-seed-data';
@@ -121,8 +123,133 @@ export async function resetDemoData(env: Env): Promise<void> {
     }
   }
 
+  // E2E asserts a clean floor after each reset (order #1, gray tiles), so the
+  // showcase (a live table + settled-check history) is seeded only outside E2E.
+  if (env.E2E_MODE !== 'true') seedShowcase(env, statements);
+
   await env.DB.batch(statements);
   await deleteR2Prefix(env.PUBLIC_MENU_BUCKET, 'images/');
+}
+
+// Owner-facing showcase (#15): one live table with active orders + a history of
+// settled checks on the other tables, so a fresh demo never shows an empty floor.
+// Appends statements to the same reset batch. Deterministic (index-based, no
+// randomness): IDs are stable so reruns after a reset land identically.
+function seedShowcase(env: Env, statements: D1PreparedStatement[]): void {
+  const db = env.DB!;
+  const MIN = 60_000;
+  const DAY = 86_400_000;
+  const nowMs = Date.now();
+  // UTC YYYYMMDD bucket — mirrors currentOrderDay() in routes/orders.ts.
+  const dayOf = (ms: number) => {
+    const d = new Date(ms);
+    return d.getUTCFullYear() * 10000 + (d.getUTCMonth() + 1) * 100 + d.getUTCDate();
+  };
+  const destOf = (e: (typeof entries)[number]) =>
+    drinkCategoryIds.has(e.categoryId) ? { id: BAR_ID, name: 'Bar' } : { id: CUCINA_ID, name: 'Cucina' };
+  const item = (e: (typeof entries)[number], quantity: number) => {
+    const d = destOf(e);
+    return { entryId: e.id, name: e.name, price: e.price, quantity, destId: d.id, destName: d.name };
+  };
+  const suffix = (tableId: string) => tableId.replace('demo-table-', '');
+
+  type Item = ReturnType<typeof item>;
+  type Event = { status: string; actor: string; actorName: string | null; createdAt: number };
+  const sessions: { id: string; tableId: string; openedAt: number; closedAt: number | null }[] = [];
+  const orders: {
+    id: string; tableSessionId: string; orderDay: number; createdAt: number; updatedAt: number;
+    status: string; idempotencyKey: string; dailyNumber?: number; items: Item[]; events: Event[];
+  }[] = [];
+  const checkRows: {
+    id: string; tableSessionId: string; createdAt: number; settledAt: number;
+    lines: { name: string; quantity: number; unitPrice: number }[];
+    discount: { type: 'percent'; value: number } | null;
+  }[] = [];
+
+  // A. LIVE TABLE — sala-2 open 25min, two active orders by Marco.
+  const byId = (id: string) => entries.find((e) => e.id === id)!;
+  sessions.push({ id: 'demo-session-sala-2-live', tableId: 'demo-table-sala-2', openedAt: nowMs - 25 * MIN, closedAt: null });
+  orders.push({
+    id: 'demo-order-sala-2-1', tableSessionId: 'demo-session-sala-2-live',
+    orderDay: dayOf(nowMs - 20 * MIN), createdAt: nowMs - 20 * MIN, updatedAt: nowMs - 20 * MIN,
+    status: 'submitted', idempotencyKey: 'demo-ik-sala-2-1',
+    items: [item(byId('demo-entry-bruschetta'), 2), item(byId('demo-entry-prosecco'), 2)],
+    events: [{ status: 'submitted', actor: 'staff', actorName: 'Marco Demo', createdAt: nowMs - 20 * MIN }],
+  });
+  orders.push({
+    id: 'demo-order-sala-2-2', tableSessionId: 'demo-session-sala-2-live',
+    orderDay: dayOf(nowMs - 8 * MIN), createdAt: nowMs - 8 * MIN, updatedAt: nowMs - 3 * MIN,
+    status: 'ready', idempotencyKey: 'demo-ik-sala-2-2',
+    items: [item(byId('demo-entry-ravioli'), 1)],
+    events: [
+      { status: 'submitted', actor: 'staff', actorName: 'Marco Demo', createdAt: nowMs - 8 * MIN },
+      { status: 'ready', actor: 'admin', actorName: null, createdAt: nowMs - 3 * MIN },
+    ],
+  });
+
+  // B. HISTORY — every other table gets 4 closed sessions with a settled check,
+  // spread over the past 1..8 days (never today, so daily numbering can't clash).
+  const historyTables = tables.filter((t) => t.id !== 'demo-table-sala-2');
+  let g = 0;
+  historyTables.forEach((t, ti) => {
+    for (let s = 1; s <= 4; s++) {
+      const daysAgo = ((s + ti) % 8) + 1;
+      const opened = nowMs - daysAgo * DAY;
+      const closed = opened + 90 * MIN;
+      const orderCreated = opened + 5 * MIN;
+      const served = closed - 30 * MIN;
+      const sessionId = `demo-session-${suffix(t.id)}-${s}`;
+      const orderId = `demo-order-${suffix(t.id)}-${s}`;
+      const waiter = g % 2 === 0 ? 'Marco Demo' : 'Giulia Demo';
+      const items: Item[] = [];
+      for (let i = 0; i < (g % 3) + 1; i++) items.push(item(entries[(g + i) % entries.length], (i % 2) + 1));
+      sessions.push({ id: sessionId, tableId: t.id, openedAt: opened, closedAt: closed });
+      orders.push({
+        id: orderId, tableSessionId: sessionId,
+        orderDay: dayOf(orderCreated), createdAt: orderCreated, updatedAt: served,
+        status: 'served', idempotencyKey: `demo-ik-${suffix(t.id)}-${s}`,
+        items,
+        events: [
+          { status: 'submitted', actor: 'staff', actorName: waiter, createdAt: orderCreated },
+          { status: 'served', actor: 'staff', actorName: waiter, createdAt: served },
+        ],
+      });
+      checkRows.push({
+        id: `demo-check-${suffix(t.id)}-${s}`, tableSessionId: sessionId,
+        createdAt: closed - 5 * MIN, settledAt: closed,
+        lines: items.map((it) => ({ name: it.name, quantity: it.quantity, unitPrice: it.price })),
+        discount: g % 4 === 0 ? { type: 'percent', value: 10 } : null,
+      });
+      g++;
+    }
+  });
+
+  // Daily numbering: number 1..n per UTC day in creation order (COUNT(*)+1 at
+  // submit time). Live orders own today; each past day is numbered independently.
+  const byDay = new Map<number, number>();
+  for (const o of [...orders].sort((a, b) => a.createdAt - b.createdAt)) {
+    const n = (byDay.get(o.orderDay) ?? 0) + 1;
+    byDay.set(o.orderDay, n);
+    o.dailyNumber = n;
+  }
+
+  for (const se of sessions) {
+    statements.push(db.prepare('INSERT INTO table_sessions (id, table_id, opened_at, closed_at) VALUES (?, ?, ?, ?)').bind(se.id, se.tableId, se.openedAt, se.closedAt));
+  }
+  for (const o of orders) {
+    statements.push(db.prepare('INSERT INTO orders (id, order_day, daily_number, status, idempotency_key, table_session_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').bind(o.id, o.orderDay, o.dailyNumber!, o.status, o.idempotencyKey, o.tableSessionId, o.createdAt, o.updatedAt));
+    o.items.forEach((it, idx) => {
+      const itemId = `${o.id}-i${idx}`;
+      statements.push(db.prepare('INSERT INTO order_items (id, order_id, entry_id, name, price, quantity, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)').bind(itemId, o.id, it.entryId, it.name, it.price, it.quantity, o.createdAt));
+      statements.push(db.prepare('INSERT INTO order_item_destinations (id, order_item_id, destination_id, destination_name, created_at) VALUES (?, ?, ?, ?, ?)').bind(`${itemId}-d`, itemId, it.destId, it.destName, o.createdAt));
+    });
+    o.events.forEach((ev, idx) => {
+      statements.push(db.prepare('INSERT INTO order_events (id, order_id, status, actor, actor_name, created_at) VALUES (?, ?, ?, ?, ?, ?)').bind(`${o.id}-e${idx}`, o.id, ev.status, ev.actor, ev.actorName, ev.createdAt));
+    });
+  }
+  for (const ch of checkRows) {
+    statements.push(db.prepare('INSERT INTO checks (id, table_session_id, status, lines, discount, adjustments, created_at, settled_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').bind(ch.id, ch.tableSessionId, 'settled', JSON.stringify(ch.lines), ch.discount ? JSON.stringify(ch.discount) : null, JSON.stringify([]), ch.createdAt, ch.settledAt));
+  }
 }
 
 async function deleteR2Prefix(bucket: R2Bucket | undefined, prefix: string): Promise<void> {
