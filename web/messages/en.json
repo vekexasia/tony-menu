@@ -657,11 +657,11 @@
     "tableDetail.startOrder": "Start order",
     "tableDetail.addOrder": "Add order",
     "tableDetail.submitOrder": "Send order",
-    "tableDetail.checkOpenOrderBlocked": "Open check: settle or void it before adding orders",
     "tableDetail.addItems": "Add items",
     "tableDetail.searchItems": "Search all available items",
     "tableDetail.noAvailableItems": "No available items found.",
-    "tableDetail.submitItems": "Add items"
+    "tableDetail.submitItems": "Add items",
+    "tableDetail.checkOpenAddItemsBlocked": "Settle or void the open check before adding more items."
   },
   "outOfStock": "OUT OF STOCK",
   "staff": {

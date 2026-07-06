@@ -53,6 +53,8 @@ test.describe.serial("Checks (conto) — real backend", () => {
     await page.getByTestId("create-check").click();
     await createRes;
     await expect(page.getByTestId("check-card")).toBeVisible();
+    await expect(page.getByTestId("add-items-blocked")).toContainText(/paga o annulla|settle or void/i);
+    await expect(page.getByTestId("add-order")).toHaveCount(0);
     await expect(page.getByTestId("check-total")).toHaveText(/15,00/);
 
     // Apply a 10% discount; total updates to 13,50.

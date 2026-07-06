@@ -657,11 +657,11 @@
     "tableDetail.startOrder": "Bestellung starten",
     "tableDetail.addOrder": "Bestellung hinzufügen",
     "tableDetail.submitOrder": "Bestellung senden",
-    "tableDetail.checkOpenOrderBlocked": "Offene Rechnung: erst bezahlen oder stornieren",
     "tableDetail.addItems": "Artikel hinzufügen",
     "tableDetail.searchItems": "Alle verfügbaren Artikel suchen",
     "tableDetail.noAvailableItems": "Keine verfügbaren Artikel gefunden.",
-    "tableDetail.submitItems": "Artikel hinzufügen"
+    "tableDetail.submitItems": "Artikel hinzufügen",
+    "tableDetail.checkOpenAddItemsBlocked": "Begleiche oder storniere die offene Rechnung, bevor du weitere Artikel hinzufügst."
   },
   "outOfStock": "AUSVERKAUFT",
   "staff": {

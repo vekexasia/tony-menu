@@ -257,7 +257,11 @@ function SessionCard({
             {t("tableDetail.addItems")}
           </button>
         ) : (
-          <span className="text-xs text-amber-700 bg-amber-50 rounded-lg px-3 py-1.5">{t("tableDetail.checkOpenOrderBlocked")}</span>
+          <div className="flex flex-wrap items-center gap-2" data-testid="add-items-blocked">
+            <span className="text-xs text-amber-700 bg-amber-50 rounded-lg px-3 py-1.5">{t("tableDetail.checkOpenAddItemsBlocked")}</span>
+            <button type="button" onClick={() => setConfirming("settle")} data-testid="blocked-settle" className="px-3 py-1.5 rounded-lg bg-green-600 text-white text-xs font-semibold">{t("tableDetail.paid")}</button>
+            <button type="button" onClick={() => setConfirming("void")} data-testid="blocked-void" className="px-3 py-1.5 rounded-lg border border-red-200 text-red-600 text-xs font-semibold">{t("tableDetail.void")}</button>
+          </div>
         )}
         {!hasCheck && (
           <button
