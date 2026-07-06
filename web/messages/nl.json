@@ -657,7 +657,11 @@
     "tableDetail.startOrder": "Bestelling starten",
     "tableDetail.addOrder": "Bestelling toevoegen",
     "tableDetail.submitOrder": "Bestelling versturen",
-    "tableDetail.checkOpenOrderBlocked": "Open rekening: betaal of annuleer vóór nieuwe bestellingen"
+    "tableDetail.checkOpenOrderBlocked": "Open rekening: betaal of annuleer vóór nieuwe bestellingen",
+    "tableDetail.addItems": "Items toevoegen",
+    "tableDetail.searchItems": "Zoek beschikbare items",
+    "tableDetail.noAvailableItems": "Geen beschikbare items gevonden.",
+    "tableDetail.submitItems": "Items toevoegen"
   },
   "outOfStock": "UITVERKOCHT",
   "staff": {

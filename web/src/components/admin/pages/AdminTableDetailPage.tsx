@@ -254,7 +254,7 @@ function SessionCard({
             data-testid="add-order"
             className="px-3 py-1.5 rounded-lg border border-primary text-primary text-xs font-semibold disabled:opacity-50"
           >
-            {t("tableDetail.addOrder")}
+            {t("tableDetail.addItems")}
           </button>
         ) : (
           <span className="text-xs text-amber-700 bg-amber-50 rounded-lg px-3 py-1.5">{t("tableDetail.checkOpenOrderBlocked")}</span>
@@ -290,12 +290,21 @@ function AdminAddOrderModal({ t, onClose, onSubmit }: { t: T; onClose: () => voi
   const [catalog, setCatalog] = useState<CatalogResponse | null>(null);
   const [cart, setCart] = useState<Record<string, number>>({});
   const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     getAdminCatalog().then(setCatalog).catch((err) => setError(err instanceof Error ? err.message : String(err)));
   }, []);
 
-  const entries = catalog?.categories.flatMap((category) => category.entries).filter((e) => !e.hidden && !e.outOfStock).sort((a, b) => a.sortOrder - b.sortOrder) ?? [];
+  const normalizedQuery = query.trim().toLowerCase();
+  const entries = catalog?.categories
+    .flatMap((category) => category.entries.map((entry) => ({ ...entry, categoryName: category.name, categorySortOrder: category.sortOrder })))
+    .filter((entry) => !entry.hidden && !entry.outOfStock)
+    .filter((entry) => {
+      if (!normalizedQuery) return true;
+      return entry.name.toLowerCase().includes(normalizedQuery) || entry.categoryName.toLowerCase().includes(normalizedQuery);
+    })
+    .sort((a, b) => a.categorySortOrder - b.categorySortOrder || a.sortOrder - b.sortOrder) ?? [];
   const lines = Object.entries(cart).filter(([, quantity]) => quantity > 0).map(([entryId, quantity]) => ({ entryId, quantity }));
   const inc = (id: string, delta: number) => setCart((prev) => ({ ...prev, [id]: Math.max(0, (prev[id] ?? 0) + delta) }));
 
@@ -303,21 +312,31 @@ function AdminAddOrderModal({ t, onClose, onSubmit }: { t: T; onClose: () => voi
     <div className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center print-hide" role="dialog" aria-modal="true">
       <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
         <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-gray-900">{t("tableDetail.addOrder")}</h2>
+          <h2 className="text-lg font-bold text-gray-900">{t("tableDetail.addItems")}</h2>
           <button type="button" onClick={onClose} className="text-sm text-gray-500">{t("common.close")}</button>
         </div>
         {error && <div className="m-4 rounded-lg bg-red-50 text-red-700 px-4 py-3 text-sm">{error}</div>}
+        <div className="p-4 border-b border-gray-100">
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={t("tableDetail.searchItems")}
+            data-testid="admin-item-search"
+            className="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm"
+            autoFocus
+          />
+        </div>
         <div className="p-4 overflow-y-auto space-y-2">
-          {!catalog ? <p className="text-sm text-gray-500">{t("common.loading")}</p> : entries.map((entry) => (
+          {!catalog ? <p className="text-sm text-gray-500">{t("common.loading")}</p> : entries.length === 0 ? <p className="text-sm text-gray-500">{t("tableDetail.noAvailableItems")}</p> : entries.map((entry) => (
             <div key={entry.id} className="rounded-xl border border-gray-200 p-3 flex items-center justify-between gap-3">
               <div>
                 <div className="font-semibold text-gray-900">{entry.name}</div>
-                <div className="text-sm text-gray-500">{euros(Math.round(entry.price * 100))}</div>
+                <div className="text-sm text-gray-500">{entry.categoryName} · {euros(Math.round(entry.price * 100))}</div>
               </div>
               <div className="flex items-center gap-2">
                 <button type="button" onClick={() => inc(entry.id, -1)} className="w-8 h-8 rounded-full border border-gray-200">−</button>
-                <span className="w-6 text-center text-sm font-semibold">{cart[entry.id] ?? 0}</span>
-                <button type="button" onClick={() => inc(entry.id, 1)} className="w-8 h-8 rounded-full bg-primary text-white">+</button>
+                <span data-testid={`admin-item-qty-${entry.id}`} className="w-6 text-center text-sm font-semibold">{cart[entry.id] ?? 0}</span>
+                <button type="button" data-testid={`admin-item-plus-${entry.id}`} onClick={() => inc(entry.id, 1)} className="w-8 h-8 rounded-full bg-primary text-white">+</button>
               </div>
             </div>
           ))}
@@ -325,7 +344,7 @@ function AdminAddOrderModal({ t, onClose, onSubmit }: { t: T; onClose: () => voi
         <div className="p-4 border-t border-gray-100 flex justify-end gap-2">
           <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border border-gray-200 text-gray-600 text-sm font-semibold">{t("common.cancel")}</button>
           <button type="button" disabled={lines.length === 0} onClick={() => onSubmit(lines)} data-testid="submit-admin-order" className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold disabled:opacity-50">
-            {t("tableDetail.submitOrder")}
+            {t("tableDetail.submitItems")}
           </button>
         </div>
       </div>

@@ -657,7 +657,11 @@
     "tableDetail.startOrder": "Iniciar pedido",
     "tableDetail.addOrder": "Adicionar pedido",
     "tableDetail.submitOrder": "Enviar pedido",
-    "tableDetail.checkOpenOrderBlocked": "Conta aberta: pague ou anule antes de adicionar pedidos"
+    "tableDetail.checkOpenOrderBlocked": "Conta aberta: pague ou anule antes de adicionar pedidos",
+    "tableDetail.addItems": "Adicionar itens",
+    "tableDetail.searchItems": "Pesquisar itens disponíveis",
+    "tableDetail.noAvailableItems": "Nenhum item disponível encontrado.",
+    "tableDetail.submitItems": "Adicionar itens"
   },
   "outOfStock": "ESGOTADO",
   "staff": {
