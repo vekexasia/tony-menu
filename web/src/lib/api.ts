@@ -431,6 +431,7 @@ export interface AdminMenu {
   published: boolean;
   sortOrder: number;
   icon: string;
+  iconUrl: string | null;
   availableFrom: string | null;
   availableTo: string | null;
   availableDays: Weekday[] | null;
@@ -460,6 +461,22 @@ export function updateMenu(menuId: string, data: UpdateMenuBody) {
 
 export function deleteMenu(menuId: string) {
   return apiFetch(`/admin/menus/${menuId}`, {
+    method: 'DELETE',
+    auth: true,
+  });
+}
+
+export function uploadMenuImage(menuId: string, imageData: ArrayBuffer) {
+  return apiFetch<{ ok: true; iconUrl: string }>(`/admin/menus/${encodeURIComponent(menuId)}/image`, {
+    method: 'POST',
+    body: imageData,
+    headers: { 'Content-Type': 'image/jpeg' },
+    auth: true,
+  });
+}
+
+export function deleteMenuImage(menuId: string) {
+  return apiFetch(`/admin/menus/${encodeURIComponent(menuId)}/image`, {
     method: 'DELETE',
     auth: true,
   });

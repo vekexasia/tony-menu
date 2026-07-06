@@ -1,16 +1,18 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ApiError,
   createMenu,
   deleteMenu,
+  deleteMenuImage,
   fetchMenus,
   reorderMenus,
   updateMenu,
   type AdminMenu,
   type Weekday,
 } from "@/lib/api";
+import { uploadMenuImage } from "@/lib/imageUpload";
 
 const ALL_WEEKDAYS: Weekday[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 import { useRestaurantStore, useCategories } from "@/stores/restaurantStore";
@@ -45,6 +47,9 @@ export default function MenusPage() {
   const [editCode, setEditCode] = useState("");
   const [editI18n, setEditI18n] = useState<I18nData>({});
   const [editIcon, setEditIcon] = useState<MenuIconKind>("utensils");
+  const [editIconUrl, setEditIconUrl] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const [editAvailableFrom, setEditAvailableFrom] = useState<string>("");
   const [editAvailableTo, setEditAvailableTo] = useState<string>("");
   const [editAvailableDays, setEditAvailableDays] = useState<Weekday[] | null>(null);
@@ -115,6 +120,7 @@ export default function MenusPage() {
     setEditCode(menu.code);
     setEditI18n((menu.i18n ?? {}) as I18nData);
     setEditIcon((MENU_ICON_KINDS as readonly string[]).includes(menu.icon) ? (menu.icon as MenuIconKind) : "utensils");
+    setEditIconUrl(menu.iconUrl ?? null);
     setEditAvailableFrom(menu.availableFrom ?? "");
     setEditAvailableTo(menu.availableTo ?? "");
     setEditAvailableDays(menu.availableDays ?? null);
@@ -154,6 +160,40 @@ export default function MenusPage() {
       setEditError(err instanceof ApiError ? err.message : t("menus.saveFailed"));
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editing) return;
+    setUploadingImage(true);
+    setEditError(null);
+    try {
+      const iconUrl = await uploadMenuImage(editing.id, file);
+      setEditIconUrl(iconUrl);
+      await refresh();
+      await loadRestaurant({ force: true });
+    } catch (err) {
+      setEditError(err instanceof ApiError ? err.message : t("menus.saveFailed"));
+    } finally {
+      setUploadingImage(false);
+      if (imageInputRef.current) imageInputRef.current.value = "";
+    }
+  };
+
+  const handleImageRemove = async () => {
+    if (!editing) return;
+    setUploadingImage(true);
+    setEditError(null);
+    try {
+      await deleteMenuImage(editing.id);
+      setEditIconUrl(null);
+      await refresh();
+      await loadRestaurant({ force: true });
+    } catch (err) {
+      setEditError(err instanceof ApiError ? err.message : t("menus.saveFailed"));
+    } finally {
+      setUploadingImage(false);
     }
   };
 
@@ -373,6 +413,41 @@ export default function MenusPage() {
                     );
                   })}
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t("menus.imageLabel")}</label>
+                <p className="text-xs text-gray-500 mb-2">{t("menus.imageHint")}</p>
+                <div className="flex items-center gap-3">
+                  {editIconUrl && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={editIconUrl} alt={t("menus.imageLabel")} className="w-16 h-16 rounded-lg object-cover border" />
+                  )}
+                  <div className="flex flex-col gap-1">
+                    <button
+                      type="button"
+                      onClick={() => imageInputRef.current?.click()}
+                      disabled={uploadingImage}
+                      className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+                    >
+                      {uploadingImage ? t("menus.imageUploading") : t("menus.imageUpload")}
+                    </button>
+                    {editIconUrl && (
+                      <button
+                        type="button"
+                        onClick={handleImageRemove}
+                        disabled={uploadingImage}
+                        className="px-3 py-1.5 rounded-lg text-xs font-semibold text-red-500 hover:bg-red-50 disabled:opacity-50"
+                      >
+                        {t("menus.imageRemove")}
+                      </button>
+                    )}
+                  </div>
+                </div>
+                {editIconUrl && (
+                  <p className="text-xs text-amber-600 mt-1">{t("menus.imageOverridesIcon")}</p>
+                )}
+                <input ref={imageInputRef} type="file" accept="image/*" onChange={handleImageChange} style={{ display: "none" }} />
               </div>
 
               <div>

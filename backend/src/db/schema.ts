@@ -77,6 +77,7 @@ export const menus = sqliteTable(
     published: integer('published', { mode: 'boolean' }).default(true).notNull(),
     sortOrder: integer('sort_order').default(0).notNull(),
     icon: text('icon').default('utensils').notNull(),
+    iconUrl: text('icon_url'),
     availableFrom: text('available_from'),
     availableTo: text('available_to'),
     availableDays: jsonColumn<string[] | null>('available_days'),

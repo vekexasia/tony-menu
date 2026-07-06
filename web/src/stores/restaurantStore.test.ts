@@ -93,4 +93,18 @@ describe('restaurantStore catalog conversion', () => {
   it('leaves openingSchedule undefined when the API sends null', async () => {
     expect(await loadWith(null)).toBeUndefined();
   });
+
+  it('maps menu iconUrl from the catalog', async () => {
+    getCatalogMock.mockResolvedValue({
+      restaurant: baseRestaurant(null),
+      menus: [{
+        id: 'm1', code: 'lunch', title: 'Lunch', i18n: null, published: true,
+        sortOrder: 0, icon: 'utensils', iconUrl: 'https://cdn.example/images/menus/m1/x.webp',
+      }],
+      categories: [], variants: [], extras: [], labels: [],
+      generatedAt: new Date().toISOString(),
+    });
+    await useRestaurantStore.getState().loadRestaurant({ force: true });
+    expect(useRestaurantStore.getState().data?.menus[0]?.iconUrl).toBe('https://cdn.example/images/menus/m1/x.webp');
+  });
 });

@@ -133,6 +133,7 @@ function catalogToStore(catalog: CatalogResponse) {
       published: m.published,
       sortOrder: m.sortOrder,
       icon: m.icon,
+      iconUrl: m.iconUrl ?? null,
       availableFrom: m.availableFrom ?? null,
       availableTo: m.availableTo ?? null,
     }))

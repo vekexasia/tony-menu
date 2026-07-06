@@ -13,21 +13,26 @@ const apiMocks = vi.hoisted(() => ({
   createMenu: vi.fn(),
   updateMenu: vi.fn(),
   deleteMenu: vi.fn(),
+  deleteMenuImage: vi.fn(),
   reorderMenus: vi.fn(),
 }));
 vi.mock("@/lib/api", () => apiMocks);
+
+const uploadMenuImageMock = vi.hoisted(() => vi.fn());
+vi.mock("@/lib/imageUpload", () => ({ uploadMenuImage: uploadMenuImageMock }));
 
 import MenusPage from "./MenusPage";
 import { useRestaurantStore } from "@/stores/restaurantStore";
 import type { RestaurantData } from "@/lib/types";
 
 const menus = [
-  { id: "m1", code: "lunch", title: "Lunch", i18n: null, published: true, sortOrder: 0, icon: "utensils", availableFrom: null, availableTo: null, availableDays: null },
-  { id: "m2", code: "dinner", title: "Dinner", i18n: null, published: false, sortOrder: 1, icon: "utensils", availableFrom: null, availableTo: null, availableDays: null },
+  { id: "m1", code: "lunch", title: "Lunch", i18n: null, published: true, sortOrder: 0, icon: "utensils", iconUrl: null, availableFrom: null, availableTo: null, availableDays: null },
+  { id: "m2", code: "dinner", title: "Dinner", i18n: null, published: false, sortOrder: 1, icon: "utensils", iconUrl: null, availableFrom: null, availableTo: null, availableDays: null },
 ];
 
 beforeEach(() => {
   for (const m of Object.values(apiMocks)) if (typeof m === "function" && "mockReset" in m) (m as ReturnType<typeof vi.fn>).mockReset();
+  uploadMenuImageMock.mockReset();
   loadRestaurantMock.mockReset();
   apiMocks.fetchMenus.mockResolvedValue({ menus: menus.map((m) => ({ ...m })) });
   useRestaurantStore.setState({
@@ -86,6 +91,34 @@ describe("MenusPage mutations", () => {
     fireEvent.click(screen.getByText("common.delete"));
 
     await waitFor(() => expect(apiMocks.deleteMenu).toHaveBeenCalledWith("m1"));
+  });
+
+  it("uploads a custom image from the edit modal", async () => {
+    uploadMenuImageMock.mockResolvedValue("https://cdn.test/images/menus/m1-1.jpg");
+    const { container } = render(<MenusPage />);
+    fireEvent.click(await screen.findByText("Lunch"));
+
+    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const file = new File(["x"], "photo.jpg", { type: "image/jpeg" });
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    await waitFor(() => expect(uploadMenuImageMock).toHaveBeenCalledWith("m1", file));
+    await waitFor(() => expect(screen.getByText("menus.imageOverridesIcon")).toBeInTheDocument());
+    expect(loadRestaurantMock).toHaveBeenCalled();
+  });
+
+  it("removes the custom image via deleteMenuImage", async () => {
+    apiMocks.fetchMenus.mockResolvedValue({
+      menus: menus.map((m) => (m.id === "m1" ? { ...m, iconUrl: "https://cdn.test/images/menus/m1-1.jpg" } : { ...m })),
+    });
+    apiMocks.deleteMenuImage.mockResolvedValue({});
+    render(<MenusPage />);
+    fireEvent.click(await screen.findByText("Lunch"));
+
+    fireEvent.click(screen.getByText("menus.imageRemove"));
+
+    await waitFor(() => expect(apiMocks.deleteMenuImage).toHaveBeenCalledWith("m1"));
+    await waitFor(() => expect(screen.queryByText("menus.imageOverridesIcon")).not.toBeInTheDocument());
   });
 
   it("keeps the delete dialog open and shows the error when delete fails", async () => {

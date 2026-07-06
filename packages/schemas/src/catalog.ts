@@ -83,6 +83,7 @@ export const CatalogMenuSchema = z.object({
   published: z.boolean(),
   sortOrder: z.number(),
   icon: z.string(),
+  iconUrl: z.string().nullable().optional(),
   availableFrom: HHMMSchema.nullable().optional(),
   availableTo: HHMMSchema.nullable().optional(),
   availableDays: z.array(WeekdaySchema).nullable().optional(),

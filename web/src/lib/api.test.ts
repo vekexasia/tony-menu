@@ -465,6 +465,22 @@ describe('admin mutations: method, path, body', () => {
     expect(last().init.method).toBe('DELETE');
   });
 
+  it('uploadMenuImage POSTs /admin/menus/:id/image with raw bytes', async () => {
+    const { uploadMenuImage } = await import('./api');
+    await uploadMenuImage('m1', new ArrayBuffer(4));
+    expect(last().url).toBe('https://api.test/admin/menus/m1/image');
+    expect(last().init.method).toBe('POST');
+    expect((last().init.headers as Record<string, string>)['Content-Type']).toBe('image/jpeg');
+    expect(last().init.body).toBeInstanceOf(ArrayBuffer);
+  });
+
+  it('deleteMenuImage DELETEs /admin/menus/:id/image', async () => {
+    const { deleteMenuImage } = await import('./api');
+    await deleteMenuImage('m1');
+    expect(last().url).toBe('https://api.test/admin/menus/m1/image');
+    expect(last().init.method).toBe('DELETE');
+  });
+
   it('uploadHeaderImage POSTs /admin/header-image', async () => {
     const { uploadHeaderImage } = await import('./api');
     await uploadHeaderImage(new ArrayBuffer(2));

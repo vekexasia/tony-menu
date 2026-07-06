@@ -223,6 +223,7 @@ admin.get('/menus', ...base, async (c) => {
       published: m.published,
       sortOrder: m.sortOrder,
       icon: m.icon,
+      iconUrl: m.iconUrl ?? null,
       availableFrom: m.availableFrom ?? null,
       availableTo: m.availableTo ?? null,
       availableDays: m.availableDays ?? null,
@@ -308,10 +309,74 @@ admin.patch('/menus/:menuId', ...base, async (c) => {
 
 admin.delete('/menus/:menuId', ...base, async (c) => {
   const menuId = c.req.param('menuId');
+  const db = c.get('db');
+  const [menu] = await db
+    .select({ iconUrl: schema.menus.iconUrl })
+    .from(schema.menus)
+    .where(eq(schema.menus.id, menuId))
+    .limit(1);
+  if (menu?.iconUrl && c.env.PUBLIC_MENU_BUCKET) {
+    const key = r2KeyFromUrl(menu.iconUrl);
+    if (key) await c.env.PUBLIC_MENU_BUCKET.delete(key);
+  }
   // FK cascade on menu_entry_memberships removes membership rows automatically.
-  await c.get('db')
+  await db
     .delete(schema.menus)
     .where(eq(schema.menus.id, menuId));
+  await refreshPublicCatalog(c);
+  return c.json({ ok: true });
+});
+
+admin.post('/menus/:menuId/image', ...base, async (c) => {
+  const menuId = c.req.param('menuId');
+  const db = c.get('db');
+
+  const [menu] = await db
+    .select({ iconUrl: schema.menus.iconUrl })
+    .from(schema.menus)
+    .where(eq(schema.menus.id, menuId))
+    .limit(1);
+  if (!menu) return c.json({ error: 'Menu not found' }, 404);
+
+  const upload = await uploadImage(c, `images/menus/${menuId}`);
+  if ('response' in upload) return upload.response;
+
+  if (menu.iconUrl) {
+    const oldKey = r2KeyFromUrl(menu.iconUrl);
+    if (oldKey) await c.env.PUBLIC_MENU_BUCKET!.delete(oldKey);
+  }
+
+  await db
+    .update(schema.menus)
+    .set({ iconUrl: upload.imageUrl, updatedAt: Date.now() })
+    .where(eq(schema.menus.id, menuId));
+
+  await refreshPublicCatalog(c);
+  return c.json({ ok: true, iconUrl: upload.imageUrl });
+});
+
+admin.delete('/menus/:menuId/image', ...base, async (c) => {
+  const menuId = c.req.param('menuId');
+  const db = c.get('db');
+  const bucket = c.env.PUBLIC_MENU_BUCKET;
+
+  const [menu] = await db
+    .select({ iconUrl: schema.menus.iconUrl })
+    .from(schema.menus)
+    .where(eq(schema.menus.id, menuId))
+    .limit(1);
+  if (!menu) return c.json({ error: 'Menu not found' }, 404);
+
+  if (menu.iconUrl && bucket) {
+    const key = r2KeyFromUrl(menu.iconUrl);
+    if (key) await bucket.delete(key);
+  }
+
+  await db
+    .update(schema.menus)
+    .set({ iconUrl: null, updatedAt: Date.now() })
+    .where(eq(schema.menus.id, menuId));
+
   await refreshPublicCatalog(c);
   return c.json({ ok: true });
 });
@@ -1144,9 +1209,16 @@ async function setEntryDestinationAssignments(db: DbInstance, entryId: string, d
   ]);
 }
 
-async function uploadSettingsImage(
+function uploadSettingsImage(
   c: Context<AppBindings>,
   prefix: string,
+): Promise<{ imageUrl: string } | { response: Response }> {
+  return uploadImage(c, `images/settings/${prefix}`);
+}
+
+async function uploadImage(
+  c: Context<AppBindings>,
+  keyPrefix: string,
 ): Promise<{ imageUrl: string } | { response: Response }> {
   const bucket = c.env.PUBLIC_MENU_BUCKET;
   if (!bucket) return { response: c.json({ error: 'R2 bucket not configured' }, 503) };
@@ -1157,7 +1229,7 @@ async function uploadSettingsImage(
     return { response: c.json({ error: validation.error }, validation.status) };
   }
 
-  const key = `images/settings/${prefix}-${Date.now()}${validation.ext}`;
+  const key = `${keyPrefix}-${Date.now()}${validation.ext}`;
   await bucket.put(key, body, { httpMetadata: { contentType: validation.type } });
 
   const r2Base = (c.env.R2_PUBLIC_URL || '').replace(/\/$/, '');

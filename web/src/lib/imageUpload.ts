@@ -4,6 +4,7 @@ import {
   uploadHeaderImage as apiUploadHeaderImage,
   uploadPromotionImage as apiUploadPromotionImage,
   uploadLocaleFlag as apiUploadLocaleFlag,
+  uploadMenuImage as apiUploadMenuImage,
 } from "./api";
 
 /**
@@ -71,6 +72,12 @@ export async function uploadPromotionalImage(file: File): Promise<string> {
   const resizedImage = await resizeImage(file, 1920, 1080);
   const response = await apiUploadPromotionImage(resizedImage);
   return response.imageUrl;
+}
+
+export async function uploadMenuImage(menuId: string, file: File): Promise<string> {
+  const resized = await resizeImage(file, 1080, 1080);
+  const response = await apiUploadMenuImage(menuId, resized);
+  return response.iconUrl;
 }
 
 export async function uploadLocaleFlag(code: string, file: File): Promise<string> {

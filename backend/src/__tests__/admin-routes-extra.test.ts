@@ -140,6 +140,90 @@ describe('DELETE /admin/entries/:id removes its R2 image', () => {
   });
 });
 
+describe('POST /admin/menus/:menuId/image', () => {
+  it('puts to R2 under images/menus/ and stores icon_url', async () => {
+    const r2 = makeR2();
+    const { db, env, headers } = await adminEnv(r2);
+    seedMenu(db, 'm-1', 'food');
+
+    const res = await testRequest('/admin/menus/m-1/image', {
+      method: 'POST', headers, env, body: jpegBody(),
+    });
+    expect(res.status).toBe(200);
+    const body = await res.json() as { ok: boolean; iconUrl: string };
+    expect(body.ok).toBe(true);
+    expect(r2.calls.put.some(k => k.startsWith('images/menus/m-1-'))).toBe(true);
+    expect(body.iconUrl.startsWith(`${R2_BASE}/images/menus/m-1-`)).toBe(true);
+
+    const row = db.raw.prepare('SELECT icon_url FROM menus WHERE id = ?').get('m-1') as { icon_url: string };
+    expect(row.icon_url).toBe(body.iconUrl);
+  });
+
+  it('prunes the previous R2 object on replace', async () => {
+    const r2 = makeR2();
+    const { db, env, headers } = await adminEnv(r2);
+    seedMenu(db, 'm-1', 'food');
+    const oldKey = 'images/menus/m-1-111.jpg';
+    db.raw.prepare('UPDATE menus SET icon_url = ? WHERE id = ?').run(`${R2_BASE}/${oldKey}`, 'm-1');
+
+    const res = await testRequest('/admin/menus/m-1/image', {
+      method: 'POST', headers, env, body: jpegBody(),
+    });
+    expect(res.status).toBe(200);
+    expect(r2.calls.delete).toContain(oldKey);
+  });
+
+  it('returns 404 for a missing menu', async () => {
+    const r2 = makeR2();
+    const { env, headers } = await adminEnv(r2);
+    const res = await testRequest('/admin/menus/nope/image', {
+      method: 'POST', headers, env, body: jpegBody(),
+    });
+    expect(res.status).toBe(404);
+  });
+});
+
+describe('DELETE /admin/menus/:menuId/image', () => {
+  it('prunes the R2 object and nulls icon_url', async () => {
+    const r2 = makeR2();
+    const { db, env, headers } = await adminEnv(r2);
+    seedMenu(db, 'm-1', 'food');
+    const key = 'images/menus/m-1-123.jpg';
+    db.raw.prepare('UPDATE menus SET icon_url = ? WHERE id = ?').run(`${R2_BASE}/${key}`, 'm-1');
+
+    const res = await testRequest('/admin/menus/m-1/image', { method: 'DELETE', headers, env });
+    expect(res.status).toBe(200);
+    expect(r2.calls.delete).toContain(key);
+    const row = db.raw.prepare('SELECT icon_url FROM menus WHERE id = ?').get('m-1') as { icon_url: string | null };
+    expect(row.icon_url).toBeNull();
+  });
+
+  it('returns 404 for a missing menu', async () => {
+    const r2 = makeR2();
+    const { env, headers } = await adminEnv(r2);
+    const res = await testRequest('/admin/menus/nope/image', { method: 'DELETE', headers, env });
+    expect(res.status).toBe(404);
+  });
+});
+
+describe('menu iconUrl exposure', () => {
+  it('GET /admin/menus and /catalog include iconUrl', async () => {
+    const { db, env, headers } = await adminEnv();
+    seedMenu(db, 'm-1', 'food');
+    db.raw.prepare('UPDATE menus SET icon_url = ? WHERE id = ?').run(`${R2_BASE}/images/menus/m-1-1.jpg`, 'm-1');
+
+    const adminRes = await testRequest('/admin/menus', { headers, env });
+    expect(adminRes.status).toBe(200);
+    const adminBody = await adminRes.json() as { menus: Array<{ id: string; iconUrl: string | null }> };
+    expect(adminBody.menus[0].iconUrl).toBe(`${R2_BASE}/images/menus/m-1-1.jpg`);
+
+    const catRes = await testRequest('/catalog', { env });
+    expect(catRes.status).toBe(200);
+    const catBody = await catRes.json() as { menus: Array<{ id: string; iconUrl: string | null }> };
+    expect(catBody.menus[0].iconUrl).toBe(`${R2_BASE}/images/menus/m-1-1.jpg`);
+  });
+});
+
 describe('DELETE /admin/menus/:menuId FK cascade', () => {
   it('removes the menu and its memberships, keeps the entry', async () => {
     const { db, env, headers } = await adminEnv();

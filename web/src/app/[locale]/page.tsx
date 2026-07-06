@@ -157,6 +157,23 @@ export default function HomePage() {
           >
             {publishedMenus.map((menu) => {
               const title = getLocalizedContentValue(menu, "title", locale);
+              if (menu.iconUrl) {
+                return (
+                  <Link
+                    key={menu.id}
+                    href={`/${locale}/menu?type=${menu.code}`}
+                    data-locale-anchor={`home:menu-${menu.code}`}
+                    className="relative rounded-2xl shadow-lg overflow-hidden aspect-square hover:shadow-xl transition-shadow"
+                  >
+                    <Image src={menu.iconUrl} alt={title} fill className="object-cover" sizes="(max-width: 672px) 50vw, 336px" unoptimized />
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent pt-10 pb-4 px-3">
+                      <span className="block text-lg font-semibold text-white uppercase tracking-wide text-center">
+                        {title}
+                      </span>
+                    </div>
+                  </Link>
+                );
+              }
               return (
                 <Link
                   key={menu.id}

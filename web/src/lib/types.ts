@@ -266,6 +266,8 @@ export interface MenuInfo {
   sortOrder: number;
   /** Curated icon kind — see MENU_ICON_KINDS in components/menu/MenuIcon. */
   icon: string;
+  /** Custom uploaded image URL; overrides `icon` on the home cards when set. */
+  iconUrl?: string | null;
   availableFrom?: string | null;
   availableTo?: string | null;
 }

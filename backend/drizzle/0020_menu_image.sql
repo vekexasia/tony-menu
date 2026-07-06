@@ -1,0 +1,1 @@
+ALTER TABLE menus ADD COLUMN icon_url TEXT;
