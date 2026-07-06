@@ -599,7 +599,6 @@
     "tables.shapeLabel": "Forma",
     "tables.shapeRect": "Rettangolo",
     "tables.shapeCircle": "Cerchio",
-    "tables.dragHint": "Trascina i tavoli per posizionarli. Il salvataggio è automatico.",
     "staffLinks.title": "Link camerieri",
     "staffLinks.subtitle": "Genera link monouso per il personale di sala. Ogni link apre una sessione sul dispositivo del cameriere.",
     "staffLinks.namePlaceholder": "Nome del cameriere (es. Marco)",
@@ -624,7 +623,11 @@
     "orderReview.remove": "Rimuovi piatto",
     "orderReview.addItem": "Aggiungi un piatto",
     "orderReview.addItemPlaceholder": "Cerca un piatto...",
-    "orderReview.selectTable": "Scegli un tavolo"
+    "orderReview.selectTable": "Scegli un tavolo",
+    "tables.canvasHint": "Trascina i tavoli per spostarli; tocca un tavolo per gestirlo.",
+    "tables.statusFree": "Libero",
+    "tables.statusOpen": "Aperto",
+    "tables.statusWaiting": "In attesa {count}m"
   },
   "outOfStock": "ESAURITO",
   "staff": {

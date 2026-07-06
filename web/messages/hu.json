@@ -599,7 +599,6 @@
     "tables.shapeLabel": "Forma",
     "tables.shapeRect": "Téglalap",
     "tables.shapeCircle": "Kör",
-    "tables.dragHint": "Húzd az asztalokat a helyükre. A módosítások automatikusan mentődnek.",
     "staffLinks.title": "Pincér linkek",
     "staffLinks.subtitle": "Generálj egyszer használatos linkeket a felszolgálóknak. Minden link munkamenetet nyit a pincér eszközén.",
     "staffLinks.namePlaceholder": "Pincér neve (pl. Marco)",
@@ -624,7 +623,11 @@
     "orderReview.remove": "Fogás eltávolítása",
     "orderReview.addItem": "Fogás hozzáadása",
     "orderReview.addItemPlaceholder": "Fogás keresése...",
-    "orderReview.selectTable": "Válassz asztalt"
+    "orderReview.selectTable": "Válassz asztalt",
+    "tables.canvasHint": "Húzd az asztalokat a mozgatáshoz; koppints egy asztalra a kezeléséhez.",
+    "tables.statusFree": "Szabad",
+    "tables.statusOpen": "Nyitva",
+    "tables.statusWaiting": "Várakozás {count} perc"
   },
   "outOfStock": "OUT OF STOCK",
   "staff": {

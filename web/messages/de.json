@@ -599,7 +599,6 @@
     "tables.shapeLabel": "Form",
     "tables.shapeRect": "Rechteck",
     "tables.shapeCircle": "Kreis",
-    "tables.dragHint": "Ziehe die Tische, um sie zu platzieren. Änderungen werden automatisch gespeichert.",
     "staffLinks.title": "Kellner-Links",
     "staffLinks.subtitle": "Erzeuge Einmal-Links fur das Servicepersonal. Jeder Link offnet eine Sitzung auf dem Gerat des Kellners.",
     "staffLinks.namePlaceholder": "Name des Kellners (z. B. Marco)",
@@ -624,7 +623,11 @@
     "orderReview.remove": "Gericht entfernen",
     "orderReview.addItem": "Gericht hinzufügen",
     "orderReview.addItemPlaceholder": "Nach einem Gericht suchen...",
-    "orderReview.selectTable": "Tisch auswählen"
+    "orderReview.selectTable": "Tisch auswählen",
+    "tables.canvasHint": "Ziehe die Tische zum Verschieben; tippe einen Tisch an, um ihn zu verwalten.",
+    "tables.statusFree": "Frei",
+    "tables.statusOpen": "Offen",
+    "tables.statusWaiting": "Wartet {count} Min."
   },
   "outOfStock": "AUSVERKAUFT",
   "staff": {

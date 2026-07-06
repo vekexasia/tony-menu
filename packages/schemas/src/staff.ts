@@ -108,6 +108,11 @@ export interface FloorTable {
   oldestSubmittedAt: number | null;
 }
 
+/** Admin floor state: a FloorTable that also carries the active flag (inactive tables show dimmed). */
+export interface AdminFloorTable extends FloorTable {
+  active: boolean;
+}
+
 export interface StaffOrderItem {
   id: string;
   name: string;

@@ -2,41 +2,57 @@
 
 import { useCallback, useEffect, useState } from "react";
 import {
-  fetchTables, createTable, updateTable, deleteTable, updateTablePosition,
-  fetchAreas, createArea, updateArea, deleteArea,
-  ApiError, type Area, type AdminTable,
+  fetchAdminFloor, createTable, updateTable, deleteTable, updateTablePosition,
+  createArea, updateArea, deleteArea,
+  ApiError, type Area, type AdminFloorTable,
 } from "@/lib/api";
 import { useTranslations } from "@/lib/i18n";
 import { FloorCanvas, type FloorTile } from "@/components/floor/FloorCanvas";
 import type { TableShape } from "@menu/schemas";
 
+const POLL_MS = 10_000;
+
 /**
- * Admin tables (#15): area management + per-area floor plan editor. Tables carry a
- * shape and a position on the 1000x700 canvas; area is fixed at creation time.
+ * Admin tables (#15): canvas-first, colour-coded like the staff floor. Drag a tile
+ * to move it (snap 25, autosave); tap a tile to open an inline action panel
+ * (rename / activate / delete). No separate table list — the canvas is the list.
  */
 export default function TablesPage() {
   const t = useTranslations("admin");
   const [areas, setAreas] = useState<Area[] | null>(null);
-  const [tables, setTables] = useState<AdminTable[]>([]);
+  const [tables, setTables] = useState<AdminFloorTable[]>([]);
   const [activeArea, setActiveArea] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [renaming, setRenaming] = useState<string>("");
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [areaName, setAreaName] = useState("");
   const [tableName, setTableName] = useState("");
   const [tableShape, setTableShape] = useState<TableShape>("rect");
+  const [now, setNow] = useState(() => Date.now());
 
   const refresh = useCallback(async () => {
     try {
-      const [a, tb] = await Promise.all([fetchAreas(), fetchTables()]);
-      setAreas(a.areas);
-      setTables(tb.tables);
-      setActiveArea((prev) => prev ?? a.areas[0]?.id ?? null);
+      const res = await fetchAdminFloor();
+      setAreas(res.areas);
+      setTables(res.tables);
+      setActiveArea((prev) => prev ?? res.areas[0]?.id ?? null);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     }
   }, []);
 
-  useEffect(() => { refresh(); }, [refresh]);
+  useEffect(() => {
+    refresh();
+    const timer = setInterval(refresh, POLL_MS);
+    return () => clearInterval(timer);
+  }, [refresh]);
+
+  useEffect(() => {
+    const tick = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(tick);
+  }, []);
 
   const addArea = async () => {
     const trimmed = areaName.trim();
@@ -79,15 +95,26 @@ export default function TablesPage() {
     if (!trimmed || !activeArea) return;
     try {
       const res = await createTable({ name: trimmed, areaId: activeArea, shape: tableShape });
-      setTables((prev) => [...prev, { id: res.id, name: trimmed, active: true, sortOrder: prev.length, areaId: activeArea, x: 25, y: 25, shape: tableShape }]);
+      setTables((prev) => [...prev, {
+        id: res.id, name: trimmed, active: true, areaId: activeArea, x: 25, y: 25, shape: tableShape,
+        sessionId: null, openedAt: null, orderCount: 0, readyCount: 0, oldestSubmittedAt: null,
+      }]);
       setTableName("");
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     }
   };
 
-  const renameTable = async (table: AdminTable) => {
-    const next = window.prompt(t("tables.renamePrompt"), table.name)?.trim();
+  const openPanel = (tile: FloorTile) => {
+    const table = tables.find((tb) => tb.id === tile.id);
+    if (!table) return;
+    setSelectedId((prev) => (prev === table.id ? null : table.id)); // second tap closes
+    setRenaming(table.name);
+    setConfirmingDelete(false);
+  };
+
+  const saveRename = async (table: AdminFloorTable) => {
+    const next = renaming.trim();
     if (!next || next === table.name) return;
     try {
       await updateTable(table.id, { name: next });
@@ -97,7 +124,7 @@ export default function TablesPage() {
     }
   };
 
-  const toggleActive = async (table: AdminTable) => {
+  const toggleActive = async (table: AdminFloorTable) => {
     try {
       await updateTable(table.id, { active: !table.active });
       setTables((prev) => prev.map((x) => x.id === table.id ? { ...x, active: !x.active } : x));
@@ -106,11 +133,11 @@ export default function TablesPage() {
     }
   };
 
-  const removeTable = async (table: AdminTable) => {
-    if (!window.confirm(t("tables.deleteConfirm"))) return;
+  const removeTable = async (table: AdminFloorTable) => {
     try {
       await deleteTable(table.id);
       setTables((prev) => prev.filter((x) => x.id !== table.id));
+      setSelectedId(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     }
@@ -131,7 +158,16 @@ export default function TablesPage() {
   const areaTables = tables.filter((tb) => tb.areaId === activeArea);
   const tiles: FloorTile[] = areaTables.map((tb) => ({
     id: tb.id, name: tb.name, x: tb.x, y: tb.y, shape: tb.shape, active: tb.active,
+    sessionId: tb.sessionId, oldestSubmittedAt: tb.oldestSubmittedAt,
   }));
+  const selected = areaTables.find((tb) => tb.id === selectedId) ?? null;
+
+  const statusLine = (tb: AdminFloorTable): string => {
+    if (!tb.sessionId) return t("tables.statusFree");
+    if (tb.oldestSubmittedAt == null) return t("tables.statusOpen");
+    const mins = Math.floor((now - tb.oldestSubmittedAt) / 60000);
+    return t("tables.statusWaiting").replace("{count}", String(mins));
+  };
 
   return (
     <main className="p-6 max-w-3xl" style={{ flex: 1, minWidth: 0, overflowY: "auto" }}>
@@ -162,7 +198,7 @@ export default function TablesPage() {
           <div className="flex gap-2 mb-4 flex-wrap" data-testid="area-tabs">
             {areas.map((area) => (
               <div key={area.id} className={`flex items-center gap-1 rounded-full pl-3 pr-1.5 py-1 text-sm ${area.id === activeArea ? "bg-primary text-white" : "bg-white text-gray-600 border border-gray-200"}`}>
-                <button type="button" onClick={() => setActiveArea(area.id)} data-testid={`area-tab-${area.id}`} className="font-semibold">{area.name}</button>
+                <button type="button" onClick={() => { setActiveArea(area.id); setSelectedId(null); }} data-testid={`area-tab-${area.id}`} className="font-semibold">{area.name}</button>
                 <button type="button" onClick={() => renameArea(area)} aria-label={t("common.edit")} className={`px-1 text-xs ${area.id === activeArea ? "text-white/80" : "text-gray-400"}`}>✎</button>
                 <button type="button" onClick={() => removeArea(area)} aria-label={t("common.delete")} className={`px-1 text-xs ${area.id === activeArea ? "text-white/80" : "text-red-400"}`}>×</button>
               </div>
@@ -188,21 +224,41 @@ export default function TablesPage() {
                 </button>
               </div>
 
-              <p className="text-xs text-gray-400 mb-2">{t("tables.dragHint")}</p>
-              <FloorCanvas tiles={tiles} editable onMove={moveTable} />
+              <p className="text-xs text-gray-400 mb-2">{t("tables.canvasHint")}</p>
+              <FloorCanvas tiles={tiles} editable now={now} onMove={moveTable} onTap={openPanel} />
 
-              <ul className="space-y-1.5 mt-4">
-                {areaTables.map((table) => (
-                  <li key={table.id} className="flex items-center gap-3 text-sm text-gray-700 rounded-xl border border-gray-200 bg-white px-4 py-2.5">
-                    <span className={`flex-1 ${table.active ? "" : "text-gray-400 line-through"}`}>{table.name}</span>
-                    <button onClick={() => toggleActive(table)} className="text-xs text-gray-500 hover:text-gray-700">
-                      {table.active ? t("tables.deactivate") : t("tables.activate")}
+              {selected && (
+                <div className="mt-4 rounded-xl border border-gray-200 bg-white p-4" data-testid="table-panel">
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">{selected.name}</p>
+                      <p className="text-xs text-gray-500">{areas.find((a) => a.id === selected.areaId)?.name} · {statusLine(selected)}</p>
+                    </div>
+                    <button type="button" onClick={() => setSelectedId(null)} aria-label={t("common.close")} className="text-gray-400 hover:text-gray-600">×</button>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <input
+                      value={renaming}
+                      onChange={(e) => setRenaming(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") saveRename(selected); }}
+                      className="h-9 rounded-lg border border-gray-200 px-3 text-sm w-40"
+                      aria-label={t("tables.renamePrompt")}
+                    />
+                    <button onClick={() => saveRename(selected)} className="px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold">{t("common.save")}</button>
+                    <button onClick={() => toggleActive(selected)} className="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 text-xs font-semibold">
+                      {selected.active ? t("tables.deactivate") : t("tables.activate")}
                     </button>
-                    <button onClick={() => renameTable(table)} className="text-xs text-gray-500 hover:text-gray-700">{t("common.edit")}</button>
-                    <button onClick={() => removeTable(table)} className="text-xs text-red-500 hover:text-red-700">{t("common.delete")}</button>
-                  </li>
-                ))}
-              </ul>
+                    {confirmingDelete ? (
+                      <>
+                        <button onClick={() => removeTable(selected)} data-testid="table-delete-confirm" className="px-3 py-1.5 rounded-lg bg-red-500 text-white text-xs font-semibold">{t("common.delete")}</button>
+                        <button onClick={() => setConfirmingDelete(false)} className="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 text-xs font-semibold">{t("common.cancel")}</button>
+                      </>
+                    ) : (
+                      <button onClick={() => setConfirmingDelete(true)} className="px-3 py-1.5 rounded-lg text-red-500 text-xs font-semibold">{t("common.delete")}</button>
+                    )}
+                  </div>
+                </div>
+              )}
             </>
           )}
         </>

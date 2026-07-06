@@ -599,7 +599,6 @@
     "tables.shapeLabel": "Vorm",
     "tables.shapeRect": "Rechthoek",
     "tables.shapeCircle": "Cirkel",
-    "tables.dragHint": "Sleep de tafels om ze te plaatsen. Wijzigingen worden automatisch opgeslagen.",
     "staffLinks.title": "Oberlinks",
     "staffLinks.subtitle": "Genereer eenmalige links voor het bedienend personeel. Elke link opent een sessie op het apparaat van de ober.",
     "staffLinks.namePlaceholder": "Naam van de ober (bijv. Marco)",
@@ -624,7 +623,11 @@
     "orderReview.remove": "Gerecht verwijderen",
     "orderReview.addItem": "Een gerecht toevoegen",
     "orderReview.addItemPlaceholder": "Zoek een gerecht...",
-    "orderReview.selectTable": "Kies een tafel"
+    "orderReview.selectTable": "Kies een tafel",
+    "tables.canvasHint": "Sleep tafels om ze te verplaatsen; tik op een tafel om deze te beheren.",
+    "tables.statusFree": "Vrij",
+    "tables.statusOpen": "Bezet",
+    "tables.statusWaiting": "Wacht {count} min"
   },
   "outOfStock": "UITVERKOCHT",
   "staff": {

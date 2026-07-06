@@ -46,14 +46,16 @@ type Props = {
   editable: boolean;
   now?: number; // staff: current time for the minutes label
   busyId?: string | null; // staff: tile whose session is opening
-  onTap?: (tile: FloorTile) => void; // staff
+  onTap?: (tile: FloorTile) => void; // staff: open session; admin: open action panel
   onMove?: (id: string, x: number, y: number) => void; // admin: drag end
 };
+
+const TAP_PX = 5; // pointer travel under this (client px) is a tap, not a drag
 
 /** Shared floor plan (#15): read-only for staff, pointer-drag editable for admin. */
 export function FloorCanvas({ tiles, editable, now = Date.now(), busyId, onTap, onMove }: Props) {
   const canvasRef = useRef<HTMLDivElement>(null);
-  const [drag, setDrag] = useState<{ id: string; x: number; y: number } | null>(null);
+  const [drag, setDrag] = useState<{ id: string; x: number; y: number; startCX: number; startCY: number } | null>(null);
 
   const toCanvas = (clientX: number, clientY: number) => {
     const rect = canvasRef.current!.getBoundingClientRect();
@@ -65,9 +67,9 @@ export function FloorCanvas({ tiles, editable, now = Date.now(), busyId, onTap, 
 
   const onPointerDown = (e: React.PointerEvent, tile: FloorTile) => {
     if (!editable) return;
-    e.currentTarget.setPointerCapture(e.pointerId);
+    e.currentTarget.setPointerCapture?.(e.pointerId);
     const p = toCanvas(e.clientX, e.clientY);
-    setDrag({ id: tile.id, x: p.x, y: p.y });
+    setDrag({ id: tile.id, x: p.x, y: p.y, startCX: e.clientX, startCY: e.clientY });
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
@@ -76,11 +78,14 @@ export function FloorCanvas({ tiles, editable, now = Date.now(), busyId, onTap, 
     setDrag({ id: drag.id, x: p.x, y: p.y });
   };
 
-  const onPointerUp = () => {
+  const onPointerUp = (e: React.PointerEvent) => {
     if (!drag) return;
-    const x = clamp(snap(drag.x), CANVAS_W);
-    const y = clamp(snap(drag.y), CANVAS_H);
-    onMove?.(drag.id, x, y);
+    const moved = Math.hypot(e.clientX - drag.startCX, e.clientY - drag.startCY);
+    if (moved < TAP_PX) {
+      onTap?.(tiles.find((t) => t.id === drag.id)!);
+    } else {
+      onMove?.(drag.id, clamp(snap(drag.x), CANVAS_W), clamp(snap(drag.y), CANVAS_H));
+    }
     setDrag(null);
   };
 
@@ -96,9 +101,10 @@ export function FloorCanvas({ tiles, editable, now = Date.now(), busyId, onTap, 
       {tiles.map((tile) => {
         const pos = drag && drag.id === tile.id ? drag : tile;
         const isCircle = tile.shape === "circle";
-        const visual = editable ? null : tileVisual(tile, now);
-        const colorClass = visual ? COLOR_CLASS[visual.color] : "bg-white border-gray-300 text-gray-800";
+        // Colour-code by session state in both views. Inactive admin tiles are dimmed gray regardless.
         const dimmed = editable && tile.active === false;
+        const visual = dimmed ? { color: "gray" as const, minutes: null } : tileVisual(tile, now);
+        const colorClass = COLOR_CLASS[visual.color];
         const common = "absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center border font-bold text-sm shadow-sm";
         return (
           <button

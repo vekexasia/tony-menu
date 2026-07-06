@@ -13,6 +13,7 @@ import {
   UpdateTablePositionBodySchema,
 } from '@menu/schemas';
 import * as schema from '../db/schema';
+import { buildFloorState } from '../lib/floor';
 import type { AppBindings } from '../types';
 
 /**
@@ -175,6 +176,14 @@ admin.delete('/tables/:id', ...base, async (c) => {
   // FK cascade drops table_sessions; orders keep tableSessionId SET NULL.
   await c.get('db').delete(schema.tables).where(eq(schema.tables.id, id));
   return c.json({ ok: true });
+});
+
+// ── Floor state (admin, #15) ───────────────────────────────────────
+
+/** GET /admin/floor — same shape as /staff/floor but INCLUDING inactive tables (dimmed in the editor). */
+admin.get('/floor', ...base, async (c) => {
+  const { areas, tables } = await buildFloorState(c.get('db'), true);
+  return c.json({ areas, tables });
 });
 
 export const adminStaffRoutes = admin;

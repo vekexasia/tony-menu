@@ -599,7 +599,6 @@
     "tables.shapeLabel": "Forme",
     "tables.shapeRect": "Rectangle",
     "tables.shapeCircle": "Cercle",
-    "tables.dragHint": "Faites glisser les tables pour les placer. L'enregistrement est automatique.",
     "staffLinks.title": "Liens serveurs",
     "staffLinks.subtitle": "Generez des liens a usage unique pour le personnel de salle. Chaque lien ouvre une session sur l'appareil du serveur.",
     "staffLinks.namePlaceholder": "Nom du serveur (ex. Marco)",
@@ -624,7 +623,11 @@
     "orderReview.remove": "Retirer le plat",
     "orderReview.addItem": "Ajouter un plat",
     "orderReview.addItemPlaceholder": "Rechercher un plat...",
-    "orderReview.selectTable": "Choisir une table"
+    "orderReview.selectTable": "Choisir une table",
+    "tables.canvasHint": "Faites glisser les tables pour les déplacer ; touchez une table pour la gérer.",
+    "tables.statusFree": "Libre",
+    "tables.statusOpen": "Ouverte",
+    "tables.statusWaiting": "En attente {count} min"
   },
   "outOfStock": "ÉPUISÉ",
   "staff": {

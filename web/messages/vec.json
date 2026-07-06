@@ -599,7 +599,6 @@
     "tables.shapeLabel": "Forma",
     "tables.shapeRect": "Retàngoło",
     "tables.shapeCircle": "Sercio",
-    "tables.dragHint": "Strascina i tòli par metarli. El salvatajo el xe automàtico.",
     "staffLinks.title": "Link camerieri",
     "staffLinks.subtitle": "Genera link a un solo uso par el personale de sala. Ogni link vre na session sul dispositivo del cameriere.",
     "staffLinks.namePlaceholder": "Nome del cameriere (es. Marco)",
@@ -624,7 +623,11 @@
     "orderReview.remove": "Cava via el piato",
     "orderReview.addItem": "Zonta un piato",
     "orderReview.addItemPlaceholder": "Serca un piato...",
-    "orderReview.selectTable": "Sielzi na tavola"
+    "orderReview.selectTable": "Sielzi na tavola",
+    "tables.canvasHint": "Strascina i tòli par spostarli; tóca un tòlo par gestirlo.",
+    "tables.statusFree": "Lìbaro",
+    "tables.statusOpen": "Verto",
+    "tables.statusWaiting": "In atesa {count} min"
   },
   "outOfStock": "FINIO",
   "staff": {

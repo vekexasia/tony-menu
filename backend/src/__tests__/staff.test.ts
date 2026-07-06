@@ -540,3 +540,50 @@ describe('/staff/floor payload (#15)', () => {
     expect(body.tables.find((t) => t.id === 'table-1')!.oldestSubmittedAt).toBeNull();
   });
 });
+
+describe('/admin/floor payload (#15)', () => {
+  it('returns per-table state (open session + oldest submitted) like /staff/floor', async () => {
+    const db = staffDb();
+    await seedArea(db, 'area-1', 'Sala', 0);
+    await seedTable(db, 'table-1', '1', 'area-1');
+    const session = await openSession(db, await createLink(db));
+    const open = await testRequest('/staff/tables/table-1/session', { method: 'POST', headers: staffHeaders(session), env: makeDbEnv(db) });
+    const sessionId = ((await open.json()) as { sessionId: string }).sessionId;
+    await testRequest('/orders', {
+      method: 'POST',
+      body: { idempotencyKey: `idem-adminfloor-${++ipCounter}`, lines: [{ entryId: 'entry-1', quantity: 1 }], tableSessionId: sessionId },
+      headers: { ...staffHeaders(session), 'cf-connecting-ip': `10.8.0.${++ipCounter}` },
+      env: makeDbEnv(db),
+    });
+
+    const res = await testRequest('/admin/floor', { headers: await adminHeaders(), env: adminEnv(db) });
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { areas: Array<{ id: string }>; tables: Array<{ id: string; active: boolean; sessionId: string | null; oldestSubmittedAt: number | null }> };
+    expect(body.areas).toEqual([{ id: 'area-1', name: 'Sala', sortOrder: 0 }]);
+    const row = body.tables.find((t) => t.id === 'table-1')!;
+    expect(row.sessionId).toBe(sessionId);
+    expect(row.oldestSubmittedAt).toEqual(expect.any(Number));
+    expect(row.active).toBe(true);
+  });
+
+  it('includes inactive tables (admin) while /staff/floor excludes them', async () => {
+    const db = staffDb();
+    await seedArea(db, 'area-1', 'Sala', 0);
+    await seedTable(db, 'table-on', 'On', 'area-1');
+    await seedTable(db, 'table-off', 'Off', 'area-1');
+    db.raw.prepare('UPDATE tables SET active = 0 WHERE id = ?').run('table-off');
+    const session = await openSession(db, await createLink(db));
+
+    const adminRes = await testRequest('/admin/floor', { headers: await adminHeaders(), env: adminEnv(db) });
+    const adminBody = (await adminRes.json()) as { tables: Array<{ id: string; active: boolean }> };
+    const adminIds = adminBody.tables.map((t) => t.id).sort();
+    expect(adminIds).toEqual(['table-off', 'table-on']);
+    expect(adminBody.tables.find((t) => t.id === 'table-off')!.active).toBe(false);
+
+    const staffRes = await testRequest('/staff/floor', { headers: staffHeaders(session), env: makeDbEnv(db) });
+    const staffBody = (await staffRes.json()) as { tables: Array<{ id: string }> };
+    expect(staffBody.tables.map((t) => t.id)).toEqual(['table-on']);
+    // Staff shape carries no admin-only `active` flag.
+    expect('active' in staffBody.tables[0]).toBe(false);
+  });
+});

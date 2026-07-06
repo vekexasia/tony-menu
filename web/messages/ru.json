@@ -599,7 +599,6 @@
     "tables.shapeLabel": "Форма",
     "tables.shapeRect": "Прямоугольник",
     "tables.shapeCircle": "Круг",
-    "tables.dragHint": "Перетаскивайте столы, чтобы разместить их. Изменения сохраняются автоматически.",
     "staffLinks.title": "Ссылки официантов",
     "staffLinks.subtitle": "Создавайте одноразовые ссылки для персонала зала. Каждая ссылка открывает сессию на устройстве официанта.",
     "staffLinks.namePlaceholder": "Имя официанта (напр. Marco)",
@@ -624,7 +623,11 @@
     "orderReview.remove": "Удалить блюдо",
     "orderReview.addItem": "Добавить блюдо",
     "orderReview.addItemPlaceholder": "Найти блюдо...",
-    "orderReview.selectTable": "Выберите стол"
+    "orderReview.selectTable": "Выберите стол",
+    "tables.canvasHint": "Перетаскивайте столы для перемещения; коснитесь стола, чтобы управлять им.",
+    "tables.statusFree": "Свободен",
+    "tables.statusOpen": "Открыт",
+    "tables.statusWaiting": "Ожидание {count} мин"
   },
   "outOfStock": "НЕТ В НАЛИЧИИ",
   "staff": {

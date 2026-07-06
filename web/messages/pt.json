@@ -599,7 +599,6 @@
     "tables.shapeLabel": "Forma",
     "tables.shapeRect": "Retângulo",
     "tables.shapeCircle": "Círculo",
-    "tables.dragHint": "Arraste as mesas para posicioná-las. As alterações são guardadas automaticamente.",
     "staffLinks.title": "Ligacoes de empregados",
     "staffLinks.subtitle": "Gere ligacoes de uso unico para o pessoal de sala. Cada ligacao abre uma sessao no dispositivo do empregado.",
     "staffLinks.namePlaceholder": "Nome do empregado (ex. Marco)",
@@ -624,7 +623,11 @@
     "orderReview.remove": "Remover prato",
     "orderReview.addItem": "Adicionar um prato",
     "orderReview.addItemPlaceholder": "Procurar um prato...",
-    "orderReview.selectTable": "Escolhe uma mesa"
+    "orderReview.selectTable": "Escolhe uma mesa",
+    "tables.canvasHint": "Arraste as mesas para movê-las; toque numa mesa para geri-la.",
+    "tables.statusFree": "Livre",
+    "tables.statusOpen": "Aberta",
+    "tables.statusWaiting": "A aguardar {count} min"
   },
   "outOfStock": "ESGOTADO",
   "staff": {

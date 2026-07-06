@@ -33,17 +33,44 @@ test.describe("Staff links + tables — real backend", () => {
     await expect(page.locator('input[value*="/staff?token="]').first()).toBeVisible();
   });
 
-  test("tables admin page loads from the real backend", async ({ page }) => {
-    const listRes = page.waitForResponse(
-      (res) => res.url().includes("/admin/tables") && res.request().method() === "GET" && res.status() < 300,
+  test("tables admin page loads the colour-coded canvas from /admin/floor", async ({ page }) => {
+    await page.request.post("http://localhost:8787/admin/demo/reset");
+    const floorRes = page.waitForResponse(
+      (res) => res.url().includes("/admin/floor") && res.request().method() === "GET" && res.status() < 300,
     );
     await page.goto("/admin/tables/");
-    expect((await listRes).status()).toBe(200);
+    expect((await floorRes).status()).toBe(200);
     await expect(page.getByText("Internal Server Error")).toHaveCount(0);
-    // Seeded demo areas render as tabs.
+    // Seeded demo areas render as tabs, and the canvas shows the seeded tiles.
     await expect(page.getByTestId("area-tabs")).toBeVisible({ timeout: 10000 });
     await expect(page.getByTestId("area-tab-demo-area-sala")).toBeVisible();
     await expect(page.getByTestId("area-tab-demo-area-terrazza")).toBeVisible();
+    await expect(page.getByTestId("floor-canvas")).toBeVisible();
+    await expect(page.getByTestId("table-demo-table-sala-1")).toBeVisible();
+  });
+
+  test("tapping a tile opens the action panel and renames the table (round-trips)", async ({ page }) => {
+    await page.request.post("http://localhost:8787/admin/demo/reset");
+    await page.goto("/admin/tables/");
+    const tile = page.getByTestId("table-demo-table-sala-1");
+    await expect(tile).toBeVisible({ timeout: 10000 });
+
+    // A plain click on the tile is a tap (no movement) -> action panel opens.
+    await tile.click();
+    const panel = page.getByTestId("table-panel");
+    await expect(panel).toBeVisible();
+
+    // Rename through the panel and confirm the PATCH lands.
+    const patchRes = page.waitForResponse(
+      (res) => res.url().includes("/admin/tables/demo-table-sala-1") && res.request().method() === "PATCH" && res.status() < 300,
+    );
+    const input = panel.locator("input").first();
+    await input.fill("E2E-1");
+    await panel.getByRole("button", { name: /salva|save/i }).click();
+    expect((await patchRes).status()).toBeLessThan(300);
+
+    // Reset demo so the seeded name is restored for later runs.
+    await page.request.post("http://localhost:8787/admin/demo/reset");
   });
 
   test("table position PATCH persists on the real backend", async ({ request }) => {

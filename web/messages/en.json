@@ -599,7 +599,6 @@
     "tables.shapeLabel": "Shape",
     "tables.shapeRect": "Rectangle",
     "tables.shapeCircle": "Circle",
-    "tables.dragHint": "Drag tables to position them. Changes save automatically.",
     "staffLinks.title": "Waiter links",
     "staffLinks.subtitle": "Generate one-use links for floor staff. Each link opens a session on the waiter's device.",
     "staffLinks.namePlaceholder": "Waiter name (e.g. Marco)",
@@ -624,7 +623,11 @@
     "orderReview.remove": "Remove item",
     "orderReview.addItem": "Add an item",
     "orderReview.addItemPlaceholder": "Search for a dish...",
-    "orderReview.selectTable": "Select a table"
+    "orderReview.selectTable": "Select a table",
+    "tables.canvasHint": "Drag tables to move them; tap a table to manage it.",
+    "tables.statusFree": "Free",
+    "tables.statusOpen": "Open",
+    "tables.statusWaiting": "Waiting {count}m"
   },
   "outOfStock": "OUT OF STOCK",
   "staff": {

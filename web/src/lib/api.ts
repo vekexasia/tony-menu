@@ -51,11 +51,12 @@ import type {
   Area,
   AdminTable,
   FloorTable,
+  AdminFloorTable,
   TableSessionDetail,
 } from '@menu/schemas';
 
 export type { CatalogResponse, MeResponse, AnalyticsResponse, ViewedItemRanked, MenuViewBreakdown, HourlyTotal };
-export type { StaffLinkSummary, Area, AdminTable, FloorTable, TableSessionDetail, ConsumeStaffLinkResponse } from '@menu/schemas';
+export type { StaffLinkSummary, Area, AdminTable, FloorTable, AdminFloorTable, TableSessionDetail, ConsumeStaffLinkResponse } from '@menu/schemas';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
 const WEB_COMMIT_SHA = process.env.NEXT_PUBLIC_COMMIT_SHA || 'dev';
@@ -277,6 +278,11 @@ export function deleteArea(id: string) {
 
 export function fetchTables() {
   return apiFetch<{ tables: AdminTable[] }>('/admin/tables', { auth: true });
+}
+
+/** Admin floor state: tables with live session/order state, including inactive ones. */
+export function fetchAdminFloor() {
+  return apiFetch<{ areas: Area[]; tables: AdminFloorTable[] }>('/admin/floor', { auth: true });
 }
 
 export function createTable(data: CreateTableBody) {

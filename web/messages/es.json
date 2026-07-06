@@ -599,7 +599,6 @@
     "tables.shapeLabel": "Forma",
     "tables.shapeRect": "Rectángulo",
     "tables.shapeCircle": "Círculo",
-    "tables.dragHint": "Arrastra las mesas para colocarlas. Los cambios se guardan automáticamente.",
     "staffLinks.title": "Enlaces de camareros",
     "staffLinks.subtitle": "Genera enlaces de un solo uso para el personal de sala. Cada enlace abre una sesion en el dispositivo del camarero.",
     "staffLinks.namePlaceholder": "Nombre del camarero (p. ej. Marco)",
@@ -624,7 +623,11 @@
     "orderReview.remove": "Quitar plato",
     "orderReview.addItem": "Añadir un plato",
     "orderReview.addItemPlaceholder": "Buscar un plato...",
-    "orderReview.selectTable": "Elige una mesa"
+    "orderReview.selectTable": "Elige una mesa",
+    "tables.canvasHint": "Arrastra las mesas para moverlas; toca una mesa para gestionarla.",
+    "tables.statusFree": "Libre",
+    "tables.statusOpen": "Abierta",
+    "tables.statusWaiting": "Esperando {count} min"
   },
   "outOfStock": "AGOTADO",
   "staff": {
