@@ -33,8 +33,20 @@ admin.get('/orders', ...base, async (c) => {
   const day = Number(c.req.query('day')) || currentOrderDay();
 
   const orderRows = await db
-    .select()
+    .select({
+      id: schema.orders.id,
+      dailyNumber: schema.orders.dailyNumber,
+      status: schema.orders.status,
+      rejectReason: schema.orders.rejectReason,
+      createdAt: schema.orders.createdAt,
+      tableName: schema.tables.name,
+      areaName: schema.areas.name,
+      updatedAt: schema.orders.updatedAt,
+    })
     .from(schema.orders)
+    .leftJoin(schema.tableSessions, eq(schema.orders.tableSessionId, schema.tableSessions.id))
+    .leftJoin(schema.tables, eq(schema.tableSessions.tableId, schema.tables.id))
+    .leftJoin(schema.areas, eq(schema.tables.areaId, schema.areas.id))
     .where(eq(schema.orders.orderDay, day))
     .orderBy(desc(schema.orders.dailyNumber));
 
@@ -46,6 +58,13 @@ admin.get('/orders', ...base, async (c) => {
   const destRows = itemIds.length > 0
     ? await db.select().from(schema.orderItemDestinations).where(inArray(schema.orderItemDestinations.orderItemId, itemIds))
     : [];
+  const eventRows = orderIds.length > 0
+    ? await db.select().from(schema.orderEvents).where(inArray(schema.orderEvents.orderId, orderIds))
+    : [];
+  const submittedBy = new Map<string, string>();
+  for (const e of eventRows) {
+    if (e.status === 'submitted' && e.actorName) submittedBy.set(e.orderId, e.actorName);
+  }
 
   const destsByItem = new Map<string, typeof destRows>();
   for (const d of destRows) {
@@ -68,6 +87,9 @@ admin.get('/orders', ...base, async (c) => {
       status: o.status,
       rejectReason: o.rejectReason,
       createdAt: o.createdAt,
+      updatedAt: o.updatedAt,
+      tableName: o.tableName ? (o.areaName ? `${o.areaName} · ${o.tableName}` : o.tableName) : null,
+      submittedBy: submittedBy.get(o.id) ?? null,
       items: (itemsByOrder.get(o.id) ?? []).map((i) => ({
         id: i.id,
         name: i.name,
@@ -103,14 +125,23 @@ admin.patch('/orders/:orderId/status', ...base, async (c) => {
     return c.json({ error: 'illegal_transition', from: order.status, to: body.status }, 409);
   }
 
-  await db
-    .update(schema.orders)
-    .set({
+  await db.batch([
+    db
+      .update(schema.orders)
+      .set({
+        status: body.status,
+        rejectReason: body.status === 'rejected' ? body.rejectReason : null,
+        updatedAt: Date.now(),
+      })
+      .where(eq(schema.orders.id, orderId)),
+    db.insert(schema.orderEvents).values({
+      id: crypto.randomUUID(),
+      orderId,
       status: body.status,
-      rejectReason: body.status === 'rejected' ? body.rejectReason : null,
-      updatedAt: Date.now(),
-    })
-    .where(eq(schema.orders.id, orderId));
+      actor: 'admin',
+      actorName: null,
+    }),
+  ]);
 
   return c.json({ ok: true, status: body.status });
 });

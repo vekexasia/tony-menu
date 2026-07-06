@@ -1,4 +1,5 @@
 import type { AuthUser } from './middleware/auth';
+import type { StaffSession } from './lib/staff';
 import type { createDb } from './db/index';
 
 export interface Env {
@@ -17,6 +18,7 @@ export interface Env {
   OPENAI_API_KEY?: string;
   BASE_DOMAIN?: string;
   DEMO_MODE?: string;
+  E2E_MODE?: string;
 }
 
 export type AppEnvironment = 'development' | 'staging' | 'production';
@@ -40,6 +42,7 @@ export interface AppVariables {
   config: RuntimeConfig;
   user: AuthUser;
   db: NonNullable<ReturnType<typeof createDb>>;
+  staff: StaffSession;
 }
 
 /** Standard Hono app bindings for typed route handlers */

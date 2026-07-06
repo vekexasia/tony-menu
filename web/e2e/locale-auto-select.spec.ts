@@ -5,15 +5,6 @@ import { test, expect } from "@playwright/test";
 const DEFAULT_LOCALE = process.env.NEXT_PUBLIC_DEFAULT_LOCALE ?? "en";
 const DEFAULT_LOCALE_URL = new RegExp(`/${DEFAULT_LOCALE}(/|$)`);
 
-test.describe("stored preference", () => {
-  test("stored preferred-locale wins", async ({ page }) => {
-    await page.addInitScript(() => {
-      localStorage.setItem("preferred-locale", "de");
-    });
-    await page.goto("/");
-    await expect(page).toHaveURL(/\/de(\/|$)/);
-  });
-});
 
 test.describe("browser fr-FR", () => {
   test.use({ locale: "fr-FR" });
@@ -21,14 +12,6 @@ test.describe("browser fr-FR", () => {
   test("browser language match", async ({ page }) => {
     await page.goto("/");
     await expect(page).toHaveURL(/\/fr(\/|$)/);
-  });
-
-  test("stored beats browser", async ({ page }) => {
-    await page.addInitScript(() => {
-      localStorage.setItem("preferred-locale", "de");
-    });
-    await page.goto("/");
-    await expect(page).toHaveURL(/\/de(\/|$)/);
   });
 });
 

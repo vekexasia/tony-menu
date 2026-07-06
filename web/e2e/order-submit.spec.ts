@@ -1,82 +1,47 @@
-import { test, expect, type Page } from '@playwright/test';
-import { MOCK_RESTAURANT } from './fixtures/admin-mock';
+import { test, expect } from '@playwright/test';
+import { API_URL, BRUSCHETTA_ID, addBruschettaFromMenu, resetDemo, setOrdering, updateEntry } from './fixtures/real-backend';
 
-/**
- * Direct order submit (issue #17): diner sends the selection from the
- * selection page when ordering is in send mode with diner submits allowed.
- * The backend /orders endpoint is mocked at the network layer.
- */
+test.describe.serial('Direct order submit — real backend', () => {
+  test.skip(!API_URL, 'Skipped: NEXT_PUBLIC_API_URL not set');
 
-const RESTAURANT_WITH_SEND = {
-  ...MOCK_RESTAURANT,
-  features: {
-    ...(MOCK_RESTAURANT.features ?? {}),
-    aiChat: false,
-    aiVoice: false,
-    ordering: { enabled: true, mode: 'send' as const, submitMode: 'diner' as const },
-  },
-};
-
-async function setupSendEnv(page: Page) {
-  await page.addInitScript((restaurant) => {
-    window.__playwright_restaurant__ = restaurant as never;
-    window.localStorage.clear();
-    window.localStorage.setItem('tony-menu-selection-v1', JSON.stringify({
-      version: 1,
-      restaurantId: 'demo-restaurant',
-      updatedAt: Date.now(),
-      lines: [{ entryId: 'entry-bruschetta', quantity: 2, addedAt: Date.now() }],
-    }));
-  }, RESTAURANT_WITH_SEND);
-}
-
-test.describe('Direct order submit', () => {
-  test.beforeEach(async ({ page }) => {
-    await setupSendEnv(page);
+  test.beforeEach(async ({ request }) => {
+    await resetDemo(request);
+    await setOrdering(request, { enabled: true, mode: 'send', submitMode: 'diner' });
   });
 
   test('sends the selection and shows the daily number', async ({ page }) => {
-    let submittedBody: { idempotencyKey?: string; lines?: unknown[] } | null = null;
-    await page.route('**/orders', async (route) => {
-      submittedBody = route.request().postDataJSON();
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ ok: true, orderId: 'order-1', dailyNumber: 42 }),
-      });
-    });
+    await addBruschettaFromMenu(page);
 
-    await page.goto('/it/selection');
-    await page.waitForLoadState('domcontentloaded');
+    const orderReq = page.waitForRequest((req) => req.url().includes('/orders') && req.method() === 'POST');
+    const orderRes = page.waitForResponse((res) => res.url().includes('/orders') && res.request().method() === 'POST' && res.status() < 300);
 
-    await expect(page.getByText('Bruschetta')).toBeVisible();
+    await page.getByRole('button', { name: /la mia selezione/i }).click();
+    await expect(page.getByText(/bruschetta/i).first()).toBeVisible();
     await page.getByRole('button', { name: /invia ordine/i }).click();
+
+    const body = (await orderReq).postDataJSON() as { idempotencyKey?: string; lines?: unknown[] };
+    expect(body.idempotencyKey).toEqual(expect.any(String));
+    expect(body.lines).toEqual([{ entryId: BRUSCHETTA_ID, quantity: 1 }]);
+    const response = await orderRes;
+    const result = await response.json() as { ok: boolean; dailyNumber: number };
+    expect(result.ok).toBe(true);
+    expect(response.ok()).toBeTruthy();
 
     await expect(page.getByText(/ordine inviato/i)).toBeVisible();
-    await expect(page.getByTestId('order-daily-number')).toHaveText('#42');
-
-    expect(submittedBody!.idempotencyKey).toEqual(expect.any(String));
-    expect(submittedBody!.lines).toEqual([{ entryId: 'entry-bruschetta', quantity: 2 }]);
+    await expect(page.getByTestId('order-daily-number')).toHaveText(`#${result.dailyNumber}`);
   });
 
-  test('refuses stale items listing them, keeping the selection intact', async ({ page }) => {
-    await page.route('**/orders', (route) => route.fulfill({
-      status: 409,
-      contentType: 'application/json',
-      body: JSON.stringify({ error: 'stale_items', staleEntryIds: ['entry-bruschetta'] }),
-    }));
+  test('refuses stale items listing them, keeping the selection intact', async ({ page, request }) => {
+    await addBruschettaFromMenu(page);
+    await page.getByRole('button', { name: /la mia selezione/i }).click();
+    await expect(page.getByRole('button', { name: /invia ordine/i })).toBeEnabled();
 
-    await page.goto('/it/selection');
-    await page.waitForLoadState('domcontentloaded');
-
+    await updateEntry(request, BRUSCHETTA_ID, { outOfStock: true });
     await page.getByRole('button', { name: /invia ordine/i }).click();
 
-    // Filter out Next's empty route-announcer alert.
-    const alert = page.getByRole('alert').filter({ hasText: /./ });
-    await expect(alert).toBeVisible();
-    await expect(alert).toContainText('Bruschetta');
-    // Selection stays — never silently dropped.
+    const alert = page.getByRole('alert').filter({ hasText: /bruschetta/i }).first();
+    await expect(alert).toContainText(/bruschetta/i);
     await expect(page.getByRole('button', { name: /invia ordine/i })).toBeVisible();
-    await expect(page.getByText('Bruschetta').first()).toBeVisible();
+    await expect(page.getByText(/bruschetta/i).first()).toBeVisible();
   });
 });

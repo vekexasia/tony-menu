@@ -20,6 +20,8 @@ vi.mock('@/lib/api', async (importOriginal) => {
 
 vi.mock('next/navigation', () => ({
   useParams: () => ({ locale: 'it' }),
+  useRouter: () => ({ push: vi.fn() }),
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 vi.mock('next/link', () => ({
@@ -138,11 +140,11 @@ describe('SelectionPageClient', () => {
 
   it('clears all lines after confirmation', async () => {
     storeSelection([{ entryId: 'entry-bruschetta', quantity: 1, addedAt: 1 }]);
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
 
     render(<SelectionPageClient />);
 
     fireEvent.click(await screen.findByRole('button', { name: 'selection.clear' }));
+    fireEvent.click(screen.getByRole('button', { name: 'selection.clear' }));
 
     expect(useSelectionStore.getState().lines).toEqual([]);
     expect(screen.getByText('selection.empty')).toBeInTheDocument();
@@ -246,6 +248,36 @@ describe('SelectionPageClient', () => {
     expect(createOrderIntentMock).toHaveBeenCalledWith({ lines: [{ entryId: 'entry-bruschetta', quantity: 2 }] });
     // Selection stays intact — the waiter submits it, not the diner.
     expect(useSelectionStore.getState().lines).toHaveLength(1);
+  });
+
+  it('reuses a cached intent when reopening the QR with an unchanged cart', async () => {
+    storeSelection([{ entryId: 'entry-bruschetta', quantity: 2, addedAt: 1 }]);
+    setSendMode('waiter');
+    createOrderIntentMock.mockResolvedValue({ ok: true, token: 'tok-123', expiresAt: Date.now() + 1_800_000 });
+
+    render(<SelectionPageClient />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'selection.showQr' }));
+    expect(await screen.findByTestId('waiter-qr')).toBeInTheDocument();
+    // Close the QR dialog and wait for it to unmount.
+    fireEvent.click(screen.getByRole('button', { name: 'selection.qrBack' }));
+    await waitFor(() => expect(screen.queryByTestId('waiter-qr')).not.toBeInTheDocument());
+    // Reopen with the same cart — no second POST.
+    fireEvent.click(screen.getByRole('button', { name: 'selection.showQr' }));
+    expect(await screen.findByTestId('waiter-qr')).toBeInTheDocument();
+
+    expect(createOrderIntentMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows a rate-limit error when intent creation is throttled (429)', async () => {
+    storeSelection([{ entryId: 'entry-bruschetta', quantity: 1, addedAt: 1 }]);
+    setSendMode('waiter');
+    createOrderIntentMock.mockRejectedValue(new ApiError(429, 'rate_limited'));
+
+    render(<SelectionPageClient />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'selection.showQr' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('selection.qrRateLimit');
   });
 
   it('shows both send and QR buttons when submitMode is both', async () => {

@@ -20,6 +20,16 @@ describe('demo reset', () => {
     expect(settings).toEqual({ name: 'Trattoria Demo', publication_state: 'published' });
     expect(visitorEntry).toBeUndefined();
     expect(demoEntry).toEqual({ name: 'Ricotta and spinach ravioli' });
+
+    // Seed adds departments, entry assignments, 10 tables, and stable demo waiters.
+    const dests = db.raw.prepare('SELECT name FROM order_destinations ORDER BY sort_order').all() as { name: string }[];
+    expect(dests.map((d) => d.name)).toEqual(['Cucina', 'Bar']);
+    const tableCount = db.raw.prepare('SELECT count(*) c FROM tables').get() as { c: number };
+    expect(tableCount.c).toBe(10);
+    const waiter = db.raw.prepare("SELECT name, token, session_token, consumed_at FROM staff_links WHERE id = 'demo-staff-marco'").get() as { name: string; token: string; session_token: string | null; consumed_at: number | null };
+    expect(waiter).toEqual({ name: 'Marco Demo', token: 'demo-staff-link-marco', session_token: null, consumed_at: null });
+    const barGlass = db.raw.prepare("SELECT destination_id FROM entry_destinations WHERE entry_id = 'demo-entry-prosecco'").get() as { destination_id: string };
+    expect(barGlass.destination_id).toBe('demo-dest-bar');
   });
 
   it('wipes ordering data (orders, intents, destinations) on reset', async () => {
@@ -37,10 +47,18 @@ describe('demo reset', () => {
 
     await resetDemoData(makeDbEnv(db, { DEMO_MODE: 'true' }));
 
-    for (const table of ['orders', 'order_items', 'order_item_destinations', 'order_intents', 'order_destinations', 'entry_destinations']) {
-      const { c } = db.raw.prepare(`SELECT count(*) c FROM ${table}`).get() as { c: number };
-      expect(c, table).toBe(0);
-    }
+    // The visitor's transactional rows are gone; showcase rows replace them
+    // (this env has no E2E_MODE, so the showcase is seeded).
+    expect(db.raw.prepare("SELECT count(*) c FROM orders WHERE id = 'ord-1'").get()).toEqual({ c: 0 });
+    expect(db.raw.prepare("SELECT count(*) c FROM order_items WHERE id = 'oi-1'").get()).toEqual({ c: 0 });
+    expect(db.raw.prepare("SELECT count(*) c FROM order_item_destinations WHERE id = 'oid-1'").get()).toEqual({ c: 0 });
+    expect(db.raw.prepare("SELECT count(*) c FROM order_intents").get()).toEqual({ c: 0 });
+    expect((db.raw.prepare('SELECT count(*) c FROM orders').get() as { c: number }).c).toBeGreaterThan(0);
+    // Destinations/assignments are wiped then re-seeded from the demo fixture:
+    // the visitor's rows are gone, the seed's Cucina/Bar are present.
+    const dests = db.raw.prepare('SELECT id FROM order_destinations ORDER BY sort_order').all() as { id: string }[];
+    expect(dests.map((d) => d.id)).toEqual(['demo-dest-cucina', 'demo-dest-bar']);
+    expect(db.raw.prepare("SELECT count(*) c FROM entry_destinations WHERE destination_id = 'dest-1'").get()).toEqual({ c: 0 });
   });
 
   it('exposes a demo-only reset endpoint', async () => {
@@ -58,5 +76,48 @@ describe('demo reset', () => {
       env: makeDbEnv(db, { DEMO_MODE: 'true' }),
     });
     expect(demoRes.status).toBe(200);
+  });
+
+  it('seeds the showcase (live table + settled history) when E2E_MODE is off', async () => {
+    const db = createTestDb();
+    seedSettings(db);
+    await resetDemoData(makeDbEnv(db, { DEMO_MODE: 'true' }));
+
+    // Live table: sala-2 has an open session with 2 orders (submitted + ready).
+    const live = db.raw.prepare("SELECT id FROM table_sessions WHERE table_id = 'demo-table-sala-2' AND closed_at IS NULL").all() as { id: string }[];
+    expect(live).toHaveLength(1);
+    const liveOrders = db.raw.prepare('SELECT status FROM orders WHERE table_session_id = ? ORDER BY created_at').all(live[0].id) as { status: string }[];
+    expect(liveOrders.map((o) => o.status)).toEqual(['submitted', 'ready']);
+    // Live items span both destinations.
+    const liveDests = db.raw.prepare("SELECT DISTINCT oid.destination_id d FROM order_item_destinations oid JOIN order_items oi ON oi.id = oid.order_item_id JOIN orders o ON o.id = oi.order_id WHERE o.table_session_id = ?").all(live[0].id) as { d: string }[];
+    expect(liveDests.map((r) => r.d).sort()).toEqual(['demo-dest-bar', 'demo-dest-cucina']);
+
+    // Every table has 4 closed sessions, each with a settled check (Sala 2 also has its live session).
+    const closed = db.raw.prepare("SELECT table_id, count(*) c FROM table_sessions WHERE closed_at IS NOT NULL GROUP BY table_id").all() as { table_id: string; c: number }[];
+    expect(closed).toHaveLength(10);
+    for (const row of closed) expect(row.c, row.table_id).toBe(4);
+    const settled = db.raw.prepare("SELECT count(*) c FROM checks WHERE status = 'settled'").get() as { c: number };
+    expect(settled.c).toBe(40);
+
+    // Daily numbers are unique per order_day.
+    const clash = db.raw.prepare('SELECT order_day, count(*) c, count(DISTINCT daily_number) d FROM orders GROUP BY order_day HAVING c != d').all();
+    expect(clash).toHaveLength(0);
+
+    // Today has exactly the 2 live orders.
+    const d = new Date();
+    const today = d.getUTCFullYear() * 10000 + (d.getUTCMonth() + 1) * 100 + d.getUTCDate();
+    const todayCount = db.raw.prepare('SELECT count(*) c FROM orders WHERE order_day = ?').get(today) as { c: number };
+    expect(todayCount.c).toBe(2);
+  });
+
+  it('skips the showcase when E2E_MODE is true', async () => {
+    const db = createTestDb();
+    seedSettings(db);
+    await resetDemoData(makeDbEnv(db, { DEMO_MODE: 'true', E2E_MODE: 'true' }));
+
+    for (const table of ['orders', 'table_sessions', 'checks']) {
+      const { c } = db.raw.prepare(`SELECT count(*) c FROM ${table}`).get() as { c: number };
+      expect(c, table).toBe(0);
+    }
   });
 });

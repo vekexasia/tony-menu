@@ -3,7 +3,7 @@
  *
  * In DEMO_MODE the backend bypasses Cloudflare Access (/admin/me returns an
  * admin), so the admin SPA loads real demo data and CRUD calls hit the real D1
- * API — no auth.json or test seam required.
+ * API.
  *
  * Re-saves existing rows rather than creating/deleting, to keep the seeded
  * menu stable for other specs.
@@ -71,6 +71,6 @@ test.describe("Admin CRUD smoke", () => {
     await page.getByRole("button", { name: "Salva modifiche" }).click();
 
     const req = await putRequest;
-    expect(req.url()).toContain("localhost:8787");
+    expect(req.url()).toContain("/admin/categories/");
   });
 });

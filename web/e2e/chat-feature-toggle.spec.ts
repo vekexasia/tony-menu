@@ -11,11 +11,6 @@ import { test, expect } from "@playwright/test";
  * condition `(data?.features?.aiChat === true || aiChatDevOverride)` governs both.
  */
 test.describe("Chat feature toggle", () => {
-  test.beforeEach(async ({ page }) => {
-    await page.addInitScript(() => {
-      sessionStorage.setItem("promo_seen_demo-restaurant", "1");
-    });
-  });
 
   test("FAB is hidden when aiChat feature flag is off", async ({ page }) => {
     await page.goto("/it/menu");

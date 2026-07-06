@@ -282,12 +282,15 @@ export const orders = sqliteTable(
     rejectReason: text('reject_reason'),
     // Client-generated idempotency key: retried submits return the existing order.
     idempotencyKey: text('idempotency_key').notNull(),
+    // Optional table session (#15): nullable — direct diner orders carry none.
+    tableSessionId: text('table_session_id').references(() => tableSessions.id, { onDelete: 'set null' }),
     ...timestamps,
   },
   (table) => ({
     dailyNumberIdx: uniqueIndex('orders_day_number_idx').on(table.orderDay, table.dailyNumber),
     idempotencyIdx: uniqueIndex('orders_idempotency_idx').on(table.idempotencyKey),
     dayIdx: index('orders_day_idx').on(table.orderDay),
+    tableSessionIdx: index('orders_table_session_idx').on(table.tableSessionId),
   }),
 );
 
@@ -334,6 +337,23 @@ export const orderItemDestinations = sqliteTable(
   }),
 );
 
+/** Order lifecycle changelog: one row per status event (submitted/ready/served/rejected). */
+export const orderEvents = sqliteTable(
+  'order_events',
+  {
+    id: text('id').primaryKey(),
+    orderId: text('order_id').notNull().references(() => orders.id, { onDelete: 'cascade' }),
+    status: text('status').notNull(),
+    // 'diner' | 'staff' | 'admin' — who moved it. Free-form text, no FK.
+    actor: text('actor'),
+    actorName: text('actor_name'),
+    createdAt: integer('created_at').notNull().$defaultFn(() => Date.now()),
+  },
+  (table) => ({
+    orderIdx: index('order_events_order_idx').on(table.orderId),
+  }),
+);
+
 /**
  * Waiter-handoff order intents (#19): the diner prepares a cart and shows a QR
  * linking to the admin review page; a waiter consumes the intent into a real
@@ -349,6 +369,109 @@ export const orderIntents = sqliteTable('order_intents', {
   consumedAt: integer('consumed_at'),
   createdAt: integer('created_at').notNull().$defaultFn(() => Date.now()),
 });
+
+// ── Waiter mode (#15) ─────────────────────────────────────────────────────────
+
+/**
+ * Named one-use staff links. A link is exchanged once for a session token
+ * (localStorage on the waiter's device); consuming it sets consumedAt +
+ * sessionToken and the link can't be reused. revokedAt kills the session even
+ * after it was consumed. lastSeenAt is a throttled heartbeat.
+ */
+export const staffLinks = sqliteTable(
+  'staff_links',
+  {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    // Opaque one-use token embedded in the /staff?token=... link.
+    token: text('token').notNull(),
+    // Set on consume; the waiter's device sends it as the staff session header.
+    sessionToken: text('session_token'),
+    consumedAt: integer('consumed_at'),
+    revokedAt: integer('revoked_at'),
+    lastSeenAt: integer('last_seen_at'),
+    ...timestamps,
+  },
+  (table) => ({
+    tokenIdx: uniqueIndex('staff_links_token_idx').on(table.token),
+    sessionTokenIdx: uniqueIndex('staff_links_session_token_idx').on(table.sessionToken),
+  }),
+);
+
+/** Floor-plan areas (#15 follow-up): named zones tables are grouped under. */
+export const areas = sqliteTable(
+  'areas',
+  {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    sortOrder: integer('sort_order').notNull().default(0),
+    ...timestamps,
+  },
+  (table) => ({
+    sortIdx: index('areas_sort_idx').on(table.sortOrder),
+  }),
+);
+
+/**
+ * Physical tables placed on the floor plan (#15 follow-up).
+ * x/y are virtual-canvas coordinates (1000x700); shape is 'rect' | 'circle'.
+ * areaId has no cascade delete: an area can't be dropped while tables reference it.
+ */
+export const tables = sqliteTable(
+  'tables',
+  {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    active: integer('active', { mode: 'boolean' }).notNull().default(true),
+    sortOrder: integer('sort_order').notNull().default(0),
+    areaId: text('area_id').references(() => areas.id),
+    x: integer('x').notNull().default(25),
+    y: integer('y').notNull().default(25),
+    shape: text('shape').notNull().default('rect'),
+    ...timestamps,
+  },
+  (table) => ({
+    sortIdx: index('tables_sort_idx').on(table.sortOrder),
+  }),
+);
+
+/** An open/closed dining session grouping a table's orders (#15). */
+export const tableSessions = sqliteTable(
+  'table_sessions',
+  {
+    id: text('id').primaryKey(),
+    tableId: text('table_id').notNull().references(() => tables.id, { onDelete: 'cascade' }),
+    openedAt: integer('opened_at').notNull().$defaultFn(() => Date.now()),
+    closedAt: integer('closed_at'),
+  },
+  (table) => ({
+    tableIdx: index('table_sessions_table_idx').on(table.tableId),
+  }),
+);
+
+/**
+ * A settled/voided/open check (conto, #15 follow-up) for a table session.
+ * lines is a frozen snapshot of the session's non-rejected orders at creation.
+ * Totals are never stored — computeCheckTotals derives them from lines/discount/adjustments.
+ */
+export const checks = sqliteTable(
+  'checks',
+  {
+    id: text('id').primaryKey(),
+    tableSessionId: text('table_session_id').notNull().references(() => tableSessions.id, { onDelete: 'cascade' }),
+    // 'open' | 'settled' | 'voided'
+    status: text('status').notNull().default('open'),
+    lines: jsonColumn<{ name: string; quantity: number; unitPrice: number }[]>('lines').notNull(),
+    discount: jsonColumn<{ type: 'percent' | 'amount'; value: number } | null>('discount'),
+    adjustments: jsonColumn<{ label: string; amount: number }[]>('adjustments').notNull().default([]),
+    createdAt: integer('created_at').notNull().$defaultFn(() => Date.now()),
+    settledAt: integer('settled_at'),
+    voidedAt: integer('voided_at'),
+  },
+  (table) => ({
+    sessionIdx: index('checks_table_session_idx').on(table.tableSessionId),
+  }),
+);
 
 // ── Chat Sessions ─────────────────────────────────────────────────────────────
 

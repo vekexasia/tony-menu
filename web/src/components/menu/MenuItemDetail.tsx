@@ -65,7 +65,7 @@ export function MenuItemDetail({ item, onClose, locale, hidePrice, selectionEnab
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           className="w-full max-w-lg pointer-events-auto"
         >
-          <DialogPanel className="relative min-h-[50vh] max-h-[85vh] overflow-y-auto">
+          <DialogPanel className="relative min-h-[50vh] max-h-[85vh] overflow-y-auto rounded-t-3xl bg-white">
             <button
               onClick={handleClose}
               className="absolute top-4 right-4 bg-white/90 rounded-full p-2 shadow-lg hover:bg-white transition-colors z-30"

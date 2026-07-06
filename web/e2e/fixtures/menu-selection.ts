@@ -1,55 +1,15 @@
-import type { Page } from '@playwright/test';
-import { MOCK_RESTAURANT } from './admin-mock';
+import type { APIRequestContext, APIResponse } from '@playwright/test';
 
-export function restaurantWithSelection(selection: boolean) {
-  return {
-    ...MOCK_RESTAURANT,
-    features: { ...(MOCK_RESTAURANT.features ?? {}), ordering: { enabled: selection, mode: 'summary' as const }, aiChat: false, aiVoice: false },
-  };
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8787';
+
+async function requireOk(response: APIResponse, label: string) {
+  if (response.ok()) return;
+  throw new Error(`${label} failed with ${response.status()}: ${await response.text()}`);
 }
 
-export async function setupPublicMenuSelectionEnv(page: Page, selection: boolean) {
-  await page.addInitScript((restaurant) => {
-    window.__playwright_restaurant__ = restaurant;
-    window.localStorage.clear();
-  }, restaurantWithSelection(selection));
-}
-
-export async function setupMockAdminSettingsRoutes(page: Page, selectionEnabled: boolean) {
-  let current = selectionEnabled;
-
-  await page.route('**/health', (route) => route.fulfill({
-    status: 200,
-    contentType: 'application/json',
-    body: JSON.stringify({ commitSha: 'test' }),
-  }));
-
-  await page.route('**/admin/settings', async (route) => {
-    if (route.request().method() === 'GET') {
-      return route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          chatAgentPrompt: '',
-          aiChatEnabled: false,
-          aiVoiceEnabled: false,
-          selectionEnabled: current,
-          promotionAlert: null,
-          publicationState: 'published',
-          primaryLocale: 'it',
-          enabledLocales: null,
-          disabledLocales: [],
-          customLocales: [],
-        }),
-      });
-    }
-
-    if (route.request().method() === 'PUT') {
-      const body = route.request().postDataJSON() as { selectionEnabled?: boolean };
-      current = body.selectionEnabled ?? current;
-      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true }) });
-    }
-
-    return route.continue();
-  });
+export async function setupDemoMenuSelection(request: APIRequestContext, enabled: boolean) {
+  await requireOk(await request.post(`${API_URL}/admin/demo/reset`), 'demo reset');
+  await requireOk(await request.put(`${API_URL}/admin/modules`, {
+    data: { ordering: { enabled, mode: 'summary', submitMode: 'diner' } },
+  }), 'ordering setup');
 }

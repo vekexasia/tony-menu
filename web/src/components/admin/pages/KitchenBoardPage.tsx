@@ -52,6 +52,7 @@ export default function KitchenBoardPage() {
   const [error, setError] = useState<string | null>(null);
   const [newAlert, setNewAlert] = useState<number | null>(null);
   const [newDestName, setNewDestName] = useState("");
+  const [now, setNow] = useState(() => Date.now());
   const knownIds = useRef<Set<string> | null>(null);
 
   useEffect(() => {
@@ -87,10 +88,15 @@ export default function KitchenBoardPage() {
     return () => clearInterval(timer);
   }, [orderingEnabled, refresh]);
 
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(timer);
+  }, []);
+
   const transition = async (order: AdminOrder, status: "ready" | "served" | "rejected", reason?: string) => {
     try {
       await updateOrderStatus(order.id, status === "rejected" ? { status, rejectReason: reason } : { status });
-      setOrders((prev) => prev?.map((o) => o.id === order.id ? { ...o, status, rejectReason: reason ?? null } : o) ?? null);
+      setOrders((prev) => prev?.map((o) => o.id === order.id ? { ...o, status, rejectReason: reason ?? null, updatedAt: Date.now() } : o) ?? null);
       setRejectingId(null);
       setRejectReason("");
     } catch (err) {
@@ -207,11 +213,17 @@ export default function KitchenBoardPage() {
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <div className="flex items-center gap-3">
                     <span className="text-lg font-bold text-gray-900">#{order.dailyNumber}</span>
+                    {order.tableName && (
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">{order.tableName}</span>
+                    )}
+                    {order.submittedBy && (
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">{order.submittedBy}</span>
+                    )}
                     <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: style.bg, color: style.fg }}>
                       {t(`kitchen.status.${order.status}`)}
                     </span>
                     <span className="text-xs text-gray-400">
-                      {new Date(order.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      {new Date(order.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · {elapsedLabel(now - order.updatedAt)}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -237,7 +249,7 @@ export default function KitchenBoardPage() {
                     <li key={item.id}>
                       {item.quantity}× {item.name}
                       {item.destinations.length > 0 && (
-                        <span className="text-xs text-gray-400"> — {item.destinations.map((d) => d.destinationName).join(", ")}</span>
+                        <span className="text-xs text-gray-400"> — {item.destinations.map((d) => `${d.destinationName}${d.printedAt ? ' ✓' : ''}`).join(", ")}</span>
                       )}
                     </li>
                   ))}
@@ -286,17 +298,18 @@ export default function KitchenBoardPage() {
                 <div className="font-bold text-gray-900 mb-2">#{order.dailyNumber}</div>
                 <ul className="space-y-1.5">
                   {rows.map(({ item, dest }) => (
-                    <li key={dest.id} className="flex items-center gap-2 text-sm">
+                    <li key={dest.id} className={`flex items-center gap-2 text-sm rounded-lg px-2 py-1 ${dest.printedAt !== null ? "bg-green-50" : ""}`}>
                       <input
                         type="checkbox"
                         checked={dest.printedAt !== null}
                         onChange={(e) => togglePrinted(dest.id, e.target.checked)}
-                        className="w-4 h-4"
+                        className="w-4 h-4 accent-primary"
                         aria-label={`${t("kitchen.markDone")} ${item.name}`}
                       />
                       <span className={dest.printedAt !== null ? "line-through text-gray-400" : "text-gray-700"}>
                         {item.quantity}× {item.name}
                       </span>
+                      {dest.printedAt !== null && <span className="ml-auto text-xs font-semibold text-green-700">Done</span>}
                     </li>
                   ))}
                 </ul>
@@ -355,4 +368,13 @@ function TabButton({ active, onClick, label }: { active: boolean; onClick: () =>
       {label}
     </button>
   );
+}
+
+function elapsedLabel(ms: number): string {
+  const minutes = Math.max(0, Math.floor(ms / 60_000));
+  if (minutes < 1) return "now";
+  if (minutes < 60) return `${minutes}m`;
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return rest ? `${hours}h ${rest}m` : `${hours}h`;
 }

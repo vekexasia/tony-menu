@@ -12,6 +12,8 @@ export const SubmitOrderBodySchema = z.object({
   /** Client-generated key: retries of the same submit return the same order. */
   idempotencyKey: z.string().min(8).max(128),
   lines: z.array(SubmitOrderLineSchema).min(1).max(100),
+  /** Optional table session (#15): set when a waiter orders for a table. */
+  tableSessionId: z.string().min(1).optional(),
 });
 export type SubmitOrderBody = z.infer<typeof SubmitOrderBodySchema>;
 
@@ -101,6 +103,17 @@ export interface OrderIntentReviewResponse {
   consumedAt: number | null;
   lines: OrderIntentReviewLine[];
 }
+
+/**
+ * Consume body (staff): required table binding plus optional lines override.
+ * When `lines` is present the waiter's edited selection is created instead of
+ * the frozen intent snapshot (the intent row itself stays immutable).
+ */
+export const ConsumeOrderIntentBodySchema = z.object({
+  tableSessionId: z.string().min(1),
+  lines: z.array(SubmitOrderLineSchema).min(1).max(100).optional(),
+});
+export type ConsumeOrderIntentBody = z.infer<typeof ConsumeOrderIntentBodySchema>;
 
 /** 409 payloads from the consume endpoint. */
 export interface IntentConsumeErrorResponse {

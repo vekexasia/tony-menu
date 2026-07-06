@@ -15,7 +15,7 @@ test.describe("Admin — D1 API", () => {
 
   test("admin loads the catalog from the local API", async ({ page }) => {
     const catalogReq = page.waitForRequest(
-      (req) => req.url().includes("localhost:8787") && req.url().includes("/admin/catalog"),
+      (req) => req.url().includes("/admin/catalog"),
       { timeout: 15000 },
     );
 
