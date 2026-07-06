@@ -101,7 +101,7 @@ jobs:
         # Mocked chat worker specs live outside web/e2e. The non-live e2e suite
         # runs against the real DEMO_MODE backend only; chat-live covers the real
         # chat worker path separately.
-        run: npm --workspace web run test:e2e -- --project=chromium
+        run: npm --workspace web run test:e2e -- --project=chromium --workers=1
         env:
           NEXT_PUBLIC_API_URL: http://localhost:8787
           NEXT_PUBLIC_CHAT_WORKER_URL: http://localhost:8788
