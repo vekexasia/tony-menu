@@ -627,7 +627,33 @@
     "tables.canvasHint": "Перетаскивайте столы для перемещения; коснитесь стола, чтобы управлять им.",
     "tables.statusFree": "Свободен",
     "tables.statusOpen": "Открыт",
-    "tables.statusWaiting": "Ожидание {count} мин"
+    "tables.statusWaiting": "Ожидание {count} мин",
+    "tables.editLayout": "Изменить расположение",
+    "tables.canvasHintEdit": "Перетащите для перемещения, нажмите для действий",
+    "tableDetail.back": "← Столы",
+    "tableDetail.notFound": "Стол не найден",
+    "tableDetail.free": "Стол свободен",
+    "tableDetail.session": "Сессия",
+    "tableDetail.noOrders": "Нет заказов",
+    "tableDetail.createCheck": "Создать счёт",
+    "tableDetail.closeTable": "Закрыть стол",
+    "tableDetail.check": "Счёт",
+    "tableDetail.discount": "Скидка",
+    "tableDetail.adjustments": "Корректировки",
+    "tableDetail.adjLabel": "Описание",
+    "tableDetail.adjAmount": "Сумма",
+    "tableDetail.total": "Итого",
+    "tableDetail.subtotal": "Промежуточный итог",
+    "tableDetail.print": "Печать",
+    "tableDetail.paid": "Оплачено",
+    "tableDetail.confirmPaid": "Подтвердить оплату",
+    "tableDetail.void": "Аннулировать счёт",
+    "tableDetail.confirmVoid": "Подтвердить аннулирование",
+    "tableDetail.history": "История",
+    "tableDetail.reprint": "Повторная печать",
+    "tableDetail.checkStatus.settled": "Оплачено",
+    "tableDetail.checkStatus.voided": "Аннулировано",
+    "orderReview.checkOpen": "У этого стола открыт счёт"
   },
   "outOfStock": "НЕТ В НАЛИЧИИ",
   "staff": {
@@ -647,8 +673,6 @@
     "table.noOrders": "Для этого столика пока нет заказов.",
     "table.markServed": "Отметить поданным",
     "table.addOrder": "Добавить заказ",
-    "table.closeSession": "Закрыть столик",
-    "table.closeBlocked": "Подайте или отклоните все заказы перед закрытием столика.",
     "table.status.submitted": "Отправлен",
     "table.status.ready": "Готов",
     "table.status.served": "Подан",
@@ -657,5 +681,6 @@
     "table.actor.staff": "официант",
     "table.actor.admin": "кухня"
   },
-  "selection.cancel": "Отмена"
+  "selection.cancel": "Отмена",
+  "selection.checkOpenError": "У этого стола открыт счёт. Новые заказы отправить нельзя."
 }

@@ -26,7 +26,7 @@ export default function OrderReviewPage() {
   const [intent, setIntent] = useState<OrderIntentReviewResponse | null>(null);
   const [loadError, setLoadError] = useState<"notFound" | "generic" | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<"expired" | "consumed" | "stale" | "generic" | null>(null);
+  const [submitError, setSubmitError] = useState<"expired" | "consumed" | "stale" | "generic" | "checkOpen" | null>(null);
   const [dailyNumber, setDailyNumber] = useState<number | null>(null);
   const [submittedSessionId, setSubmittedSessionId] = useState<string | null>(null);
   const [tables, setTables] = useState<FloorTable[]>([]);
@@ -137,7 +137,7 @@ export default function OrderReviewPage() {
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
         const body = err.body as { error?: string } | undefined;
-        if (body?.error === "expired" || body?.error === "consumed") setSubmitError(body.error);
+        if (body?.error === "expired" || body?.error === "consumed" || body?.error === "check_open") setSubmitError(body.error === "check_open" ? "checkOpen" : body.error);
         else setSubmitError("stale");
         // Availability/state may have changed since load — refresh the view.
         load();
@@ -204,6 +204,7 @@ export default function OrderReviewPage() {
       {submitError === "consumed" && <Banner text={t("orderReview.consumed")} />}
       {submitError === "stale" && <Banner text={t("orderReview.stale")} />}
       {submitError === "generic" && <Banner text={t("orderReview.submitFailed")} />}
+      {submitError === "checkOpen" && <Banner text={t("orderReview.checkOpen")} />}
 
       <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
         {lines.length === 0 ? (

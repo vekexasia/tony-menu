@@ -627,7 +627,33 @@
     "tables.canvasHint": "Ziehe die Tische zum Verschieben; tippe einen Tisch an, um ihn zu verwalten.",
     "tables.statusFree": "Frei",
     "tables.statusOpen": "Offen",
-    "tables.statusWaiting": "Wartet {count} Min."
+    "tables.statusWaiting": "Wartet {count} Min.",
+    "tables.editLayout": "Anordnung bearbeiten",
+    "tables.canvasHintEdit": "Ziehen zum Verschieben, tippen für Aktionen",
+    "tableDetail.back": "← Tische",
+    "tableDetail.notFound": "Tisch nicht gefunden",
+    "tableDetail.free": "Tisch frei",
+    "tableDetail.session": "Sitzung",
+    "tableDetail.noOrders": "Keine Bestellungen",
+    "tableDetail.createCheck": "Rechnung erstellen",
+    "tableDetail.closeTable": "Tisch schließen",
+    "tableDetail.check": "Rechnung",
+    "tableDetail.discount": "Rabatt",
+    "tableDetail.adjustments": "Anpassungen",
+    "tableDetail.adjLabel": "Beschreibung",
+    "tableDetail.adjAmount": "Betrag",
+    "tableDetail.total": "Gesamt",
+    "tableDetail.subtotal": "Zwischensumme",
+    "tableDetail.print": "Drucken",
+    "tableDetail.paid": "Bezahlt",
+    "tableDetail.confirmPaid": "Bezahlt bestätigen",
+    "tableDetail.void": "Rechnung stornieren",
+    "tableDetail.confirmVoid": "Stornierung bestätigen",
+    "tableDetail.history": "Verlauf",
+    "tableDetail.reprint": "Erneut drucken",
+    "tableDetail.checkStatus.settled": "Bezahlt",
+    "tableDetail.checkStatus.voided": "Storniert",
+    "orderReview.checkOpen": "Dieser Tisch hat eine offene Rechnung"
   },
   "outOfStock": "AUSVERKAUFT",
   "staff": {
@@ -647,8 +673,6 @@
     "table.noOrders": "Noch keine Bestellungen fur diesen Tisch.",
     "table.markServed": "Als serviert markieren",
     "table.addOrder": "Bestellung hinzufugen",
-    "table.closeSession": "Tisch schliessen",
-    "table.closeBlocked": "Serviere oder lehne alle Bestellungen ab, bevor du den Tisch schliesst.",
     "table.status.submitted": "Gesendet",
     "table.status.ready": "Bereit",
     "table.status.served": "Serviert",
@@ -657,5 +681,6 @@
     "table.actor.staff": "Kellner",
     "table.actor.admin": "Küche"
   },
-  "selection.cancel": "Abbrechen"
+  "selection.cancel": "Abbrechen",
+  "selection.checkOpenError": "Dieser Tisch hat eine offene Rechnung. Neue Bestellungen sind nicht möglich."
 }

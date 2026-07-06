@@ -627,7 +627,33 @@
     "tables.canvasHint": "Drag tables to move them; tap a table to manage it.",
     "tables.statusFree": "Free",
     "tables.statusOpen": "Open",
-    "tables.statusWaiting": "Waiting {count}m"
+    "tables.statusWaiting": "Waiting {count}m",
+    "tables.editLayout": "Edit layout",
+    "tables.canvasHintEdit": "Drag to move, tap for actions",
+    "tableDetail.back": "← Tables",
+    "tableDetail.notFound": "Table not found",
+    "tableDetail.free": "Table free",
+    "tableDetail.session": "Session",
+    "tableDetail.noOrders": "No orders",
+    "tableDetail.createCheck": "Create check",
+    "tableDetail.closeTable": "Close table",
+    "tableDetail.check": "Check",
+    "tableDetail.discount": "Discount",
+    "tableDetail.adjustments": "Adjustments",
+    "tableDetail.adjLabel": "Description",
+    "tableDetail.adjAmount": "Amount",
+    "tableDetail.total": "Total",
+    "tableDetail.subtotal": "Subtotal",
+    "tableDetail.print": "Print",
+    "tableDetail.paid": "Paid",
+    "tableDetail.confirmPaid": "Confirm paid",
+    "tableDetail.void": "Void check",
+    "tableDetail.confirmVoid": "Confirm void",
+    "tableDetail.history": "History",
+    "tableDetail.reprint": "Reprint",
+    "tableDetail.checkStatus.settled": "Paid",
+    "tableDetail.checkStatus.voided": "Voided",
+    "orderReview.checkOpen": "This table has an open check"
   },
   "outOfStock": "OUT OF STOCK",
   "staff": {
@@ -647,8 +673,6 @@
     "table.noOrders": "No orders for this table yet.",
     "table.markServed": "Mark served",
     "table.addOrder": "Add order",
-    "table.closeSession": "Close table",
-    "table.closeBlocked": "Serve or reject every order before closing the table.",
     "table.status.submitted": "Submitted",
     "table.status.ready": "Ready",
     "table.status.served": "Served",
@@ -657,5 +681,6 @@
     "table.actor.staff": "waiter",
     "table.actor.admin": "kitchen"
   },
-  "selection.cancel": "Cancel"
+  "selection.cancel": "Cancel",
+  "selection.checkOpenError": "This table has an open check. New orders can't be sent."
 }

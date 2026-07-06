@@ -5,6 +5,11 @@ vi.mock("@/lib/i18n", () => ({
   useTranslations: () => (key: string) => key,
 }));
 
+const routerPush = vi.fn();
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: routerPush }),
+}));
+
 const apiMocks = vi.hoisted(() => ({
   ApiError: class ApiError extends Error { status = 500; constructor(status: number) { super(); this.status = status; } },
   fetchAdminFloor: vi.fn(),
@@ -36,6 +41,10 @@ beforeEach(() => {
   apiMocks.fetchAdminFloor.mockResolvedValue({ areas, tables });
 });
 
+async function enableEdit() {
+  fireEvent.click(await screen.findByTestId("edit-layout-toggle"));
+}
+
 describe("TablesPage", () => {
   it("renders an area tab per area and colour-codes the active area's tiles", async () => {
     render(<TablesPage />);
@@ -56,10 +65,29 @@ describe("TablesPage", () => {
     expect(screen.queryByTestId("table-t1")).toBeNull();
   });
 
-  it("creates a table with the active area id and selected shape", async () => {
+  it("navigates to the table page on tap in default (view) mode", async () => {
+    render(<TablesPage />);
+    const tile = await screen.findByTestId("table-t1");
+    fireEvent.click(tile);
+    expect(routerPush).toHaveBeenCalledWith("/admin/tables/t1");
+  });
+
+  it("hides the edit UI by default and reveals it via the toggle", async () => {
+    render(<TablesPage />);
+    await screen.findByTestId("area-tab-a1");
+    // Add-table form + area edit buttons are hidden in view mode.
+    expect(screen.queryByPlaceholderText("tables.namePlaceholder")).toBeNull();
+    expect(screen.queryByLabelText("common.delete")).toBeNull();
+    await enableEdit();
+    expect(screen.getByPlaceholderText("tables.namePlaceholder")).toBeInTheDocument();
+    expect(screen.getAllByLabelText("common.delete").length).toBeGreaterThan(0);
+  });
+
+  it("creates a table with the active area id and selected shape (edit mode)", async () => {
     apiMocks.createTable.mockResolvedValue({ ok: true, id: "t3" });
     render(<TablesPage />);
     await screen.findByTestId("area-tab-a1");
+    await enableEdit();
     fireEvent.change(screen.getByPlaceholderText("tables.namePlaceholder"), { target: { value: "9" } });
     fireEvent.click(screen.getByText("tables.add"));
     await waitFor(() => expect(apiMocks.createTable).toHaveBeenCalledWith({ name: "9", areaId: "a1", shape: "rect" }));
@@ -70,13 +98,16 @@ describe("TablesPage", () => {
     window.confirm = () => true;
     render(<TablesPage />);
     await screen.findByTestId("area-tab-a1");
+    await enableEdit();
     fireEvent.click(screen.getAllByLabelText("common.delete")[0]);
     expect(await screen.findByTestId("tables-error")).toHaveTextContent("tables.areaHasTables");
   });
 
-  it("opens an action panel on tap and renames the table through it", async () => {
+  it("opens an action panel on tap and renames the table through it (edit mode)", async () => {
     apiMocks.updateTable.mockResolvedValue({ ok: true });
     render(<TablesPage />);
+    await screen.findByTestId("area-tab-a1");
+    await enableEdit();
     const tile = await screen.findByTestId("table-t1");
     // A tap = pointer down then up with no movement.
     fireEvent.pointerDown(tile, { clientX: 100, clientY: 100 });
@@ -89,9 +120,11 @@ describe("TablesPage", () => {
     await waitFor(() => expect(apiMocks.updateTable).toHaveBeenCalledWith("t1", { name: "42" }));
   });
 
-  it("deletes a table through an inline confirm in the panel", async () => {
+  it("deletes a table through an inline confirm in the panel (edit mode)", async () => {
     apiMocks.deleteTable.mockResolvedValue({ ok: true });
     render(<TablesPage />);
+    await screen.findByTestId("area-tab-a1");
+    await enableEdit();
     const tile = await screen.findByTestId("table-t1");
     fireEvent.pointerDown(tile, { clientX: 100, clientY: 100 });
     fireEvent.pointerUp(tile, { clientX: 100, clientY: 100 });

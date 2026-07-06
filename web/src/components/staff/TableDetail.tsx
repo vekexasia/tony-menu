@@ -1,9 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { fetchTableSession, serveStaffOrder, closeTableSession, ApiError, type TableSessionDetail } from "@/lib/api";
+import { fetchTableSession, serveStaffOrder, ApiError, type TableSessionDetail } from "@/lib/api";
 import { useLocale, useTranslations } from "@/lib/i18n";
 
 const STATUS_STYLES: Record<TableSessionDetail["orders"][number]["status"], { bg: string; fg: string }> = {
@@ -15,15 +14,13 @@ const STATUS_STYLES: Record<TableSessionDetail["orders"][number]["status"], { bg
 
 const POLL_MS = 10_000;
 
-/** One table's session (#15): orders with status, mark-served, add order, close. */
+/** One table's session (#15): orders with status, mark-served, add order. Waiters no longer close tables (admin owns checks). */
 export function TableDetail({ sessionId }: { sessionId: string }) {
   const t = useTranslations("staff");
   const locale = useLocale();
-  const router = useRouter();
   const [detail, setDetail] = useState<TableSessionDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
-  const [closeWarn, setCloseWarn] = useState(false);
 
   const refresh = useCallback(async () => {
     try {
@@ -47,17 +44,6 @@ export function TableDetail({ sessionId }: { sessionId: string }) {
       await refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
-    }
-  };
-
-  const close = async () => {
-    setCloseWarn(false);
-    try {
-      await closeTableSession(sessionId);
-      router.push("/staff");
-    } catch (err) {
-      if (err instanceof ApiError && err.status === 409) setCloseWarn(true);
-      else setError(err instanceof Error ? err.message : String(err));
     }
   };
 
@@ -135,17 +121,6 @@ export function TableDetail({ sessionId }: { sessionId: string }) {
         >
           {t("table.addOrder")}
         </Link>
-
-        <button
-          type="button"
-          onClick={close}
-          className="w-full mt-3 py-3 rounded-full bg-white border border-red-200 text-red-600 font-semibold"
-        >
-          {t("table.closeSession")}
-        </button>
-        {closeWarn && (
-          <p className="mt-2 text-xs text-red-500 text-center font-medium" role="alert">{t("table.closeBlocked")}</p>
-        )}
       </div>
     </main>
   );

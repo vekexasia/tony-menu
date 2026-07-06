@@ -54,7 +54,7 @@ export function SelectionContent({ onClose }: { onClose?: () => void }) {
   const [sentNumber, setSentNumber] = useState<number | null>(null);
   const [intentUrl, setIntentUrl] = useState<string | null>(null);
   const [creatingIntent, setCreatingIntent] = useState(false);
-  const [submitError, setSubmitError] = useState<"stale" | "generic" | "intent" | "rateLimit" | null>(null);
+  const [submitError, setSubmitError] = useState<"stale" | "generic" | "intent" | "rateLimit" | "checkOpen" | null>(null);
   const [staleEntryIds, setStaleEntryIds] = useState<string[]>([]);
   const [confirmClear, setConfirmClear] = useState(false);
   // One idempotency key per submit attempt session: retries after a network
@@ -137,9 +137,13 @@ export function SelectionContent({ onClose }: { onClose?: () => void }) {
       if (err instanceof ApiError && err.status === 409) {
         // Server-side stale list is authoritative; the local catalog may lag.
         idempotencyKeyRef.current = null;
-        const body = err.body as { staleEntryIds?: string[] } | undefined;
-        setStaleEntryIds(body?.staleEntryIds ?? []);
-        setSubmitError("stale");
+        const body = err.body as { error?: string; staleEntryIds?: string[] } | undefined;
+        if (body?.error === "check_open") {
+          setSubmitError("checkOpen");
+        } else {
+          setStaleEntryIds(body?.staleEntryIds ?? []);
+          setSubmitError("stale");
+        }
       } else {
         setSubmitError("generic");
       }
@@ -295,6 +299,11 @@ export function SelectionContent({ onClose }: { onClose?: () => void }) {
               {submitError === "generic" && (
                 <div className="mt-6 rounded-2xl bg-red-50 border border-red-200 p-4 text-sm text-red-700" role="alert">
                   {t("selection.sendError")}
+                </div>
+              )}
+              {submitError === "checkOpen" && (
+                <div className="mt-6 rounded-2xl bg-red-50 border border-red-200 p-4 text-sm text-red-700" role="alert">
+                  {t("selection.checkOpenError")}
                 </div>
               )}
               <button

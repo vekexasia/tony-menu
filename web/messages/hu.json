@@ -627,7 +627,33 @@
     "tables.canvasHint": "Húzd az asztalokat a mozgatáshoz; koppints egy asztalra a kezeléséhez.",
     "tables.statusFree": "Szabad",
     "tables.statusOpen": "Nyitva",
-    "tables.statusWaiting": "Várakozás {count} perc"
+    "tables.statusWaiting": "Várakozás {count} perc",
+    "tables.editLayout": "Elrendezés szerkesztése",
+    "tables.canvasHintEdit": "Húzza a mozgatáshoz, koppintson a műveletekhez",
+    "tableDetail.back": "← Asztalok",
+    "tableDetail.notFound": "Az asztal nem található",
+    "tableDetail.free": "Szabad asztal",
+    "tableDetail.session": "Munkamenet",
+    "tableDetail.noOrders": "Nincs rendelés",
+    "tableDetail.createCheck": "Számla létrehozása",
+    "tableDetail.closeTable": "Asztal lezárása",
+    "tableDetail.check": "Számla",
+    "tableDetail.discount": "Kedvezmény",
+    "tableDetail.adjustments": "Módosítások",
+    "tableDetail.adjLabel": "Leírás",
+    "tableDetail.adjAmount": "Összeg",
+    "tableDetail.total": "Összesen",
+    "tableDetail.subtotal": "Részösszeg",
+    "tableDetail.print": "Nyomtatás",
+    "tableDetail.paid": "Fizetve",
+    "tableDetail.confirmPaid": "Fizetés megerősítése",
+    "tableDetail.void": "Számla érvénytelenítése",
+    "tableDetail.confirmVoid": "Érvénytelenítés megerősítése",
+    "tableDetail.history": "Előzmények",
+    "tableDetail.reprint": "Újranyomtatás",
+    "tableDetail.checkStatus.settled": "Fizetve",
+    "tableDetail.checkStatus.voided": "Érvénytelenítve",
+    "orderReview.checkOpen": "Ennek az asztalnak nyitott számlája van"
   },
   "outOfStock": "OUT OF STOCK",
   "staff": {
@@ -647,8 +673,6 @@
     "table.noOrders": "Még nincs rendelés ehhez az asztalhoz.",
     "table.markServed": "Felszolgáltnak jelöl",
     "table.addOrder": "Rendelés hozzáadása",
-    "table.closeSession": "Asztal lezárása",
-    "table.closeBlocked": "Az asztal lezárása előtt szolgáld fel vagy utasítsd el az összes rendelést.",
     "table.status.submitted": "Elküldve",
     "table.status.ready": "Kész",
     "table.status.served": "Felszolgálva",
@@ -657,5 +681,6 @@
     "table.actor.staff": "pincér",
     "table.actor.admin": "konyha"
   },
-  "selection.cancel": "Mégse"
+  "selection.cancel": "Mégse",
+  "selection.checkOpenError": "Ennek az asztalnak nyitott számlája van. Új rendelés nem küldhető."
 }

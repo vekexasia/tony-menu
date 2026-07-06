@@ -627,7 +627,33 @@
     "tables.canvasHint": "Trascina i tavoli per spostarli; tocca un tavolo per gestirlo.",
     "tables.statusFree": "Libero",
     "tables.statusOpen": "Aperto",
-    "tables.statusWaiting": "In attesa {count}m"
+    "tables.statusWaiting": "In attesa {count}m",
+    "tables.editLayout": "Modifica disposizione",
+    "tables.canvasHintEdit": "Trascina per spostare, tocca per le azioni",
+    "tableDetail.back": "← Tavoli",
+    "tableDetail.notFound": "Tavolo non trovato",
+    "tableDetail.free": "Tavolo libero",
+    "tableDetail.session": "Sessione",
+    "tableDetail.noOrders": "Nessun ordine",
+    "tableDetail.createCheck": "Crea conto",
+    "tableDetail.closeTable": "Chiudi tavolo",
+    "tableDetail.check": "Conto",
+    "tableDetail.discount": "Sconto",
+    "tableDetail.adjustments": "Rettifiche",
+    "tableDetail.adjLabel": "Descrizione",
+    "tableDetail.adjAmount": "Importo",
+    "tableDetail.total": "Totale",
+    "tableDetail.subtotal": "Subtotale",
+    "tableDetail.print": "Stampa",
+    "tableDetail.paid": "Pagato",
+    "tableDetail.confirmPaid": "Conferma pagato",
+    "tableDetail.void": "Annulla conto",
+    "tableDetail.confirmVoid": "Conferma annullamento",
+    "tableDetail.history": "Storico",
+    "tableDetail.reprint": "Ristampa",
+    "tableDetail.checkStatus.settled": "Pagato",
+    "tableDetail.checkStatus.voided": "Annullato",
+    "orderReview.checkOpen": "Il tavolo ha un conto aperto"
   },
   "outOfStock": "ESAURITO",
   "staff": {
@@ -647,8 +673,6 @@
     "table.noOrders": "Ancora nessun ordine per questo tavolo.",
     "table.markServed": "Segna servito",
     "table.addOrder": "Aggiungi ordine",
-    "table.closeSession": "Chiudi tavolo",
-    "table.closeBlocked": "Servi o rifiuta tutti gli ordini prima di chiudere il tavolo.",
     "table.status.submitted": "Inviato",
     "table.status.ready": "Pronto",
     "table.status.served": "Servito",
@@ -657,5 +681,6 @@
     "table.actor.staff": "cameriere",
     "table.actor.admin": "cucina"
   },
-  "selection.cancel": "Annulla"
+  "selection.cancel": "Annulla",
+  "selection.checkOpenError": "Il tavolo ha un conto aperto. Impossibile inviare nuovi ordini."
 }

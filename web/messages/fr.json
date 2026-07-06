@@ -627,7 +627,33 @@
     "tables.canvasHint": "Faites glisser les tables pour les déplacer ; touchez une table pour la gérer.",
     "tables.statusFree": "Libre",
     "tables.statusOpen": "Ouverte",
-    "tables.statusWaiting": "En attente {count} min"
+    "tables.statusWaiting": "En attente {count} min",
+    "tables.editLayout": "Modifier la disposition",
+    "tables.canvasHintEdit": "Glissez pour déplacer, touchez pour les actions",
+    "tableDetail.back": "← Tables",
+    "tableDetail.notFound": "Table introuvable",
+    "tableDetail.free": "Table libre",
+    "tableDetail.session": "Session",
+    "tableDetail.noOrders": "Aucune commande",
+    "tableDetail.createCheck": "Créer l'addition",
+    "tableDetail.closeTable": "Fermer la table",
+    "tableDetail.check": "Addition",
+    "tableDetail.discount": "Remise",
+    "tableDetail.adjustments": "Ajustements",
+    "tableDetail.adjLabel": "Description",
+    "tableDetail.adjAmount": "Montant",
+    "tableDetail.total": "Total",
+    "tableDetail.subtotal": "Sous-total",
+    "tableDetail.print": "Imprimer",
+    "tableDetail.paid": "Payé",
+    "tableDetail.confirmPaid": "Confirmer le paiement",
+    "tableDetail.void": "Annuler l'addition",
+    "tableDetail.confirmVoid": "Confirmer l'annulation",
+    "tableDetail.history": "Historique",
+    "tableDetail.reprint": "Réimprimer",
+    "tableDetail.checkStatus.settled": "Payé",
+    "tableDetail.checkStatus.voided": "Annulé",
+    "orderReview.checkOpen": "Cette table a une addition ouverte"
   },
   "outOfStock": "ÉPUISÉ",
   "staff": {
@@ -647,8 +673,6 @@
     "table.noOrders": "Pas encore de commande pour cette table.",
     "table.markServed": "Marquer servi",
     "table.addOrder": "Ajouter une commande",
-    "table.closeSession": "Fermer la table",
-    "table.closeBlocked": "Servez ou refusez toutes les commandes avant de fermer la table.",
     "table.status.submitted": "Envoyee",
     "table.status.ready": "Prete",
     "table.status.served": "Servie",
@@ -657,5 +681,6 @@
     "table.actor.staff": "serveur",
     "table.actor.admin": "cuisine"
   },
-  "selection.cancel": "Annuler"
+  "selection.cancel": "Annuler",
+  "selection.checkOpenError": "Cette table a une addition ouverte. Impossible d'envoyer de nouvelles commandes."
 }

@@ -53,10 +53,13 @@ import type {
   FloorTable,
   AdminFloorTable,
   TableSessionDetail,
+  AdminTableDetail,
+  CheckDTO,
+  UpdateCheckBody,
 } from '@menu/schemas';
 
 export type { CatalogResponse, MeResponse, AnalyticsResponse, ViewedItemRanked, MenuViewBreakdown, HourlyTotal };
-export type { StaffLinkSummary, Area, AdminTable, FloorTable, AdminFloorTable, TableSessionDetail, ConsumeStaffLinkResponse } from '@menu/schemas';
+export type { StaffLinkSummary, Area, AdminTable, FloorTable, AdminFloorTable, TableSessionDetail, ConsumeStaffLinkResponse, AdminTableDetail, CheckDTO } from '@menu/schemas';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
 const WEB_COMMIT_SHA = process.env.NEXT_PUBLIC_COMMIT_SHA || 'dev';
@@ -234,10 +237,6 @@ export function openTableSession(tableId: string) {
   return apiFetch<{ ok: true; sessionId: string }>(`/staff/tables/${encodeURIComponent(tableId)}/session`, { method: 'POST', staff: true });
 }
 
-export function closeTableSession(sessionId: string) {
-  return apiFetch<{ ok: true }>(`/staff/sessions/${encodeURIComponent(sessionId)}/close`, { method: 'POST', staff: true });
-}
-
 export function fetchTableSession(sessionId: string) {
   return apiFetch<TableSessionDetail>(`/staff/sessions/${encodeURIComponent(sessionId)}`, { staff: true });
 }
@@ -299,6 +298,33 @@ export function updateTable(id: string, data: UpdateTableBody) {
 
 export function deleteTable(id: string) {
   return apiFetch(`/admin/tables/${encodeURIComponent(id)}`, { method: 'DELETE', auth: true });
+}
+
+// ── Admin: checks / conto (#15 follow-up) ────────────────────
+
+/** Table detail: current session (orders + check), history, provisional total. */
+export function fetchAdminTableDetail(tableId: string) {
+  return apiFetch<AdminTableDetail>(`/admin/tables/${encodeURIComponent(tableId)}`, { auth: true });
+}
+
+export function createCheck(sessionId: string) {
+  return apiFetch<CheckDTO>(`/admin/sessions/${encodeURIComponent(sessionId)}/check`, { method: 'POST', auth: true });
+}
+
+export function updateCheck(checkId: string, data: UpdateCheckBody) {
+  return apiFetch<CheckDTO>(`/admin/checks/${encodeURIComponent(checkId)}`, { method: 'PATCH', body: data, auth: true });
+}
+
+export function settleCheck(checkId: string) {
+  return apiFetch<CheckDTO>(`/admin/checks/${encodeURIComponent(checkId)}/settle`, { method: 'POST', auth: true });
+}
+
+export function voidCheck(checkId: string) {
+  return apiFetch<CheckDTO>(`/admin/checks/${encodeURIComponent(checkId)}/void`, { method: 'POST', auth: true });
+}
+
+export function adminCloseSession(sessionId: string) {
+  return apiFetch<{ ok: true }>(`/admin/sessions/${encodeURIComponent(sessionId)}/close`, { method: 'POST', auth: true });
 }
 
 /** Fetch an authenticated admin catalog preview, including draft/hidden items. */

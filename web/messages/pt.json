@@ -627,7 +627,33 @@
     "tables.canvasHint": "Arraste as mesas para movê-las; toque numa mesa para geri-la.",
     "tables.statusFree": "Livre",
     "tables.statusOpen": "Aberta",
-    "tables.statusWaiting": "A aguardar {count} min"
+    "tables.statusWaiting": "A aguardar {count} min",
+    "tables.editLayout": "Editar disposição",
+    "tables.canvasHintEdit": "Arraste para mover, toque para ações",
+    "tableDetail.back": "← Mesas",
+    "tableDetail.notFound": "Mesa não encontrada",
+    "tableDetail.free": "Mesa livre",
+    "tableDetail.session": "Sessão",
+    "tableDetail.noOrders": "Sem pedidos",
+    "tableDetail.createCheck": "Criar conta",
+    "tableDetail.closeTable": "Fechar mesa",
+    "tableDetail.check": "Conta",
+    "tableDetail.discount": "Desconto",
+    "tableDetail.adjustments": "Ajustes",
+    "tableDetail.adjLabel": "Descrição",
+    "tableDetail.adjAmount": "Valor",
+    "tableDetail.total": "Total",
+    "tableDetail.subtotal": "Subtotal",
+    "tableDetail.print": "Imprimir",
+    "tableDetail.paid": "Pago",
+    "tableDetail.confirmPaid": "Confirmar pagamento",
+    "tableDetail.void": "Anular conta",
+    "tableDetail.confirmVoid": "Confirmar anulação",
+    "tableDetail.history": "Histórico",
+    "tableDetail.reprint": "Reimprimir",
+    "tableDetail.checkStatus.settled": "Pago",
+    "tableDetail.checkStatus.voided": "Anulada",
+    "orderReview.checkOpen": "Esta mesa tem uma conta aberta"
   },
   "outOfStock": "ESGOTADO",
   "staff": {
@@ -647,8 +673,6 @@
     "table.noOrders": "Ainda nao ha pedidos para esta mesa.",
     "table.markServed": "Marcar como servido",
     "table.addOrder": "Adicionar pedido",
-    "table.closeSession": "Fechar mesa",
-    "table.closeBlocked": "Sirva ou recuse todos os pedidos antes de fechar a mesa.",
     "table.status.submitted": "Enviado",
     "table.status.ready": "Pronto",
     "table.status.served": "Servido",
@@ -657,5 +681,6 @@
     "table.actor.staff": "empregado",
     "table.actor.admin": "cozinha"
   },
-  "selection.cancel": "Cancelar"
+  "selection.cancel": "Cancelar",
+  "selection.checkOpenError": "Esta mesa tem uma conta aberta. Não é possível enviar novos pedidos."
 }

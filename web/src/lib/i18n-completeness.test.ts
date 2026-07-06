@@ -93,6 +93,12 @@ const allowedAdminSameAsEnglish = new Set([
   'admin.tables.title',
   // "Rectangle" is identical in English and French.
   'admin.tables.shapeRect',
+  // Check-page cognates identical across some languages (Session/Total/Subtotal, etc.).
+  'admin.tableDetail.session',
+  'admin.tableDetail.total',
+  'admin.tableDetail.subtotal',
+  'admin.tableDetail.back',
+  'admin.tableDetail.adjLabel',
   'admin.layout.section.analytics',
   'admin.layout.section.chatAi',
   'admin.layout.section.items',

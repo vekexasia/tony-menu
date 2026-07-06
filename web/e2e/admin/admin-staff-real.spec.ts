@@ -49,11 +49,14 @@ test.describe("Staff links + tables — real backend", () => {
     await expect(page.getByTestId("table-demo-table-sala-1")).toBeVisible();
   });
 
-  test("tapping a tile opens the action panel and renames the table (round-trips)", async ({ page }) => {
+  test("edit mode: tapping a tile opens the action panel and renames the table (round-trips)", async ({ page }) => {
     await page.request.post("http://localhost:8787/admin/demo/reset");
     await page.goto("/admin/tables/");
     const tile = page.getByTestId("table-demo-table-sala-1");
     await expect(tile).toBeVisible({ timeout: 10000 });
+
+    // The action panel lives behind the "Edit layout" toggle now.
+    await page.getByTestId("edit-layout-toggle").click();
 
     // A plain click on the tile is a tap (no movement) -> action panel opens.
     await tile.click();

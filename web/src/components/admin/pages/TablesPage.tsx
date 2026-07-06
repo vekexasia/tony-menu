@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   fetchAdminFloor, createTable, updateTable, deleteTable, updateTablePosition,
   createArea, updateArea, deleteArea,
@@ -13,12 +14,14 @@ import type { TableShape } from "@menu/schemas";
 const POLL_MS = 10_000;
 
 /**
- * Admin tables (#15): canvas-first, colour-coded like the staff floor. Drag a tile
- * to move it (snap 25, autosave); tap a tile to open an inline action panel
- * (rename / activate / delete). No separate table list — the canvas is the list.
+ * Admin tables (#15): canvas-first, colour-coded like the staff floor. Default mode
+ * navigates to a table's page on tap. "Edit layout" toggle reveals drag/snap/autosave
+ * plus the rare-action UI (add table, area management, per-table action panel).
  */
 export default function TablesPage() {
   const t = useTranslations("admin");
+  const router = useRouter();
+  const [editMode, setEditMode] = useState(false);
   const [areas, setAreas] = useState<Area[] | null>(null);
   const [tables, setTables] = useState<AdminFloorTable[]>([]);
   const [activeArea, setActiveArea] = useState<string | null>(null);
@@ -105,7 +108,12 @@ export default function TablesPage() {
     }
   };
 
-  const openPanel = (tile: FloorTile) => {
+  // Default mode: tap navigates to the table page. Edit mode: tap opens the action panel.
+  const onTileTap = (tile: FloorTile) => {
+    if (!editMode) {
+      router.push(`/admin/tables/${tile.id}`);
+      return;
+    }
     const table = tables.find((tb) => tb.id === tile.id);
     if (!table) return;
     setSelectedId((prev) => (prev === table.id ? null : table.id)); // second tap closes
@@ -171,23 +179,33 @@ export default function TablesPage() {
 
   return (
     <main className="p-6 max-w-3xl" style={{ flex: 1, minWidth: 0, overflowY: "auto" }}>
-      <h1 className="text-2xl font-bold text-gray-900">{t("tables.title")}</h1>
-      <p className="text-sm text-gray-500 mt-1 mb-4">{t("tables.subtitle")}</p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">{t("tables.title")}</h1>
+          <p className="text-sm text-gray-500 mt-1 mb-4">{t("tables.subtitle")}</p>
+        </div>
+        <label className="flex items-center gap-2 text-sm text-gray-600 shrink-0 cursor-pointer">
+          <input type="checkbox" checked={editMode} onChange={(e) => { setEditMode(e.target.checked); setSelectedId(null); }} data-testid="edit-layout-toggle" />
+          {t("tables.editLayout")}
+        </label>
+      </div>
 
       {error && <div className="mb-4 rounded-lg bg-red-50 text-red-700 px-4 py-3 text-sm" data-testid="tables-error">{error}</div>}
 
-      <div className="flex items-center gap-2 mb-4">
-        <input
-          value={areaName}
-          onChange={(e) => setAreaName(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter") addArea(); }}
-          placeholder={t("tables.areaPlaceholder")}
-          className="h-9 rounded-lg border border-gray-200 px-3 text-sm"
-        />
-        <button onClick={addArea} disabled={!areaName.trim()} className="px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold disabled:opacity-50">
-          {t("tables.addArea")}
-        </button>
-      </div>
+      {editMode && (
+        <div className="flex items-center gap-2 mb-4">
+          <input
+            value={areaName}
+            onChange={(e) => setAreaName(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") addArea(); }}
+            placeholder={t("tables.areaPlaceholder")}
+            className="h-9 rounded-lg border border-gray-200 px-3 text-sm"
+          />
+          <button onClick={addArea} disabled={!areaName.trim()} className="px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold disabled:opacity-50">
+            {t("tables.addArea")}
+          </button>
+        </div>
+      )}
 
       {areas === null ? (
         <p className="text-sm text-gray-500">{t("common.loading")}</p>
@@ -199,33 +217,35 @@ export default function TablesPage() {
             {areas.map((area) => (
               <div key={area.id} className={`flex items-center gap-1 rounded-full pl-3 pr-1.5 py-1 text-sm ${area.id === activeArea ? "bg-primary text-white" : "bg-white text-gray-600 border border-gray-200"}`}>
                 <button type="button" onClick={() => { setActiveArea(area.id); setSelectedId(null); }} data-testid={`area-tab-${area.id}`} className="font-semibold">{area.name}</button>
-                <button type="button" onClick={() => renameArea(area)} aria-label={t("common.edit")} className={`px-1 text-xs ${area.id === activeArea ? "text-white/80" : "text-gray-400"}`}>✎</button>
-                <button type="button" onClick={() => removeArea(area)} aria-label={t("common.delete")} className={`px-1 text-xs ${area.id === activeArea ? "text-white/80" : "text-red-400"}`}>×</button>
+                {editMode && <button type="button" onClick={() => renameArea(area)} aria-label={t("common.edit")} className={`px-1 text-xs ${area.id === activeArea ? "text-white/80" : "text-gray-400"}`}>✎</button>}
+                {editMode && <button type="button" onClick={() => removeArea(area)} aria-label={t("common.delete")} className={`px-1 text-xs ${area.id === activeArea ? "text-white/80" : "text-red-400"}`}>×</button>}
               </div>
             ))}
           </div>
 
           {activeArea && (
             <>
-              <div className="flex items-center gap-2 mb-4">
-                <input
-                  value={tableName}
-                  onChange={(e) => setTableName(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter") addTable(); }}
-                  placeholder={t("tables.namePlaceholder")}
-                  className="h-9 rounded-lg border border-gray-200 px-3 text-sm w-40"
-                />
-                <select value={tableShape} onChange={(e) => setTableShape(e.target.value as TableShape)} className="h-9 rounded-lg border border-gray-200 px-2 text-sm" aria-label={t("tables.shapeLabel")}>
-                  <option value="rect">{t("tables.shapeRect")}</option>
-                  <option value="circle">{t("tables.shapeCircle")}</option>
-                </select>
-                <button onClick={addTable} disabled={!tableName.trim()} className="px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold disabled:opacity-50">
-                  {t("tables.add")}
-                </button>
-              </div>
+              {editMode && (
+                <div className="flex items-center gap-2 mb-4">
+                  <input
+                    value={tableName}
+                    onChange={(e) => setTableName(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") addTable(); }}
+                    placeholder={t("tables.namePlaceholder")}
+                    className="h-9 rounded-lg border border-gray-200 px-3 text-sm w-40"
+                  />
+                  <select value={tableShape} onChange={(e) => setTableShape(e.target.value as TableShape)} className="h-9 rounded-lg border border-gray-200 px-2 text-sm" aria-label={t("tables.shapeLabel")}>
+                    <option value="rect">{t("tables.shapeRect")}</option>
+                    <option value="circle">{t("tables.shapeCircle")}</option>
+                  </select>
+                  <button onClick={addTable} disabled={!tableName.trim()} className="px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold disabled:opacity-50">
+                    {t("tables.add")}
+                  </button>
+                </div>
+              )}
 
-              <p className="text-xs text-gray-400 mb-2">{t("tables.canvasHint")}</p>
-              <FloorCanvas tiles={tiles} editable now={now} onMove={moveTable} onTap={openPanel} />
+              <p className="text-xs text-gray-400 mb-2">{editMode ? t("tables.canvasHintEdit") : t("tables.canvasHint")}</p>
+              <FloorCanvas tiles={tiles} editable={editMode} now={now} onMove={moveTable} onTap={onTileTap} />
 
               {selected && (
                 <div className="mt-4 rounded-xl border border-gray-200 bg-white p-4" data-testid="table-panel">

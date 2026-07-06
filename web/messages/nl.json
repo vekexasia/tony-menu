@@ -627,7 +627,33 @@
     "tables.canvasHint": "Sleep tafels om ze te verplaatsen; tik op een tafel om deze te beheren.",
     "tables.statusFree": "Vrij",
     "tables.statusOpen": "Bezet",
-    "tables.statusWaiting": "Wacht {count} min"
+    "tables.statusWaiting": "Wacht {count} min",
+    "tables.editLayout": "Indeling bewerken",
+    "tables.canvasHintEdit": "Sleep om te verplaatsen, tik voor acties",
+    "tableDetail.back": "← Tafels",
+    "tableDetail.notFound": "Tafel niet gevonden",
+    "tableDetail.free": "Tafel vrij",
+    "tableDetail.session": "Sessie",
+    "tableDetail.noOrders": "Geen bestellingen",
+    "tableDetail.createCheck": "Rekening aanmaken",
+    "tableDetail.closeTable": "Tafel sluiten",
+    "tableDetail.check": "Rekening",
+    "tableDetail.discount": "Korting",
+    "tableDetail.adjustments": "Aanpassingen",
+    "tableDetail.adjLabel": "Omschrijving",
+    "tableDetail.adjAmount": "Bedrag",
+    "tableDetail.total": "Totaal",
+    "tableDetail.subtotal": "Subtotaal",
+    "tableDetail.print": "Afdrukken",
+    "tableDetail.paid": "Betaald",
+    "tableDetail.confirmPaid": "Betaling bevestigen",
+    "tableDetail.void": "Rekening annuleren",
+    "tableDetail.confirmVoid": "Annulering bevestigen",
+    "tableDetail.history": "Geschiedenis",
+    "tableDetail.reprint": "Opnieuw afdrukken",
+    "tableDetail.checkStatus.settled": "Betaald",
+    "tableDetail.checkStatus.voided": "Geannuleerd",
+    "orderReview.checkOpen": "Deze tafel heeft een openstaande rekening"
   },
   "outOfStock": "UITVERKOCHT",
   "staff": {
@@ -647,8 +673,6 @@
     "table.noOrders": "Nog geen bestellingen voor deze tafel.",
     "table.markServed": "Markeer als geserveerd",
     "table.addOrder": "Bestelling toevoegen",
-    "table.closeSession": "Tafel sluiten",
-    "table.closeBlocked": "Serveer of weiger alle bestellingen voordat je de tafel sluit.",
     "table.status.submitted": "Verzonden",
     "table.status.ready": "Klaar",
     "table.status.served": "Geserveerd",
@@ -657,5 +681,6 @@
     "table.actor.staff": "ober",
     "table.actor.admin": "keuken"
   },
-  "selection.cancel": "Annuleren"
+  "selection.cancel": "Annuleren",
+  "selection.checkOpenError": "Deze tafel heeft een openstaande rekening. Nieuwe bestellingen zijn niet mogelijk."
 }

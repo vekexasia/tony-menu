@@ -81,3 +81,11 @@
 
 /* Reset body defaults for admin */
 .adm-root { height: 100vh; overflow: hidden; }
+
+/* Check printing (#15): print only the check card, hide the rest of the admin chrome. */
+@media print {
+  body * { visibility: hidden; }
+  .print-check, .print-check * { visibility: visible; }
+  .print-check { position: absolute; inset: 0; margin: 0; border: none; }
+  .print-hide { display: none !important; }
+}

@@ -627,7 +627,33 @@
     "tables.canvasHint": "Strascina i tòli par spostarli; tóca un tòlo par gestirlo.",
     "tables.statusFree": "Lìbaro",
     "tables.statusOpen": "Verto",
-    "tables.statusWaiting": "In atesa {count} min"
+    "tables.statusWaiting": "In atesa {count} min",
+    "tables.editLayout": "Modifica disposission",
+    "tables.canvasHintEdit": "Strassina par mòvar, toca par łe assion",
+    "tableDetail.back": "← Tòłe",
+    "tableDetail.notFound": "Tòła no catà",
+    "tableDetail.free": "Tòła łìbara",
+    "tableDetail.session": "Session",
+    "tableDetail.noOrders": "Njancó órdene",
+    "tableDetail.createCheck": "Crea el conto",
+    "tableDetail.closeTable": "Sara su ła tòła",
+    "tableDetail.check": "Conto",
+    "tableDetail.discount": "Sconto",
+    "tableDetail.adjustments": "Retifiche",
+    "tableDetail.adjLabel": "Descrission",
+    "tableDetail.adjAmount": "Inporto",
+    "tableDetail.total": "Total",
+    "tableDetail.subtotal": "Subtotal",
+    "tableDetail.print": "Stanpa",
+    "tableDetail.paid": "Pagà",
+    "tableDetail.confirmPaid": "Conferma pagà",
+    "tableDetail.void": "Anuła el conto",
+    "tableDetail.confirmVoid": "Conferma anułamento",
+    "tableDetail.history": "Storico",
+    "tableDetail.reprint": "Ristanpa",
+    "tableDetail.checkStatus.settled": "Pagà",
+    "tableDetail.checkStatus.voided": "Anułà",
+    "orderReview.checkOpen": "Sta tòła ła ga un conto verto"
   },
   "outOfStock": "FINIO",
   "staff": {
@@ -647,8 +673,6 @@
     "table.noOrders": "Ancora nissun ordine par sto tavolo.",
     "table.markServed": "Marca servio",
     "table.addOrder": "Zonta ordine",
-    "table.closeSession": "Sara el tavolo",
-    "table.closeBlocked": "Servi o rifiuta tuti i ordini prima de sarar el tavolo.",
     "table.status.submitted": "Mandado",
     "table.status.ready": "Pronto",
     "table.status.served": "Servio",
@@ -657,5 +681,6 @@
     "table.actor.staff": "camarier",
     "table.actor.admin": "cusina"
   },
-  "selection.cancel": "Anula"
+  "selection.cancel": "Anula",
+  "selection.checkOpenError": "Sta tòła ła ga un conto verto. No se pol mandar novi órdeni."
 }
