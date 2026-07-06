@@ -7,6 +7,7 @@ import {
   revokeStaffLink,
   setOrdering,
   SEEDED_TABLE,
+  SEEDED_AREA,
 } from './fixtures/real-backend';
 
 test.describe.serial('Waiter mode — real backend', () => {
@@ -22,8 +23,8 @@ test.describe.serial('Waiter mode — real backend', () => {
 
     await page.goto(`/staff?token=${link.token}`);
 
-    await expect(page.getByTestId('floor-grid')).toBeVisible();
-    // Rides the demo seed: Sala 1 is one of the 10 seeded tables.
+    await expect(page.getByTestId('floor-canvas')).toBeVisible();
+    // Rides the demo seed: Sala 1 is one of the 10 seeded tables (short name '1' under area Sala).
     await expect(page.getByTestId(`table-${SEEDED_TABLE.id}`)).toContainText(SEEDED_TABLE.name);
     await expect(page).toHaveURL(/\/staff\/?$/);
     expect(await page.evaluate(() => window.localStorage.getItem('tony-menu-staff-session'))).toEqual(expect.any(String));
@@ -37,13 +38,34 @@ test.describe.serial('Waiter mode — real backend', () => {
   test('revoked session is locked out', async ({ page, request }) => {
     const link = await createStaffLink(request, 'Revoked waiter');
     await page.goto(`/staff?token=${link.token}`);
-    await expect(page.getByTestId('floor-grid')).toBeVisible();
+    await expect(page.getByTestId('floor-canvas')).toBeVisible();
 
     await revokeStaffLink(request, link.id);
     await page.goto('/staff');
 
     await expect(page.getByTestId('staff-denied')).toBeVisible();
     expect(await page.evaluate(() => window.localStorage.getItem('tony-menu-staff-session'))).toBeNull();
+  });
+
+  test('floor plan shows tiles per area tab and a tap opens the table page', async ({ page, request }) => {
+    const link = await createStaffLink(request, 'Marco');
+    await page.goto(`/staff?token=${link.token}`);
+    await expect(page.getByTestId('floor-canvas')).toBeVisible();
+    // Default (first) area tab is Sala; its seeded tables are visible.
+    await expect(page.getByTestId(`area-tab-${SEEDED_AREA.id}`)).toBeVisible();
+    const tile = page.getByTestId(`table-${SEEDED_TABLE.id}`);
+    await expect(tile).toBeVisible();
+
+    // Switch to Terrazza: Sala's tiles disappear, Terrazza's appear.
+    await page.getByTestId('area-tab-demo-area-terrazza').click();
+    await expect(page.getByTestId(`table-${SEEDED_TABLE.id}`)).toHaveCount(0);
+    await expect(page.getByTestId('table-demo-table-terrazza-1')).toBeVisible();
+
+    // Tap a table: opens a session and lands on the table page.
+    await page.getByTestId('area-tab-demo-area-sala').click();
+    await page.getByTestId(`table-${SEEDED_TABLE.id}`).click();
+    await expect(page).toHaveURL(/\/staff\/table\/[^/]+\/?$/);
+    await expect(page.getByTestId('add-order')).toBeVisible();
   });
 
   test('diner opening /order-review without a staff session is blocked', async ({ page }) => {
@@ -93,6 +115,6 @@ test.describe.serial('Waiter mode — real backend', () => {
     await page.goto('/admin/orders');
     const card = page.getByTestId('order-1');
     await expect(card).toBeVisible();
-    await expect(card).toContainText(table.name);
+    await expect(card).toContainText(table.label);
   });
 });

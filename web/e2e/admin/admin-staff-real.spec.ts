@@ -40,6 +40,23 @@ test.describe("Staff links + tables — real backend", () => {
     await page.goto("/admin/tables/");
     expect((await listRes).status()).toBe(200);
     await expect(page.getByText("Internal Server Error")).toHaveCount(0);
+    // Seeded demo areas render as tabs.
+    await expect(page.getByTestId("area-tabs")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId("area-tab-demo-area-sala")).toBeVisible();
+    await expect(page.getByTestId("area-tab-demo-area-terrazza")).toBeVisible();
+  });
+
+  test("table position PATCH persists on the real backend", async ({ request }) => {
+    await request.post("http://localhost:8787/admin/demo/reset");
+    const patch = await request.patch("http://localhost:8787/admin/tables/demo-table-sala-1/position", {
+      data: { x: 500, y: 300 },
+    });
+    expect(patch.ok()).toBeTruthy();
+    const list = await request.get("http://localhost:8787/admin/tables");
+    const { tables } = await list.json() as { tables: Array<{ id: string; x: number; y: number }> };
+    const row = tables.find((t) => t.id === "demo-table-sala-1")!;
+    expect(row).toMatchObject({ x: 500, y: 300 });
+    await request.post("http://localhost:8787/admin/demo/reset");
   });
 
   test("/staff consume endpoint is mounted (bad token rejected, not 500)", async ({ request }) => {

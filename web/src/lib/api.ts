@@ -45,13 +45,17 @@ import type {
   ConsumeStaffLinkResponse,
   CreateTableBody,
   UpdateTableBody,
+  CreateAreaBody,
+  UpdateAreaBody,
+  UpdateTablePositionBody,
+  Area,
   AdminTable,
   FloorTable,
   TableSessionDetail,
 } from '@menu/schemas';
 
 export type { CatalogResponse, MeResponse, AnalyticsResponse, ViewedItemRanked, MenuViewBreakdown, HourlyTotal };
-export type { StaffLinkSummary, AdminTable, FloorTable, TableSessionDetail, ConsumeStaffLinkResponse } from '@menu/schemas';
+export type { StaffLinkSummary, Area, AdminTable, FloorTable, TableSessionDetail, ConsumeStaffLinkResponse } from '@menu/schemas';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
 const WEB_COMMIT_SHA = process.env.NEXT_PUBLIC_COMMIT_SHA || 'dev';
@@ -222,7 +226,7 @@ export function checkStaffSession() {
 }
 
 export function fetchFloor() {
-  return apiFetch<{ tables: FloorTable[] }>('/staff/floor', { staff: true });
+  return apiFetch<{ areas: Area[]; tables: FloorTable[] }>('/staff/floor', { staff: true });
 }
 
 export function openTableSession(tableId: string) {
@@ -255,12 +259,32 @@ export function revokeStaffLink(id: string) {
   return apiFetch(`/admin/staff-links/${encodeURIComponent(id)}/revoke`, { method: 'POST', auth: true });
 }
 
+export function fetchAreas() {
+  return apiFetch<{ areas: Area[] }>('/admin/areas', { auth: true });
+}
+
+export function createArea(data: CreateAreaBody) {
+  return apiFetch<{ ok: true; id: string }>('/admin/areas', { method: 'POST', body: data, auth: true });
+}
+
+export function updateArea(id: string, data: UpdateAreaBody) {
+  return apiFetch(`/admin/areas/${encodeURIComponent(id)}`, { method: 'PUT', body: data, auth: true });
+}
+
+export function deleteArea(id: string) {
+  return apiFetch(`/admin/areas/${encodeURIComponent(id)}`, { method: 'DELETE', auth: true });
+}
+
 export function fetchTables() {
   return apiFetch<{ tables: AdminTable[] }>('/admin/tables', { auth: true });
 }
 
 export function createTable(data: CreateTableBody) {
   return apiFetch<{ ok: true; id: string }>('/admin/tables', { method: 'POST', body: data, auth: true });
+}
+
+export function updateTablePosition(id: string, data: UpdateTablePositionBody) {
+  return apiFetch(`/admin/tables/${encodeURIComponent(id)}/position`, { method: 'PATCH', body: data, auth: true });
 }
 
 export function updateTable(id: string, data: UpdateTableBody) {

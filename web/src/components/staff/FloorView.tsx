@@ -1,23 +1,31 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
-import { fetchFloor, openTableSession, type FloorTable } from "@/lib/api";
+import { useRouter } from "next/navigation";
+import { fetchFloor, openTableSession, type Area, type FloorTable } from "@/lib/api";
 import { useTranslations } from "@/lib/i18n";
+import { FloorCanvas, type FloorTile } from "@/components/floor/FloorCanvas";
 
 const POLL_MS = 10_000;
+const TICK_MS = 30_000; // re-render the elapsed-minutes labels
 
-/** Flat floor view (#15): tables with at-a-glance state; open a session to enter. */
+/** Floor plan view (#15): area tabs + read-only canvas; tap a table to open its session. */
 export function FloorView() {
   const t = useTranslations("staff");
-  const [tables, setTables] = useState<FloorTable[] | null>(null);
+  const router = useRouter();
+  const [areas, setAreas] = useState<Area[] | null>(null);
+  const [tables, setTables] = useState<FloorTable[]>([]);
+  const [activeArea, setActiveArea] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [now, setNow] = useState(() => Date.now());
 
   const refresh = useCallback(async () => {
     try {
       const res = await fetchFloor();
+      setAreas(res.areas);
       setTables(res.tables);
+      setActiveArea((prev) => prev ?? res.areas[0]?.id ?? null);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -30,17 +38,39 @@ export function FloorView() {
     return () => clearInterval(timer);
   }, [refresh]);
 
-  const open = async (tableId: string) => {
-    setBusy(tableId);
+  useEffect(() => {
+    const tick = setInterval(() => setNow(Date.now()), TICK_MS);
+    return () => clearInterval(tick);
+  }, []);
+
+  const open = async (tile: FloorTile) => {
+    const table = tables.find((tb) => tb.id === tile.id);
+    if (!table) return;
+    if (table.sessionId) {
+      router.push(`/staff/table/${table.sessionId}`);
+      return;
+    }
+    setBusy(tile.id);
     try {
-      await openTableSession(tableId);
-      await refresh();
+      const { sessionId } = await openTableSession(tile.id);
+      router.push(`/staff/table/${sessionId}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
-    } finally {
       setBusy(null);
     }
   };
+
+  const tiles: FloorTile[] = tables
+    .filter((tb) => tb.areaId === activeArea)
+    .map((tb) => ({
+      id: tb.id,
+      name: tb.name,
+      x: tb.x,
+      y: tb.y,
+      shape: tb.shape,
+      sessionId: tb.sessionId,
+      oldestSubmittedAt: tb.oldestSubmittedAt,
+    }));
 
   return (
     <main className="min-h-screen bg-gray-100 px-4 py-6">
@@ -50,48 +80,27 @@ export function FloorView() {
 
         {error && <div className="mb-4 rounded-lg bg-red-50 text-red-700 px-4 py-3 text-sm">{error}</div>}
 
-        {tables === null ? (
+        {areas === null ? (
           <p className="text-sm text-gray-500">{t("loading")}</p>
-        ) : tables.length === 0 ? (
+        ) : areas.length === 0 ? (
           <p className="text-sm text-gray-500">{t("floor.empty")}</p>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3" data-testid="floor-grid">
-            {tables.map((table) => {
-              const isOpen = table.sessionId !== null;
-              const ready = table.readyCount > 0;
-              return isOpen ? (
-                <Link
-                  key={table.id}
-                  href={`/staff/table/${table.sessionId}`}
-                  data-testid={`table-${table.id}`}
-                  className={`rounded-2xl p-4 shadow-sm border text-left ${ready ? "bg-blue-50 border-blue-200" : "bg-white border-gray-200"}`}
-                >
-                  <div className="font-bold text-gray-900">{table.name}</div>
-                  <div className="text-xs mt-2 font-semibold" data-testid={`table-state-${table.id}`}>
-                    {ready ? (
-                      <span className="text-blue-700">{t("floor.readyToServe").replace("{count}", String(table.readyCount))}</span>
-                    ) : table.orderCount > 0 ? (
-                      <span className="text-amber-700">{t("floor.openOrders").replace("{count}", String(table.orderCount))}</span>
-                    ) : (
-                      <span className="text-gray-500">{t("floor.seated")}</span>
-                    )}
-                  </div>
-                </Link>
-              ) : (
+          <>
+            <div className="flex gap-2 mb-4 flex-wrap" data-testid="floor-tabs">
+              {areas.map((area) => (
                 <button
-                  key={table.id}
+                  key={area.id}
                   type="button"
-                  onClick={() => open(table.id)}
-                  disabled={busy === table.id}
-                  data-testid={`table-${table.id}`}
-                  className="rounded-2xl p-4 shadow-sm border border-gray-200 bg-white text-left disabled:opacity-50"
+                  onClick={() => setActiveArea(area.id)}
+                  data-testid={`area-tab-${area.id}`}
+                  className={`px-3 py-1.5 rounded-full text-sm font-semibold ${area.id === activeArea ? "bg-primary text-white" : "bg-white text-gray-600 border border-gray-200"}`}
                 >
-                  <div className="font-bold text-gray-900">{table.name}</div>
-                  <div className="text-xs mt-2 font-semibold text-gray-400" data-testid={`table-state-${table.id}`}>{t("floor.free")}</div>
+                  {area.name}
                 </button>
-              );
-            })}
-          </div>
+              ))}
+            </div>
+            <FloorCanvas tiles={tiles} editable={false} now={now} busyId={busy} onTap={open} />
+          </>
         )}
       </div>
     </main>

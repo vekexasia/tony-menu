@@ -30,6 +30,7 @@ export default function OrderReviewPage() {
   const [dailyNumber, setDailyNumber] = useState<number | null>(null);
   const [submittedSessionId, setSubmittedSessionId] = useState<string | null>(null);
   const [tables, setTables] = useState<FloorTable[]>([]);
+  const [areaNames, setAreaNames] = useState<Map<string, string>>(new Map());
   const [selectedTableId, setSelectedTableId] = useState("");
   const [catalog, setCatalog] = useState<CatalogResponse | null>(null);
   const [lines, setLines] = useState<EditLine[] | null>(null);
@@ -50,7 +51,10 @@ export default function OrderReviewPage() {
   useEffect(load, [load]);
 
   useEffect(() => {
-    fetchFloor().then((res) => setTables(res.tables)).catch(() => setTables([]));
+    fetchFloor().then((res) => {
+      setTables(res.tables);
+      setAreaNames(new Map(res.areas.map((a) => [a.id, a.name])));
+    }).catch(() => setTables([]));
     getCatalog().then(setCatalog).catch(() => setCatalog(null));
   }, []);
 
@@ -310,11 +314,15 @@ export default function OrderReviewPage() {
               className="mt-2 w-full h-11 rounded-xl border border-gray-200 bg-white px-3 text-sm font-medium text-gray-800"
             >
               <option value="" disabled>{t("orderReview.selectTable")}</option>
-              {tables.map((table) => (
-                <option key={table.id} value={table.id}>
-                  {table.name}{table.sessionId ? " · open" : ""}
-                </option>
-              ))}
+              {tables.map((table) => {
+                const area = table.areaId ? areaNames.get(table.areaId) : null;
+                const label = area ? `${area} · ${table.name}` : table.name;
+                return (
+                  <option key={table.id} value={table.id}>
+                    {label}{table.sessionId ? " · open" : ""}
+                  </option>
+                );
+              })}
             </select>
           </label>
           <button

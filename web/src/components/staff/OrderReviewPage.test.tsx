@@ -52,7 +52,7 @@ beforeEach(() => {
   apiMocks.fetchFloor.mockReset();
   apiMocks.openTableSession.mockReset();
   apiMocks.getCatalog.mockReset();
-  apiMocks.fetchFloor.mockResolvedValue({ tables: [{ id: "t1", name: "Sala 1", sessionId: "sess-1", open: true }] });
+  apiMocks.fetchFloor.mockResolvedValue({ areas: [{ id: "a1", name: "Sala", sortOrder: 0 }], tables: [{ id: "t1", name: "1", areaId: "a1", sessionId: "sess-1", open: true }] });
   apiMocks.getCatalog.mockResolvedValue({ categories: [] });
 });
 

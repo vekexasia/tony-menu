@@ -42,11 +42,11 @@ test.describe.serial('Waiter QR handoff — real backend', () => {
 
     await waiterPage.goto(`/order-review?token=${token}`);
     await expect(waiterPage.getByText(/bruschetta/i)).toBeVisible();
-    await waiterPage.getByLabel(/table|tavolo/i).selectOption({ label: table.name });
+    await waiterPage.getByLabel(/table|tavolo/i).selectOption({ label: table.label });
     await waiterPage.getByRole('button', { name: /invia ordine|submit order/i }).click();
     await expect(waiterPage.getByTestId('order-daily-number')).toHaveText('#1');
     await waiterPage.goto('/admin/orders');
-    await expect(waiterPage.getByTestId('order-1')).toContainText(table.name);
+    await expect(waiterPage.getByTestId('order-1')).toContainText(table.label);
   });
 
   test('waiter edits the intent (bump qty, add item, bind table) then submits the override', async ({ page, request }) => {
@@ -65,7 +65,7 @@ test.describe.serial('Waiter QR handoff — real backend', () => {
     await page.getByTestId('review-add-search').fill('prosecco');
     await page.getByTestId('review-add-demo-entry-prosecco').click();
 
-    await page.getByLabel(/table|tavolo/i).selectOption({ label: table.name });
+    await page.getByLabel(/table|tavolo/i).selectOption({ label: table.label });
     const consumeReq = page.waitForRequest((req) => req.url().includes(`/order-intents/${token}/consume`) && req.method() === 'POST');
     await page.getByRole('button', { name: /invia ordine|submit order/i }).click();
     const body = (await consumeReq).postDataJSON() as { lines: { entryId: string; quantity: number }[] };
@@ -79,7 +79,7 @@ test.describe.serial('Waiter QR handoff — real backend', () => {
 
     await page.goto('/admin/orders');
     const card = page.getByTestId('order-1');
-    await expect(card).toContainText(table.name);
+    await expect(card).toContainText(table.label);
     await expect(card).toContainText(/prosecco/i);
     await expect(card).toContainText('3');
   });

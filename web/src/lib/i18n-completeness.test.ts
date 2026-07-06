@@ -91,6 +91,8 @@ const allowedAdminSameAsEnglish = new Set([
   // "Tables" is identical in English and French.
   'admin.layout.section.tables',
   'admin.tables.title',
+  // "Rectangle" is identical in English and French.
+  'admin.tables.shapeRect',
   'admin.layout.section.analytics',
   'admin.layout.section.chatAi',
   'admin.layout.section.items',

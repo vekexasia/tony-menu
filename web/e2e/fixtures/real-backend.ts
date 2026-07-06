@@ -6,7 +6,9 @@ export const BRUSCHETTA_ID = 'demo-entry-bruschetta';
 export const PROSECCO_ID = 'demo-entry-prosecco';
 
 // Seeded demo fixtures (see backend/src/lib/demo-seed-data.ts). Restored by resetDemo.
-export const SEEDED_TABLE = { id: 'demo-table-sala-1', name: 'Sala 1' };
+// Seeded demo: Sala 1 has short name '1' now; its floor/kitchen display label is 'Sala · 1'.
+export const SEEDED_AREA = { id: 'demo-area-sala', name: 'Sala' };
+export const SEEDED_TABLE = { id: 'demo-table-sala-1', name: '1', label: 'Sala · 1' };
 export const SEEDED_CUCINA = { id: 'demo-dest-cucina', name: 'Cucina' };
 export const SEEDED_BAR = { id: 'demo-dest-bar', name: 'Bar' };
 
@@ -46,8 +48,8 @@ export async function revokeStaffLink(request: APIRequestContext, id: string) {
   expect(res.ok()).toBeTruthy();
 }
 
-export async function createTable(request: APIRequestContext, name = `E2E Table ${Date.now()}`) {
-  const res = await request.post(`${API_BASE}/admin/tables`, { data: { name, active: true } });
+export async function createTable(request: APIRequestContext, name = `E2E Table ${Date.now()}`, areaId = SEEDED_AREA.id, shape: 'rect' | 'circle' = 'rect') {
+  const res = await request.post(`${API_BASE}/admin/tables`, { data: { name, active: true, areaId, shape } });
   expect(res.ok()).toBeTruthy();
   return { ...(await res.json() as { ok: true; id: string }), name };
 }
