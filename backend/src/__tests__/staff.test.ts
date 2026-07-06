@@ -157,7 +157,7 @@ describe('staff session middleware', () => {
   });
 });
 
-describe('table sessions open/close', () => {
+describe('table sessions open', () => {
   it('opens a session and returns the same one on re-open', async () => {
     const db = staffDb();
     await seedTable(db);
@@ -170,34 +170,6 @@ describe('table sessions open/close', () => {
     const open2 = await testRequest('/staff/tables/table-1/session', { method: 'POST', headers: staffHeaders(session), env: makeDbEnv(db) });
     expect(open2.status).toBe(200);
     expect(((await open2.json()) as { sessionId: string }).sessionId).toBe(s1);
-  });
-
-  it('blocks close while orders are still submitted/ready, allows it once served', async () => {
-    const db = staffDb();
-    await seedTable(db);
-    const session = await openSession(db, await createLink(db));
-    const open = await testRequest('/staff/tables/table-1/session', { method: 'POST', headers: staffHeaders(session), env: makeDbEnv(db) });
-    const sessionId = ((await open.json()) as { sessionId: string }).sessionId;
-
-    // Submit an order into the session via the shared direct-submit path.
-    const submit = await testRequest('/orders', {
-      method: 'POST',
-      body: { idempotencyKey: 'idem-close-1', lines: [{ entryId: 'entry-1', quantity: 1 }], tableSessionId: sessionId },
-      headers: { ...staffHeaders(session), 'cf-connecting-ip': `10.3.0.${++ipCounter}` },
-      env: makeDbEnv(db),
-    });
-    expect(submit.status).toBe(200);
-    const orderId = ((await submit.json()) as { orderId: string }).orderId;
-
-    const blocked = await testRequest(`/staff/sessions/${sessionId}/close`, { method: 'POST', headers: staffHeaders(session), env: makeDbEnv(db) });
-    expect(blocked.status).toBe(409);
-    expect(((await blocked.json()) as { error: string }).error).toBe('pending_orders');
-
-    // Move to ready then served.
-    db.raw.prepare("UPDATE orders SET status = 'served' WHERE id = ?").run(orderId);
-    const ok = await testRequest(`/staff/sessions/${sessionId}/close`, { method: 'POST', headers: staffHeaders(session), env: makeDbEnv(db) });
-    expect(ok.status).toBe(200);
-    expect((db.raw.prepare('SELECT closed_at FROM table_sessions WHERE id = ?').get(sessionId) as { closed_at: number | null }).closed_at).not.toBeNull();
   });
 });
 

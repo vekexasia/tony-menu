@@ -7,3 +7,4 @@ export * from './responses.js';
 export * from './modules.js';
 export * from './orders.js';
 export * from './staff.js';
+export * from './checks.js';

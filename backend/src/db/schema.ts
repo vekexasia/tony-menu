@@ -449,6 +449,30 @@ export const tableSessions = sqliteTable(
   }),
 );
 
+/**
+ * A settled/voided/open check (conto, #15 follow-up) for a table session.
+ * lines is a frozen snapshot of the session's non-rejected orders at creation.
+ * Totals are never stored — computeCheckTotals derives them from lines/discount/adjustments.
+ */
+export const checks = sqliteTable(
+  'checks',
+  {
+    id: text('id').primaryKey(),
+    tableSessionId: text('table_session_id').notNull().references(() => tableSessions.id, { onDelete: 'cascade' }),
+    // 'open' | 'settled' | 'voided'
+    status: text('status').notNull().default('open'),
+    lines: jsonColumn<{ name: string; quantity: number; unitPrice: number }[]>('lines').notNull(),
+    discount: jsonColumn<{ type: 'percent' | 'amount'; value: number } | null>('discount'),
+    adjustments: jsonColumn<{ label: string; amount: number }[]>('adjustments').notNull().default([]),
+    createdAt: integer('created_at').notNull().$defaultFn(() => Date.now()),
+    settledAt: integer('settled_at'),
+    voidedAt: integer('voided_at'),
+  },
+  (table) => ({
+    sessionIdx: index('checks_table_session_idx').on(table.tableSessionId),
+  }),
+);
+
 // ── Chat Sessions ─────────────────────────────────────────────────────────────
 
 /**

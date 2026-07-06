@@ -21,7 +21,8 @@ const MAX_NUMBERING_RETRIES = 3;
 export type CreateOrderResult =
   | { ok: true; orderId: string; dailyNumber: number }
   | { error: 'stale_items'; staleEntryIds: string[] }
-  | { error: 'invalid_table_session' };
+  | { error: 'invalid_table_session' }
+  | { error: 'check_open' };
 
 /**
  * The single order-creation path (issue #17). Both the public direct submit
@@ -51,6 +52,14 @@ export async function createOrder(
       .where(and(eq(schema.tableSessions.id, tableSessionId), isNull(schema.tableSessions.closedAt)))
       .limit(1);
     if (!session) return { error: 'invalid_table_session' };
+
+    // An open check freezes the session: no new orders while it awaits settle/void (#15).
+    const [openCheck] = await db
+      .select({ id: schema.checks.id })
+      .from(schema.checks)
+      .where(and(eq(schema.checks.tableSessionId, tableSessionId), eq(schema.checks.status, 'open')))
+      .limit(1);
+    if (openCheck) return { error: 'check_open' };
   }
 
   // Merge duplicate entryIds so one entry can't create two lines.

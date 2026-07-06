@@ -13,6 +13,7 @@ import { isDemoMode } from '../lib/demo';
 import { resetDemoData } from '../lib/demo-reset';
 import { adminOrderRoutes } from './admin-orders';
 import { adminStaffRoutes } from './admin-staff';
+import { adminChecksRoutes } from './admin-checks';
 import {
   UpdateSettingsBodySchema,
   UpdateHoursBodySchema,
@@ -42,6 +43,8 @@ const base = [requireAuth, requireDb, requireAdmin] as const;
 admin.route('/', adminOrderRoutes);
 // Staff links + tables CRUD (waiter mode, #15).
 admin.route('/', adminStaffRoutes);
+// Checks (conto) + admin table detail (#15 follow-up).
+admin.route('/', adminChecksRoutes);
 
 
 admin.post('/demo/reset', ...base, async (c) => {

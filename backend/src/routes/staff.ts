@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { eq, and, asc, inArray, isNull, sql } from 'drizzle-orm';
+import { eq, and, asc, inArray, isNull } from 'drizzle-orm';
 import { requireDb } from '../middleware/db';
 import { requireStaff } from '../middleware/staff-guard';
 import { parseBody } from '../lib/validate';
@@ -100,39 +100,6 @@ staff.post('/tables/:id/session', ...staffBase, async (c) => {
   const id = crypto.randomUUID();
   await db.insert(schema.tableSessions).values({ id, tableId, openedAt: Date.now() });
   return c.json({ ok: true, sessionId: id }, 201);
-});
-
-/**
- * POST /staff/sessions/:id/close — close a session.
- * Blocked (409) while any order is still submitted/ready: the waiter must serve
- * or reject every order first. Simplest sensible rule — no silent auto-serve.
- */
-staff.post('/sessions/:id/close', ...staffBase, async (c) => {
-  const db = c.get('db');
-  const sessionId = c.req.param('id');
-
-  const [session] = await db
-    .select({ id: schema.tableSessions.id, closedAt: schema.tableSessions.closedAt })
-    .from(schema.tableSessions)
-    .where(eq(schema.tableSessions.id, sessionId))
-    .limit(1);
-  if (!session) return c.json({ error: 'Not Found' }, 404);
-  if (session.closedAt !== null) return c.json({ ok: true });
-
-  const [{ pending }] = await db
-    .select({ pending: sql<number>`count(*)` })
-    .from(schema.orders)
-    .where(and(
-      eq(schema.orders.tableSessionId, sessionId),
-      inArray(schema.orders.status, ['submitted', 'ready']),
-    ));
-  if (pending > 0) return c.json({ error: 'pending_orders', pending }, 409);
-
-  await db
-    .update(schema.tableSessions)
-    .set({ closedAt: Date.now() })
-    .where(eq(schema.tableSessions.id, sessionId));
-  return c.json({ ok: true });
 });
 
 // ── Table session detail (staff) ─────────────────────────────────────
