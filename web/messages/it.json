@@ -657,11 +657,11 @@
     "tableDetail.startOrder": "Apri ordine",
     "tableDetail.addOrder": "Aggiungi ordine",
     "tableDetail.submitOrder": "Invia ordine",
-    "tableDetail.checkOpenOrderBlocked": "Conto aperto: pagalo o annullalo prima di aggiungere ordini",
     "tableDetail.addItems": "Aggiungi articoli",
     "tableDetail.searchItems": "Cerca tutti gli articoli disponibili",
     "tableDetail.noAvailableItems": "Nessun articolo disponibile trovato.",
-    "tableDetail.submitItems": "Aggiungi articoli"
+    "tableDetail.submitItems": "Aggiungi articoli",
+    "tableDetail.checkOpenAddItemsBlocked": "Paga o annulla il conto aperto prima di aggiungere altri articoli."
   },
   "outOfStock": "ESAURITO",
   "staff": {

@@ -122,4 +122,16 @@ describe("AdminTableDetailPage", () => {
     fireEvent.click(screen.getByTestId("submit-admin-order"));
     await waitFor(() => expect(apiMocks.createAdminSessionOrder).toHaveBeenCalledWith("s1", [{ entryId: "bruschetta", quantity: 1 }]));
   });
+
+  it("blocks adding items while a check is open and offers check actions", async () => {
+    apiMocks.fetchAdminTableDetail.mockResolvedValue({ ...sessionNoCheck, currentSession: { ...sessionNoCheck.currentSession, check: openCheck } });
+    render(<AdminTableDetailPage tableId="t1" />);
+    expect(await screen.findByTestId("check-card")).toBeInTheDocument();
+    expect(screen.queryByTestId("add-order")).toBeNull();
+    expect(screen.getByTestId("add-items-blocked")).toHaveTextContent("tableDetail.checkOpenAddItemsBlocked");
+    fireEvent.click(screen.getByTestId("blocked-settle"));
+    expect(await screen.findByTestId("settle-confirm")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("blocked-void"));
+    expect(await screen.findByTestId("void-confirm")).toBeInTheDocument();
+  });
 });

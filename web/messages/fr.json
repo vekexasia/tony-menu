@@ -657,11 +657,11 @@
     "tableDetail.startOrder": "Démarrer une commande",
     "tableDetail.addOrder": "Ajouter une commande",
     "tableDetail.submitOrder": "Envoyer la commande",
-    "tableDetail.checkOpenOrderBlocked": "Addition ouverte : encaissez ou annulez avant d’ajouter des commandes",
     "tableDetail.addItems": "Ajouter des articles",
     "tableDetail.searchItems": "Rechercher les articles disponibles",
     "tableDetail.noAvailableItems": "Aucun article disponible trouvé.",
-    "tableDetail.submitItems": "Ajouter des articles"
+    "tableDetail.submitItems": "Ajouter des articles",
+    "tableDetail.checkOpenAddItemsBlocked": "Encaissez ou annulez l’addition ouverte avant d’ajouter d’autres articles."
   },
   "outOfStock": "ÉPUISÉ",
   "staff": {

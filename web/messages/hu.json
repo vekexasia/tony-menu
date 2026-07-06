@@ -657,11 +657,11 @@
     "tableDetail.startOrder": "Rendelés indítása",
     "tableDetail.addOrder": "Rendelés hozzáadása",
     "tableDetail.submitOrder": "Rendelés küldése",
-    "tableDetail.checkOpenOrderBlocked": "Nyitott számla: fizetés vagy törlés után adható hozzá rendelés",
     "tableDetail.addItems": "Tételek hozzáadása",
     "tableDetail.searchItems": "Elérhető tételek keresése",
     "tableDetail.noAvailableItems": "Nem található elérhető tétel.",
-    "tableDetail.submitItems": "Tételek hozzáadása"
+    "tableDetail.submitItems": "Tételek hozzáadása",
+    "tableDetail.checkOpenAddItemsBlocked": "Rendezze vagy érvénytelenítse a nyitott számlát, mielőtt új tételeket ad hozzá."
   },
   "outOfStock": "OUT OF STOCK",
   "staff": {
