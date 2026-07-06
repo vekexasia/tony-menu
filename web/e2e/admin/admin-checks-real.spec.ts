@@ -42,6 +42,7 @@ test.describe.serial("Checks (conto) — real backend", () => {
     await page.goto("/admin/tables/");
     const tile = page.getByTestId(`table-${SEEDED_TABLE.id}`);
     await expect(tile).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId(`table-total-${SEEDED_TABLE.id}`)).toHaveText(/15,00/);
     await tile.click();
     await expect(page).toHaveURL(new RegExp(`/admin/tables/detail/?\\?tableId=${SEEDED_TABLE.id}`));
 
@@ -55,6 +56,12 @@ test.describe.serial("Checks (conto) — real backend", () => {
     await expect(page.getByTestId("check-card")).toBeVisible();
     await expect(page.getByTestId("add-items-blocked")).toContainText(/paga o annulla|settle or void/i);
     await expect(page.getByTestId("add-order")).toHaveCount(0);
+
+    await page.goto("/admin/tables/");
+    await expect(page.getByTestId(`table-check-${SEEDED_TABLE.id}`)).toHaveText(/conto|check/i);
+    await expect(page.getByTestId(`table-total-${SEEDED_TABLE.id}`)).toHaveText(/15,00/);
+    await page.getByTestId(`table-${SEEDED_TABLE.id}`).click();
+    await expect(page).toHaveURL(new RegExp(`/admin/tables/detail/?\\?tableId=${SEEDED_TABLE.id}`));
     await expect(page.getByTestId("check-total")).toHaveText(/15,00/);
 
     // Apply a 10% discount; total updates to 13,50.
@@ -72,7 +79,7 @@ test.describe.serial("Checks (conto) — real backend", () => {
     await settleRes;
 
     await expect(page.getByTestId("table-free")).toBeVisible();
-    await expect(page.getByText("Pagato").first()).toBeVisible();
+    await expect(page.getByText(/Pagato|Paid/).first()).toBeVisible();
   });
   test("admin adds searchable items from the table page", async ({ page, request }) => {
     await seedSessionWithOrder(request);

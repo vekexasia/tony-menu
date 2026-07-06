@@ -661,7 +661,8 @@
     "tableDetail.searchItems": "Zoek beschikbare items",
     "tableDetail.noAvailableItems": "Geen beschikbare items gevonden.",
     "tableDetail.submitItems": "Items toevoegen",
-    "tableDetail.checkOpenAddItemsBlocked": "Reken de open bon af of annuleer deze voordat je meer items toevoegt."
+    "tableDetail.checkOpenAddItemsBlocked": "Reken de open bon af of annuleer deze voordat je meer items toevoegt.",
+    "tables.checkOpen": "Rekening"
   },
   "outOfStock": "UITVERKOCHT",
   "staff": {

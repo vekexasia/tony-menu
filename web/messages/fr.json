@@ -661,7 +661,8 @@
     "tableDetail.searchItems": "Rechercher les articles disponibles",
     "tableDetail.noAvailableItems": "Aucun article disponible trouvé.",
     "tableDetail.submitItems": "Ajouter des articles",
-    "tableDetail.checkOpenAddItemsBlocked": "Encaissez ou annulez l’addition ouverte avant d’ajouter d’autres articles."
+    "tableDetail.checkOpenAddItemsBlocked": "Encaissez ou annulez l’addition ouverte avant d’ajouter d’autres articles.",
+    "tables.checkOpen": "Note"
   },
   "outOfStock": "ÉPUISÉ",
   "staff": {

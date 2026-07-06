@@ -111,6 +111,9 @@ export interface FloorTable {
 /** Admin floor state: a FloorTable that also carries the active flag (inactive tables show dimmed). */
 export interface AdminFloorTable extends FloorTable {
   active: boolean;
+  provisionalTotal: number;
+  checkStatus: 'open' | 'settled' | 'voided' | null;
+  checkTotal: number | null;
 }
 
 export interface StaffOrderItem {

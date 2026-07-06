@@ -19,6 +19,8 @@ export type FloorTile = {
   active?: boolean; // admin: dim inactive tables
   sessionId?: string | null; // staff: open session state
   oldestSubmittedAt?: number | null; // staff: oldest submitted order timestamp
+  totalLabel?: string | null;
+  checkLabel?: string | null;
 };
 
 type Visual = { color: "gray" | "green" | "amber" | "red"; minutes: number | null };
@@ -142,6 +144,8 @@ export function FloorCanvas({ tiles, editable, now = Date.now(), busyId, pannabl
             {visual?.minutes != null && (
               <span data-testid={`table-mins-${tile.id}`} className="text-xs font-semibold">{visual.minutes}m</span>
             )}
+            {tile.totalLabel && <span data-testid={`table-total-${tile.id}`} className="text-[11px] font-semibold">{tile.totalLabel}</span>}
+            {tile.checkLabel && <span data-testid={`table-check-${tile.id}`} className="text-[10px] rounded-full bg-white/70 px-1.5 font-semibold">{tile.checkLabel}</span>}
           </button>
         );
       })}

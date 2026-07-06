@@ -530,12 +530,21 @@ describe('/admin/floor payload (#15)', () => {
 
     const res = await testRequest('/admin/floor', { headers: await adminHeaders(), env: adminEnv(db) });
     expect(res.status).toBe(200);
-    const body = (await res.json()) as { areas: Array<{ id: string }>; tables: Array<{ id: string; active: boolean; sessionId: string | null; oldestSubmittedAt: number | null }> };
+    const body = (await res.json()) as { areas: Array<{ id: string }>; tables: Array<{ id: string; active: boolean; sessionId: string | null; oldestSubmittedAt: number | null; provisionalTotal: number }> };
     expect(body.areas).toEqual([{ id: 'area-1', name: 'Sala', sortOrder: 0 }]);
     const row = body.tables.find((t) => t.id === 'table-1')!;
     expect(row.sessionId).toBe(sessionId);
     expect(row.oldestSubmittedAt).toEqual(expect.any(Number));
     expect(row.active).toBe(true);
+    expect(row.provisionalTotal).toBe(750);
+
+    const checkRes = await testRequest(`/admin/sessions/${sessionId}/check`, { method: 'POST', headers: await adminHeaders(), env: adminEnv(db) });
+    expect(checkRes.status).toBe(201);
+    const checkedRes = await testRequest('/admin/floor', { headers: await adminHeaders(), env: adminEnv(db) });
+    const checkedBody = (await checkedRes.json()) as { tables: Array<{ id: string; checkStatus: string | null; checkTotal: number | null }> };
+    const checkedRow = checkedBody.tables.find((t) => t.id === 'table-1')!;
+    expect(checkedRow.checkStatus).toBe('open');
+    expect(checkedRow.checkTotal).toBe(750);
   });
 
   it('includes inactive tables (admin) while /staff/floor excludes them', async () => {

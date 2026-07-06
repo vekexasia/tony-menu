@@ -12,6 +12,7 @@ import { FloorCanvas, type FloorTile } from "@/components/floor/FloorCanvas";
 import type { TableShape } from "@menu/schemas";
 
 const POLL_MS = 10_000;
+const money = (cents: number) => (cents / 100).toLocaleString("it-IT", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 /**
  * Admin tables (#15): canvas-first, colour-coded like the staff floor. Default mode
@@ -101,6 +102,7 @@ export default function TablesPage() {
       setTables((prev) => [...prev, {
         id: res.id, name: trimmed, active: true, areaId: activeArea, x: 25, y: 25, shape: tableShape,
         sessionId: null, openedAt: null, orderCount: 0, readyCount: 0, oldestSubmittedAt: null,
+        provisionalTotal: 0, checkStatus: null, checkTotal: null,
       }]);
       setTableName("");
     } catch (err) {
@@ -167,6 +169,8 @@ export default function TablesPage() {
   const tiles: FloorTile[] = areaTables.map((tb) => ({
     id: tb.id, name: tb.name, x: tb.x, y: tb.y, shape: tb.shape, active: tb.active,
     sessionId: tb.sessionId, oldestSubmittedAt: tb.oldestSubmittedAt,
+    totalLabel: tb.checkTotal != null ? money(tb.checkTotal) : tb.provisionalTotal > 0 ? `≈${money(tb.provisionalTotal)}` : null,
+    checkLabel: tb.checkStatus === "open" ? t("tables.checkOpen") : null,
   }));
   const selected = areaTables.find((tb) => tb.id === selectedId) ?? null;
 
