@@ -55,18 +55,20 @@ export function createApp() {
   // Request logging
   app.use('*', requestLogger);
 
-  // Rate limiting (200 req/min per IP for admin routes)
-  app.use('/admin/*', rateLimit(200, 60_000));
-  // Stricter limit for view tracking — 60 req/min per IP
+  // Rate limiting: public write endpoints only. /admin/* is behind Cloudflare
+  // Access and /staff/* requires a session token (token consumption has its own
+  // limiter in routes/staff.ts), so neither needs a blanket per-IP limit — one
+  // shared venue IP was exhausting the budget and 429ing the admin UI.
+  // Scopes keep each mount's budget separate: without them /catalog/view
+  // traffic would fill the shared per-IP counter and block order submits.
+  // Stricter limit for view tracking — 60 req/min per IP.
   // Primary DoS protection; DB UNIQUE constraint catches any that slip through.
-  app.use('/catalog/view', rateLimit(60, 60_000));
+  app.use('/catalog/view', rateLimit('view', 60, 60_000));
   // Public order submit — 10 req/min per IP; idempotency key dedupes retries.
-  app.use('/orders', rateLimit(10, 60_000));
+  app.use('/orders', rateLimit('orders', 10, 60_000));
   // Waiter-handoff intent creation (#19) — same budget, separate mount because
   // Hono's '/orders' middleware does not match subpaths.
-  app.use('/orders/intents', rateLimit(10, 60_000));
-  // Staff session actions (waiter mode, #15) — generous per-IP budget.
-  app.use('/staff/*', rateLimit(200, 60_000));
+  app.use('/orders/intents', rateLimit('orders', 10, 60_000));
 
   // Runtime config parsing
   app.use('*', async (c, next) => {

@@ -32,15 +32,17 @@ export const requestLogger = createMiddleware<AppBindings>(async (c, next) => {
 /**
  * Per-IP rate limiter using Cloudflare's cf-connecting-ip.
  * Delegates to the shared sliding-window limiter in lib/rate-limit.
+ * `scope` keeps each mount's budget separate — without it all mounts share
+ * one per-IP counter and staff/customer traffic starves the admin budget.
  */
-export function rateLimit(maxRequests: number, windowMs: number) {
+export function rateLimit(scope: string, maxRequests: number, windowMs: number) {
   return createMiddleware<AppBindings>(async (c, next) => {
     if (c.env?.E2E_MODE === 'true') {
       await next();
       return;
     }
     const ip = c.req.header('cf-connecting-ip') || 'unknown';
-    const limited = checkRateLimit(`ip:${ip}`, maxRequests, windowMs);
+    const limited = checkRateLimit(`ip:${scope}:${ip}`, maxRequests, windowMs);
     if (limited) return limited;
     await next();
   });

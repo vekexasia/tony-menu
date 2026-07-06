@@ -33,7 +33,7 @@ describe('checkRateLimit (lib/rate-limit)', () => {
 describe('rateLimit middleware (middleware/logging)', () => {
   function appWith(max: number, windowMs: number) {
     const app = new Hono();
-    app.use('*', rateLimit(max, windowMs));
+    app.use('*', rateLimit(`test-${max}-${windowMs}`, max, windowMs));
     app.get('/', (c) => c.text('ok'));
     return app;
   }
@@ -59,5 +59,17 @@ describe('rateLimit middleware (middleware/logging)', () => {
     expect((await app.fetch(req(ip))).status).toBe(429);
     vi.setSystemTime(new Date('2026-02-01T00:00:02Z'));
     expect((await app.fetch(req(ip))).status).toBe(200);
+  });
+
+  it('scopes budgets per mount — exhausting one scope leaves another intact', async () => {
+    const app = new Hono();
+    app.use('/a/*', rateLimit('scope-a', 1, 60_000));
+    app.use('/b/*', rateLimit('scope-b', 1, 60_000));
+    app.get('/a/x', (c) => c.text('ok'));
+    app.get('/b/x', (c) => c.text('ok'));
+    const hit = (p: string) => app.fetch(new Request(`https://test.local${p}`, { headers: { 'cf-connecting-ip': 'mw-ip-3' } }));
+    expect((await hit('/a/x')).status).toBe(200);
+    expect((await hit('/a/x')).status).toBe(429);
+    expect((await hit('/b/x')).status).toBe(200);
   });
 });
