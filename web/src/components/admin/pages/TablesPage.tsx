@@ -111,7 +111,7 @@ export default function TablesPage() {
   // Default mode: tap navigates to the table page. Edit mode: tap opens the action panel.
   const onTileTap = (tile: FloorTile) => {
     if (!editMode) {
-      router.push(`/admin/tables/${tile.id}`);
+      router.push(`/admin/tables/detail?tableId=${encodeURIComponent(tile.id)}`);
       return;
     }
     const table = tables.find((tb) => tb.id === tile.id);

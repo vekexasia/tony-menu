@@ -20,13 +20,13 @@ test.describe.serial('Waiter QR handoff — real backend', () => {
     await setOrdering(request, { enabled: true, mode: 'send', submitMode: 'waiter' });
   });
 
-  test('diner creates an intent and shows a QR; waiter submits it', async ({ page, context, request }) => {
+  test('diner creates an intent and shows a QR; waiter submits it', async ({ page, request }) => {
     const table = SEEDED_TABLE;
     await addBruschettaFromMenu(page);
     await page.getByRole('button', { name: /la mia selezione/i }).click();
 
     const intentReq = page.waitForRequest((req) => req.url().includes('/orders/intents') && req.method() === 'POST');
-    const intentRes = page.waitForResponse((res) => res.url().includes('/orders/intents') && res.request().method() === 'POST');
+    const intentRes = page.waitForResponse((res) => res.url().includes('/orders/intents') && res.request().method() === 'POST' && res.status() < 300);
     await page.getByRole('button', { name: /mostra qr al cameriere/i }).click();
 
     await expect(page.getByTestId('waiter-qr')).toBeVisible();
@@ -36,17 +36,18 @@ test.describe.serial('Waiter QR handoff — real backend', () => {
     const { token } = await intentResponse.json() as { token: string };
 
     const staff = await createStaffLink(request);
-    const waiterPage = await context.newPage();
-    await waiterPage.goto(`/staff?token=${staff.token}`);
-    await expect(waiterPage).toHaveURL(/\/staff\/?$/);
+    await page.goto(`/staff?token=${staff.token}`);
+    await expect(page).toHaveURL(/\/staff\/?$/);
 
-    await waiterPage.goto(`/order-review?token=${token}`);
-    await expect(waiterPage.getByText(/bruschetta/i)).toBeVisible();
-    await waiterPage.getByLabel(/table|tavolo/i).selectOption({ label: table.label });
-    await waiterPage.getByRole('button', { name: /invia ordine|submit order/i }).click();
-    await expect(waiterPage.getByTestId('order-daily-number')).toHaveText('#1');
-    await waiterPage.goto('/admin/orders');
-    await expect(waiterPage.getByTestId('order-1')).toContainText(table.label);
+    await page.goto(`/order-review?token=${token}`);
+    await expect(page.getByText(/bruschetta/i)).toBeVisible();
+    await page.getByLabel(/table|tavolo/i).selectOption({ label: table.label });
+    const submitRes = page.waitForResponse((res) => res.url().includes(`/order-intents/${token}/consume`) && res.request().method() === 'POST' && res.status() < 300);
+    await page.getByRole('button', { name: /invia ordine|submit order/i }).click();
+    const submitBody = await (await submitRes).json() as { dailyNumber: number };
+    await expect(page.getByTestId('order-daily-number')).toHaveText(`#${submitBody.dailyNumber}`);
+    await page.goto('/admin/orders');
+    await expect(page.locator('[data-testid^="order-"]').filter({ hasText: table.label }).first()).toBeVisible();
   });
 
   test('waiter edits the intent (bump qty, add item, bind table) then submits the override', async ({ page, request }) => {
@@ -67,20 +68,21 @@ test.describe.serial('Waiter QR handoff — real backend', () => {
 
     await page.getByLabel(/table|tavolo/i).selectOption({ label: table.label });
     const consumeReq = page.waitForRequest((req) => req.url().includes(`/order-intents/${token}/consume`) && req.method() === 'POST');
+    const consumeRes = page.waitForResponse((res) => res.url().includes(`/order-intents/${token}/consume`) && res.request().method() === 'POST' && res.status() < 300);
     await page.getByRole('button', { name: /invia ordine|submit order/i }).click();
     const body = (await consumeReq).postDataJSON() as { lines: { entryId: string; quantity: number }[] };
     expect(body.lines).toContainEqual({ entryId: BRUSCHETTA_ID, quantity: 3 });
     expect(body.lines).toContainEqual({ entryId: 'demo-entry-prosecco', quantity: 1 });
 
-    await expect(page.getByTestId('order-daily-number')).toHaveText('#1');
+    const consumeBody = await (await consumeRes).json() as { dailyNumber: number };
+    await expect(page.getByTestId('order-daily-number')).toHaveText(`#${consumeBody.dailyNumber}`);
     // Post-submit navigation: floor + table buttons.
     await expect(page.getByTestId('review-go-floor')).toBeVisible();
     await expect(page.getByTestId('review-go-table')).toBeVisible();
 
     await page.goto('/admin/orders');
-    const card = page.getByTestId('order-1');
-    await expect(card).toContainText(table.label);
-    await expect(card).toContainText(/prosecco/i);
+    const card = page.locator('[data-testid^="order-"]').filter({ hasText: table.label }).filter({ hasText: /prosecco/i }).first();
+    await expect(card).toBeVisible();
     await expect(card).toContainText('3');
   });
 

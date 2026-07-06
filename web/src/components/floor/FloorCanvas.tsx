@@ -77,7 +77,7 @@ export function FloorCanvas({ tiles, editable, now = Date.now(), busyId, pannabl
   const onPointerMove = (e: React.PointerEvent) => {
     if (!drag) return;
     const p = toCanvas(e.clientX, e.clientY);
-    setDrag({ id: drag.id, x: p.x, y: p.y });
+    setDrag({ ...drag, x: p.x, y: p.y });
   };
 
   const onPointerUp = (e: React.PointerEvent) => {

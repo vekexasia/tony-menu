@@ -47,13 +47,13 @@ export function FloorView() {
     const table = tables.find((tb) => tb.id === tile.id);
     if (!table) return;
     if (table.sessionId) {
-      router.push(`/staff/table/${table.sessionId}`);
+      router.push(`/staff/table?sessionId=${encodeURIComponent(table.sessionId)}`);
       return;
     }
     setBusy(tile.id);
     try {
       const { sessionId } = await openTableSession(tile.id);
-      router.push(`/staff/table/${sessionId}`);
+      router.push(`/staff/table?sessionId=${encodeURIComponent(sessionId)}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
       setBusy(null);

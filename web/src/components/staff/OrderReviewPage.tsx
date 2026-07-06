@@ -170,7 +170,7 @@ export default function OrderReviewPage() {
             </Link>
             {submittedSessionId && (
               <Link
-                href={`/staff/table/${submittedSessionId}`}
+                href={`/staff/table?sessionId=${encodeURIComponent(submittedSessionId)}`}
                 className="w-full py-3 rounded-full bg-white border border-primary text-primary font-semibold"
                 data-testid="review-go-table"
               >

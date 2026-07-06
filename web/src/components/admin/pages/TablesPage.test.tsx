@@ -69,7 +69,7 @@ describe("TablesPage", () => {
     render(<TablesPage />);
     const tile = await screen.findByTestId("table-t1");
     fireEvent.click(tile);
-    expect(routerPush).toHaveBeenCalledWith("/admin/tables/t1");
+    expect(routerPush).toHaveBeenCalledWith("/admin/tables/detail?tableId=t1");
   });
 
   it("hides the edit UI by default and reveals it via the toggle", async () => {

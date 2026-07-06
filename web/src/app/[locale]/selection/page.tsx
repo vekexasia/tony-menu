@@ -1,5 +1,10 @@
+import { Suspense } from 'react';
 import { SelectionPageClient } from './SelectionPageClient';
 
 export default function SelectionPage() {
-  return <SelectionPageClient />;
+  return (
+    <Suspense fallback={null}>
+      <SelectionPageClient />
+    </Suspense>
+  );
 }

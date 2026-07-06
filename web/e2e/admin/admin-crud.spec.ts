@@ -71,6 +71,6 @@ test.describe("Admin CRUD smoke", () => {
     await page.getByRole("button", { name: "Salva modifiche" }).click();
 
     const req = await putRequest;
-    expect(req.url()).toContain("localhost:8787");
+    expect(req.url()).toContain("/admin/categories/");
   });
 });

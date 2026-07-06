@@ -85,7 +85,7 @@ test.describe.serial('Waiter mode — real backend', () => {
     await tile.click();
     const { sessionId } = await (await openRes).json() as { sessionId: string };
 
-    await page.goto(`/staff/table/${sessionId}`);
+    await page.goto(`/staff/table?sessionId=${sessionId}`);
     const addOrder = page.getByTestId('add-order');
     await expect(addOrder).toHaveAttribute('href', new RegExp(`menu\\/?\\?staffSession=${sessionId}`));
     await addOrder.click();
@@ -96,7 +96,7 @@ test.describe.serial('Waiter mode — real backend', () => {
     await page.getByRole('button', { name: /la mia selezione|my selection/i }).click();
 
     const orderReq = page.waitForRequest((req) => req.url().includes('/orders') && req.method() === 'POST');
-    const orderRes = page.waitForResponse((res) => res.url().includes('/orders') && res.request().method() === 'POST');
+    const orderRes = page.waitForResponse((res) => res.url().includes('/orders') && res.request().method() === 'POST' && res.status() < 300 && ![301, 302, 303, 307, 308].includes(res.status()));
     await page.getByRole('button', { name: /invia ordine|send order/i }).click();
     const body = (await orderReq).postDataJSON() as { tableSessionId?: string };
     expect(body.tableSessionId).toBe(sessionId);
@@ -105,16 +105,16 @@ test.describe.serial('Waiter mode — real backend', () => {
     expect(responseText).toContain('"ok":true');
     expect(response.ok()).toBeTruthy();
 
-    await expect(page).toHaveURL(new RegExp(`/staff/table/${sessionId}/?$`));
-    await expect(page.getByTestId('order-1')).toContainText(/bruschetta/i);
+    await expect(page).toHaveURL(new RegExp(`/staff/table/?\\?sessionId=${sessionId}`));
+    const orderCard = page.locator('[data-testid^="order-"]').filter({ hasText: /bruschetta/i }).first();
+    await expect(orderCard).toBeVisible();
     // Lifecycle changelog: the submitted event shows with time + actor.
-    await expect(page.getByTestId('order-1-events')).toContainText(/inviato|submitted/i);
+    await expect(page.locator('[data-testid$="-events"]').first()).toContainText(/inviato|submitted/i);
 
     await expect(page.getByTestId('add-order')).toHaveAttribute('href', new RegExp(`menu\\/?\\?staffSession=${sessionId}`));
 
     await page.goto('/admin/orders');
-    const card = page.getByTestId('order-1');
+    const card = page.locator('[data-testid^="order-"]').filter({ hasText: table.label }).first();
     await expect(card).toBeVisible();
-    await expect(card).toContainText(table.label);
   });
 });

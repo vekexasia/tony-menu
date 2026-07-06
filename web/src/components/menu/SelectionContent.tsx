@@ -129,7 +129,7 @@ export function SelectionContent({ onClose }: { onClose?: () => void }) {
       clear();
       if (staffSession) {
         // Append-only: back to the table, where the new order shows in the session.
-        router.push(`/staff/table/${staffSession}`);
+        router.push(`/staff/table?sessionId=${encodeURIComponent(staffSession)}`);
         return;
       }
       setSentNumber(result.dailyNumber);

@@ -85,12 +85,12 @@ test.describe("D1 catalog — frontend", () => {
     expect(apiErrors).toHaveLength(0);
   });
 
-  test("frontend hits localhost:8787 for catalog (not Firestore)", async ({
+  test("frontend hits the backend catalog endpoint (not Firestore)", async ({
     page,
   }) => {
     const apiRequests: string[] = [];
     page.on("request", (req) => {
-      if (req.url().includes("localhost:8787")) {
+      if (req.url().includes("/catalog")) {
         apiRequests.push(req.url());
       }
     });

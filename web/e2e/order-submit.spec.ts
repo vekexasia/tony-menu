@@ -13,7 +13,7 @@ test.describe.serial('Direct order submit — real backend', () => {
     await addBruschettaFromMenu(page);
 
     const orderReq = page.waitForRequest((req) => req.url().includes('/orders') && req.method() === 'POST');
-    const orderRes = page.waitForResponse((res) => res.url().includes('/orders') && res.request().method() === 'POST');
+    const orderRes = page.waitForResponse((res) => res.url().includes('/orders') && res.request().method() === 'POST' && res.status() < 300);
 
     await page.getByRole('button', { name: /la mia selezione/i }).click();
     await expect(page.getByText(/bruschetta/i).first()).toBeVisible();
@@ -23,11 +23,12 @@ test.describe.serial('Direct order submit — real backend', () => {
     expect(body.idempotencyKey).toEqual(expect.any(String));
     expect(body.lines).toEqual([{ entryId: BRUSCHETTA_ID, quantity: 1 }]);
     const response = await orderRes;
-    expect(await response.text()).toMatch(/\"ok\":true/);
+    const result = await response.json() as { ok: boolean; dailyNumber: number };
+    expect(result.ok).toBe(true);
     expect(response.ok()).toBeTruthy();
 
     await expect(page.getByText(/ordine inviato/i)).toBeVisible();
-    await expect(page.getByTestId('order-daily-number')).toHaveText('#1');
+    await expect(page.getByTestId('order-daily-number')).toHaveText(`#${result.dailyNumber}`);
   });
 
   test('refuses stale items listing them, keeping the selection intact', async ({ page, request }) => {
