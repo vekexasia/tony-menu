@@ -661,7 +661,8 @@
     "tableDetail.searchItems": "Cerca tutti gli articoli disponibili",
     "tableDetail.noAvailableItems": "Nessun articolo disponibile trovato.",
     "tableDetail.submitItems": "Aggiungi articoli",
-    "tableDetail.checkOpenAddItemsBlocked": "Paga o annulla il conto aperto prima di aggiungere altri articoli."
+    "tableDetail.checkOpenAddItemsBlocked": "Paga o annulla il conto aperto prima di aggiungere altri articoli.",
+    "tables.checkOpen": "Conto"
   },
   "outOfStock": "ESAURITO",
   "staff": {

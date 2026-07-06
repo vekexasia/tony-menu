@@ -661,7 +661,8 @@
     "tableDetail.searchItems": "Alle verfügbaren Artikel suchen",
     "tableDetail.noAvailableItems": "Keine verfügbaren Artikel gefunden.",
     "tableDetail.submitItems": "Artikel hinzufügen",
-    "tableDetail.checkOpenAddItemsBlocked": "Begleiche oder storniere die offene Rechnung, bevor du weitere Artikel hinzufügst."
+    "tableDetail.checkOpenAddItemsBlocked": "Begleiche oder storniere die offene Rechnung, bevor du weitere Artikel hinzufügst.",
+    "tables.checkOpen": "Rechnung"
   },
   "outOfStock": "AUSVERKAUFT",
   "staff": {

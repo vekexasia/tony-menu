@@ -661,7 +661,8 @@
     "tableDetail.searchItems": "Elérhető tételek keresése",
     "tableDetail.noAvailableItems": "Nem található elérhető tétel.",
     "tableDetail.submitItems": "Tételek hozzáadása",
-    "tableDetail.checkOpenAddItemsBlocked": "Rendezze vagy érvénytelenítse a nyitott számlát, mielőtt új tételeket ad hozzá."
+    "tableDetail.checkOpenAddItemsBlocked": "Rendezze vagy érvénytelenítse a nyitott számlát, mielőtt új tételeket ad hozzá.",
+    "tables.checkOpen": "Számla"
   },
   "outOfStock": "OUT OF STOCK",
   "staff": {

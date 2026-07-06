@@ -34,17 +34,51 @@ export async function buildFloorState(db: DbInstance, includeInactive: boolean) 
   const sessionIds = openSessions.map((s) => s.id);
   const orderRows = sessionIds.length > 0
     ? await db
-        .select({ tableSessionId: schema.orders.tableSessionId, status: schema.orders.status, createdAt: schema.orders.createdAt })
+        .select({ id: schema.orders.id, tableSessionId: schema.orders.tableSessionId, status: schema.orders.status, createdAt: schema.orders.createdAt })
         .from(schema.orders)
         .where(inArray(schema.orders.tableSessionId, sessionIds))
     : [];
 
-  const counts = new Map<string, { orderCount: number; readyCount: number; oldestSubmittedAt: number | null }>();
+  const orderIds = orderRows.map((o) => o.id);
+  const itemRows = includeInactive && orderIds.length > 0
+    ? await db
+        .select({ orderId: schema.orderItems.orderId, price: schema.orderItems.price, quantity: schema.orderItems.quantity })
+        .from(schema.orderItems)
+        .where(inArray(schema.orderItems.orderId, orderIds))
+    : [];
+  const orderTotal = new Map<string, number>();
+  for (const item of itemRows) orderTotal.set(item.orderId, (orderTotal.get(item.orderId) ?? 0) + item.price * item.quantity);
+
+  const checks = includeInactive && sessionIds.length > 0
+    ? await db
+        .select()
+        .from(schema.checks)
+        .where(inArray(schema.checks.tableSessionId, sessionIds))
+    : [];
+  const checkBySession = new Map<string, typeof checks[number]>();
+  for (const check of checks) {
+    const prev = checkBySession.get(check.tableSessionId);
+    if (!prev || check.createdAt > prev.createdAt) checkBySession.set(check.tableSessionId, check);
+  }
+
+  const checkTotal = (check: typeof checks[number]): number => {
+    const lines = check.lines ?? [];
+    const adjustments = check.adjustments ?? [];
+    const subtotal = lines.reduce((sum, line) => sum + line.quantity * line.unitPrice, 0);
+    const discount = check.discount
+      ? check.discount.type === 'percent' ? Math.round(subtotal * check.discount.value / 100) : check.discount.value
+      : 0;
+    const adjusted = subtotal - discount + adjustments.reduce((sum, a) => sum + a.amount, 0);
+    return Math.max(0, adjusted);
+  };
+
+  const counts = new Map<string, { orderCount: number; readyCount: number; oldestSubmittedAt: number | null; provisionalTotal: number }>();
   for (const o of orderRows) {
     if (!o.tableSessionId) continue;
-    const c = counts.get(o.tableSessionId) ?? { orderCount: 0, readyCount: 0, oldestSubmittedAt: null };
+    const c = counts.get(o.tableSessionId) ?? { orderCount: 0, readyCount: 0, oldestSubmittedAt: null, provisionalTotal: 0 };
     // "Open orders" = anything not served/rejected; "ready" = ready to serve.
     if (o.status === 'submitted' || o.status === 'ready') c.orderCount++;
+    if (o.status !== 'rejected') c.provisionalTotal += orderTotal.get(o.id) ?? 0;
     if (o.status === 'ready') c.readyCount++;
     if (o.status === 'submitted' && (c.oldestSubmittedAt === null || o.createdAt < c.oldestSubmittedAt)) {
       c.oldestSubmittedAt = o.createdAt;
@@ -69,6 +103,11 @@ export async function buildFloorState(db: DbInstance, includeInactive: boolean) 
         x: t.x,
         y: t.y,
         shape: t.shape,
+        ...(includeInactive ? {
+          provisionalTotal: count?.provisionalTotal ?? 0,
+          checkStatus: session ? checkBySession.get(session.id)?.status ?? null : null,
+          checkTotal: session && checkBySession.has(session.id) ? checkTotal(checkBySession.get(session.id)!) : null,
+        } : {}),
         oldestSubmittedAt: count?.oldestSubmittedAt ?? null,
       };
     }),

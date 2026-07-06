@@ -32,8 +32,8 @@ const areas = [
 const base = { openedAt: null, orderCount: 0, readyCount: 0 };
 const tables = [
   // t1: green (open, no submitted); t2 lives in another area.
-  { id: "t1", name: "1", active: true, areaId: "a1", x: 50, y: 50, shape: "rect" as const, sessionId: "s1", oldestSubmittedAt: null, ...base },
-  { id: "t2", name: "2", active: true, areaId: "a2", x: 50, y: 50, shape: "circle" as const, sessionId: null, oldestSubmittedAt: null, ...base },
+  { id: "t1", name: "1", active: true, areaId: "a1", x: 50, y: 50, shape: "rect" as const, sessionId: "s1", oldestSubmittedAt: null, provisionalTotal: 1500, checkStatus: null, checkTotal: null, ...base },
+  { id: "t2", name: "2", active: true, areaId: "a2", x: 50, y: 50, shape: "circle" as const, sessionId: null, oldestSubmittedAt: null, provisionalTotal: 0, checkStatus: null, checkTotal: null, ...base },
 ];
 
 beforeEach(() => {
@@ -55,6 +55,7 @@ describe("TablesPage", () => {
     expect(tile).toBeInTheDocument();
     expect(tile.className).toContain("bg-green-100");
     expect(screen.queryByTestId("table-t2")).toBeNull();
+    expect(screen.getByTestId("table-total-t1")).toHaveTextContent("15,00");
   });
 
   it("switches the visible tables when another area tab is clicked", async () => {
@@ -70,6 +71,14 @@ describe("TablesPage", () => {
     const tile = await screen.findByTestId("table-t1");
     fireEvent.click(tile);
     expect(routerPush).toHaveBeenCalledWith("/admin/tables/detail?tableId=t1");
+  });
+
+  it("shows an open-check badge and check total on admin floor tiles", async () => {
+    apiMocks.fetchAdminFloor.mockResolvedValue({ areas, tables: [{ ...tables[0], checkStatus: "open", checkTotal: 1350 }] });
+    render(<TablesPage />);
+    await screen.findByTestId("area-tab-a1");
+    expect(screen.getByTestId("table-total-t1")).toHaveTextContent("13,50");
+    expect(screen.getByTestId("table-check-t1")).toHaveTextContent("tables.checkOpen");
   });
 
   it("hides the edit UI by default and reveals it via the toggle", async () => {

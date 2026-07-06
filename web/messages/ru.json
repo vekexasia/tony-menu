@@ -661,7 +661,8 @@
     "tableDetail.searchItems": "Поиск доступных позиций",
     "tableDetail.noAvailableItems": "Доступные позиции не найдены.",
     "tableDetail.submitItems": "Добавить позиции",
-    "tableDetail.checkOpenAddItemsBlocked": "Оплатите или аннулируйте открытый счёт перед добавлением новых позиций."
+    "tableDetail.checkOpenAddItemsBlocked": "Оплатите или аннулируйте открытый счёт перед добавлением новых позиций.",
+    "tables.checkOpen": "Счет"
   },
   "outOfStock": "НЕТ В НАЛИЧИИ",
   "staff": {
