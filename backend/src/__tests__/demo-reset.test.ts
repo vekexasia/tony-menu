@@ -92,12 +92,12 @@ describe('demo reset', () => {
     const liveDests = db.raw.prepare("SELECT DISTINCT oid.destination_id d FROM order_item_destinations oid JOIN order_items oi ON oi.id = oid.order_item_id JOIN orders o ON o.id = oi.order_id WHERE o.table_session_id = ?").all(live[0].id) as { d: string }[];
     expect(liveDests.map((r) => r.d).sort()).toEqual(['demo-dest-bar', 'demo-dest-cucina']);
 
-    // Every other table (9) has 4 closed sessions, each with a settled check.
+    // Every table has 4 closed sessions, each with a settled check (Sala 2 also has its live session).
     const closed = db.raw.prepare("SELECT table_id, count(*) c FROM table_sessions WHERE closed_at IS NOT NULL GROUP BY table_id").all() as { table_id: string; c: number }[];
-    expect(closed).toHaveLength(9);
+    expect(closed).toHaveLength(10);
     for (const row of closed) expect(row.c, row.table_id).toBe(4);
     const settled = db.raw.prepare("SELECT count(*) c FROM checks WHERE status = 'settled'").get() as { c: number };
-    expect(settled.c).toBe(36);
+    expect(settled.c).toBe(40);
 
     // Daily numbers are unique per order_day.
     const clash = db.raw.prepare('SELECT order_day, count(*) c, count(DISTINCT daily_number) d FROM orders GROUP BY order_day HAVING c != d').all();

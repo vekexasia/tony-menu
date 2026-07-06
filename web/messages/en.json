@@ -653,7 +653,11 @@
     "tableDetail.reprint": "Reprint",
     "tableDetail.checkStatus.settled": "Paid",
     "tableDetail.checkStatus.voided": "Voided",
-    "orderReview.checkOpen": "This table has an open check"
+    "orderReview.checkOpen": "This table has an open check",
+    "tableDetail.startOrder": "Start order",
+    "tableDetail.addOrder": "Add order",
+    "tableDetail.submitOrder": "Send order",
+    "tableDetail.checkOpenOrderBlocked": "Open check: settle or void it before adding orders"
   },
   "outOfStock": "OUT OF STOCK",
   "staff": {

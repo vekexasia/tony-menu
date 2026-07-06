@@ -58,7 +58,7 @@ import type {
   UpdateCheckBody,
 } from '@menu/schemas';
 
-export type { CatalogResponse, MeResponse, AnalyticsResponse, ViewedItemRanked, MenuViewBreakdown, HourlyTotal };
+export type { CatalogResponse, MeResponse, AnalyticsResponse, ViewedItemRanked, MenuViewBreakdown, HourlyTotal, SubmitOrderLine };
 export type { StaffLinkSummary, Area, AdminTable, FloorTable, AdminFloorTable, TableSessionDetail, ConsumeStaffLinkResponse, AdminTableDetail, CheckDTO } from '@menu/schemas';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
@@ -325,6 +325,14 @@ export function voidCheck(checkId: string) {
 
 export function adminCloseSession(sessionId: string) {
   return apiFetch<{ ok: true }>(`/admin/sessions/${encodeURIComponent(sessionId)}/close`, { method: 'POST', auth: true });
+}
+
+export function openAdminTableSession(tableId: string) {
+  return apiFetch<{ ok: true; sessionId: string }>(`/admin/tables/${encodeURIComponent(tableId)}/session`, { method: 'POST', auth: true });
+}
+
+export function createAdminSessionOrder(sessionId: string, lines: SubmitOrderLine[]) {
+  return apiFetch<SubmitOrderResponse>(`/admin/sessions/${encodeURIComponent(sessionId)}/orders`, { method: 'POST', body: { lines }, auth: true });
 }
 
 /** Fetch an authenticated admin catalog preview, including draft/hidden items. */

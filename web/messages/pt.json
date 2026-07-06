@@ -653,7 +653,11 @@
     "tableDetail.reprint": "Reimprimir",
     "tableDetail.checkStatus.settled": "Pago",
     "tableDetail.checkStatus.voided": "Anulada",
-    "orderReview.checkOpen": "Esta mesa tem uma conta aberta"
+    "orderReview.checkOpen": "Esta mesa tem uma conta aberta",
+    "tableDetail.startOrder": "Iniciar pedido",
+    "tableDetail.addOrder": "Adicionar pedido",
+    "tableDetail.submitOrder": "Enviar pedido",
+    "tableDetail.checkOpenOrderBlocked": "Conta aberta: pague ou anule antes de adicionar pedidos"
   },
   "outOfStock": "ESGOTADO",
   "staff": {

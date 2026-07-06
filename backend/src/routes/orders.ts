@@ -35,7 +35,7 @@ export async function createOrder(
   idempotencyKey: string,
   rawLines: { entryId: string; quantity: number }[],
   tableSessionId?: string | null,
-  actor: 'diner' | 'staff' = tableSessionId ? 'staff' : 'diner',
+  actor: 'diner' | 'staff' | 'admin' = tableSessionId ? 'staff' : 'diner',
   actorName?: string | null,
 ): Promise<CreateOrderResult> {
   // Idempotency first: a retried submit returns the already-created order even

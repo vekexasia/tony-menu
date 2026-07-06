@@ -653,7 +653,11 @@
     "tableDetail.reprint": "Ristampa",
     "tableDetail.checkStatus.settled": "Pagato",
     "tableDetail.checkStatus.voided": "Annullato",
-    "orderReview.checkOpen": "Il tavolo ha un conto aperto"
+    "orderReview.checkOpen": "Il tavolo ha un conto aperto",
+    "tableDetail.startOrder": "Apri ordine",
+    "tableDetail.addOrder": "Aggiungi ordine",
+    "tableDetail.submitOrder": "Invia ordine",
+    "tableDetail.checkOpenOrderBlocked": "Conto aperto: pagalo o annullalo prima di aggiungere ordini"
   },
   "outOfStock": "ESAURITO",
   "staff": {

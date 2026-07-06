@@ -1,13 +1,15 @@
 import { Hono } from 'hono';
-import { eq, and, asc, desc, inArray, sql } from 'drizzle-orm';
+import { eq, and, asc, desc, inArray, sql, isNull } from 'drizzle-orm';
 import { requireAuth } from '../middleware/auth';
 import { requireAdmin } from '../middleware/admin-guard';
 import { requireDb } from '../middleware/db';
 import { parseBody } from '../lib/validate';
+import { z } from 'zod';
 import { UpdateCheckBodySchema, computeCheckTotals, type CheckDTO, type CheckLine } from '@menu/schemas';
 import * as schema from '../db/schema';
 import type { AppBindings } from '../types';
 import type { DbInstance } from '../db';
+import { createOrder } from './orders';
 
 /**
  * Checks (conto, #15 follow-up): create/settle/void a table session's bill, plus
@@ -16,6 +18,12 @@ import type { DbInstance } from '../db';
 const admin = new Hono<AppBindings>();
 
 const base = [requireAuth, requireDb, requireAdmin] as const;
+
+
+const AdminOrderBodySchema = z.object({
+  lines: z.array(z.object({ entryId: z.string().min(1), quantity: z.number().int().min(1).max(99) })).min(1),
+});
+
 
 type CheckRow = typeof schema.checks.$inferSelect;
 
@@ -159,6 +167,42 @@ async function loadSessionOrders(db: DbInstance, sessionId: string) {
     events: (eventsByOrder.get(o.id) ?? []).map((e) => ({ status: e.status, actor: e.actor, actorName: e.actorName, at: e.createdAt })),
   }));
 }
+
+
+/** POST /admin/tables/:id/session — open or return the current table session. */
+admin.post('/tables/:id/session', ...base, async (c) => {
+  const db = c.get('db');
+  const tableId = c.req.param('id');
+  const [table] = await db.select({ id: schema.tables.id, active: schema.tables.active }).from(schema.tables).where(eq(schema.tables.id, tableId)).limit(1);
+  if (!table) return c.json({ error: 'Not Found' }, 404);
+  if (!table.active) return c.json({ error: 'inactive_table' }, 409);
+
+  const [open] = await db
+    .select({ id: schema.tableSessions.id })
+    .from(schema.tableSessions)
+    .where(and(eq(schema.tableSessions.tableId, tableId), isNull(schema.tableSessions.closedAt)))
+    .limit(1);
+  if (open) return c.json({ ok: true, sessionId: open.id });
+
+  const id = crypto.randomUUID();
+  await db.insert(schema.tableSessions).values({ id, tableId, openedAt: Date.now() });
+  return c.json({ ok: true, sessionId: id }, 201);
+});
+
+/** POST /admin/sessions/:id/orders — admin appends an order to an open table session. */
+admin.post('/sessions/:id/orders', ...base, async (c) => {
+  const db = c.get('db');
+  const sessionId = c.req.param('id');
+  const body = await parseBody(c, AdminOrderBodySchema);
+  if (body instanceof Response) return body;
+
+  const result = await createOrder(db, `admin:${sessionId}:${crypto.randomUUID()}`, body.lines, sessionId, 'admin');
+  if ('error' in result) {
+    const status = result.error === 'stale_items' ? 409 : 409;
+    return c.json(result, status);
+  }
+  return c.json(result, 201);
+});
 
 // ── Check lifecycle ─────────────────────────────────────────────────
 

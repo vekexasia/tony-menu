@@ -653,7 +653,11 @@
     "tableDetail.reprint": "Opnieuw afdrukken",
     "tableDetail.checkStatus.settled": "Betaald",
     "tableDetail.checkStatus.voided": "Geannuleerd",
-    "orderReview.checkOpen": "Deze tafel heeft een openstaande rekening"
+    "orderReview.checkOpen": "Deze tafel heeft een openstaande rekening",
+    "tableDetail.startOrder": "Bestelling starten",
+    "tableDetail.addOrder": "Bestelling toevoegen",
+    "tableDetail.submitOrder": "Bestelling versturen",
+    "tableDetail.checkOpenOrderBlocked": "Open rekening: betaal of annuleer vóór nieuwe bestellingen"
   },
   "outOfStock": "UITVERKOCHT",
   "staff": {

@@ -178,7 +178,7 @@ export default function TablesPage() {
   };
 
   return (
-    <main className="p-6 max-w-3xl" style={{ flex: 1, minWidth: 0, overflowY: "auto" }}>
+    <main className="p-6 w-full max-w-none" style={{ flex: 1, minWidth: 0, overflowY: "auto" }}>
       <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{t("tables.title")}</h1>
@@ -245,7 +245,7 @@ export default function TablesPage() {
               )}
 
               <p className="text-xs text-gray-400 mb-2">{editMode ? t("tables.canvasHintEdit") : t("tables.canvasHint")}</p>
-              <FloorCanvas tiles={tiles} editable={editMode} now={now} onMove={moveTable} onTap={onTileTap} />
+              <FloorCanvas tiles={tiles} editable={editMode} now={now} pannable onMove={moveTable} onTap={onTileTap} />
 
               {selected && (
                 <div className="mt-4 rounded-xl border border-gray-200 bg-white p-4" data-testid="table-panel">

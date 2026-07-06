@@ -653,7 +653,11 @@
     "tableDetail.reprint": "Erneut drucken",
     "tableDetail.checkStatus.settled": "Bezahlt",
     "tableDetail.checkStatus.voided": "Storniert",
-    "orderReview.checkOpen": "Dieser Tisch hat eine offene Rechnung"
+    "orderReview.checkOpen": "Dieser Tisch hat eine offene Rechnung",
+    "tableDetail.startOrder": "Bestellung starten",
+    "tableDetail.addOrder": "Bestellung hinzufügen",
+    "tableDetail.submitOrder": "Bestellung senden",
+    "tableDetail.checkOpenOrderBlocked": "Offene Rechnung: erst bezahlen oder stornieren"
   },
   "outOfStock": "AUSVERKAUFT",
   "staff": {

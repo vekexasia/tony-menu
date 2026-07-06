@@ -653,7 +653,11 @@
     "tableDetail.reprint": "Повторная печать",
     "tableDetail.checkStatus.settled": "Оплачено",
     "tableDetail.checkStatus.voided": "Аннулировано",
-    "orderReview.checkOpen": "У этого стола открыт счёт"
+    "orderReview.checkOpen": "У этого стола открыт счёт",
+    "tableDetail.startOrder": "Начать заказ",
+    "tableDetail.addOrder": "Добавить заказ",
+    "tableDetail.submitOrder": "Отправить заказ",
+    "tableDetail.checkOpenOrderBlocked": "Счёт открыт: сначала оплатите или отмените его"
   },
   "outOfStock": "НЕТ В НАЛИЧИИ",
   "staff": {

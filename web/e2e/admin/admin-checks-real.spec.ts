@@ -46,7 +46,7 @@ test.describe.serial("Checks (conto) — real backend", () => {
     await expect(page).toHaveURL(new RegExp(`/admin/tables/${SEEDED_TABLE.id}/?$`));
 
     // The order shows in the session card.
-    await expect(page.getByTestId("order-1")).toContainText(/bruschetta/i);
+    await expect(page.locator('[data-testid^="order-"]').filter({ hasText: /bruschetta/i }).first()).toBeVisible();
 
     // Create the check.
     const createRes = page.waitForResponse((res) => res.url().includes("/check") && res.request().method() === "POST" && res.status() < 300);
@@ -59,7 +59,7 @@ test.describe.serial("Checks (conto) — real backend", () => {
     const patchRes = page.waitForResponse((res) => /\/admin\/checks\/[^/]+$/.test(res.url()) && res.request().method() === "PATCH" && res.status() < 300);
     const discount = page.getByTestId("discount-value");
     await discount.fill("10");
-    await discount.blur();
+    await page.getByRole("button", { name: /salva|save/i }).click();
     await patchRes;
     await expect(page.getByTestId("check-total")).toHaveText(/13,50/);
 
@@ -71,6 +71,23 @@ test.describe.serial("Checks (conto) — real backend", () => {
 
     await expect(page.getByTestId("table-free")).toBeVisible();
     await expect(page.getByText("Pagato").first()).toBeVisible();
+  });
+  test("admin adds an order from the table page", async ({ page, request }) => {
+    await seedSessionWithOrder(request);
+
+    await page.goto(`/admin/tables/${SEEDED_TABLE.id}/`);
+    await expect(page.getByTestId("add-order")).toBeVisible({ timeout: 10000 });
+    const before = await page.locator('[data-testid^="order-"]').count();
+    expect(before).toBeGreaterThan(0);
+    await page.getByTestId("add-order").click();
+    await expect(page.getByText(/bruschetta/i).first()).toBeVisible({ timeout: 10000 });
+    await page.locator("button").filter({ hasText: "+" }).first().click();
+
+    const submitRes = page.waitForResponse((res) => res.url().includes("/admin/sessions/") && res.url().includes("/orders") && res.request().method() === "POST" && res.status() < 300);
+    await page.getByTestId("submit-admin-order").click();
+    await submitRes;
+
+    await page.waitForFunction((n) => document.querySelectorAll('[data-testid^="order-"]').length > n, before, { timeout: 10000 });
   });
 
   test("API refuses new orders while a check is open (409 check_open)", async ({ request }) => {

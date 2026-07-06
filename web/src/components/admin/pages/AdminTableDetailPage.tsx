@@ -4,7 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import {
   fetchAdminTableDetail, createCheck, updateCheck, settleCheck, voidCheck, adminCloseSession,
-  ApiError, type AdminTableDetail, type CheckDTO,
+  openAdminTableSession, createAdminSessionOrder, getAdminCatalog,
+  ApiError, type AdminTableDetail, type CheckDTO, type CatalogResponse, type SubmitOrderLine,
 } from "@/lib/api";
 import { useTranslations } from "@/lib/i18n";
 import type { CheckAdjustment, CheckDiscount } from "@menu/schemas";
@@ -34,6 +35,7 @@ export default function AdminTableDetailPage({ tableId }: { tableId: string }) {
   const [confirming, setConfirming] = useState<"close" | "settle" | "void" | null>(null);
   const [expandedHistory, setExpandedHistory] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [orderModal, setOrderModal] = useState(false);
 
   const refresh = useCallback(async () => {
     try {
@@ -65,6 +67,18 @@ export default function AdminTableDetailPage({ tableId }: { tableId: string }) {
     }
   };
 
+  const openAddOrder = async () => {
+    if (!detail?.currentSession) {
+      await run(async () => {
+        const opened = await openAdminTableSession(tableId);
+        await refresh();
+        if (opened.sessionId) setOrderModal(true);
+      });
+      return;
+    }
+    setOrderModal(true);
+  };
+
   if (notFound) {
     return (
       <main className="p-6 max-w-3xl">
@@ -94,7 +108,12 @@ export default function AdminTableDetailPage({ tableId }: { tableId: string }) {
       {error && <div className="mb-4 rounded-lg bg-red-50 text-red-700 px-4 py-3 text-sm" data-testid="detail-error">{error}</div>}
 
       {!currentSession ? (
-        <p className="text-sm text-gray-500 py-8" data-testid="table-free">{t("tableDetail.free")}</p>
+        <section className="rounded-xl border border-gray-200 bg-white p-4 print-hide" data-testid="table-free">
+          <p className="text-sm text-gray-500 mb-3">{t("tableDetail.free")}</p>
+          <button type="button" onClick={openAddOrder} disabled={busy || !table.active} className="px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold disabled:opacity-50">
+            {t("tableDetail.startOrder")}
+          </button>
+        </section>
       ) : (
         <div className="grid gap-4 print-hide">
           <SessionCard
@@ -105,6 +124,7 @@ export default function AdminTableDetailPage({ tableId }: { tableId: string }) {
             confirming={confirming}
             setConfirming={setConfirming}
             onCreateCheck={() => run(() => createCheck(currentSession.sessionId))}
+            onAddOrder={openAddOrder}
             onClose={() => run(() => adminCloseSession(currentSession.sessionId))}
           />
         </div>
@@ -164,6 +184,17 @@ export default function AdminTableDetailPage({ tableId }: { tableId: string }) {
           </div>
         </section>
       )}
+
+      {orderModal && currentSession && !check && (
+        <AdminAddOrderModal
+          t={t}
+          onClose={() => setOrderModal(false)}
+          onSubmit={(lines) => run(async () => {
+            await createAdminSessionOrder(currentSession.sessionId, lines);
+            setOrderModal(false);
+          })}
+        />
+      )}
     </main>
   );
 }
@@ -171,7 +202,7 @@ export default function AdminTableDetailPage({ tableId }: { tableId: string }) {
 type T = (key: string) => string;
 
 function SessionCard({
-  session, t, hasCheck, busy, confirming, setConfirming, onCreateCheck, onClose,
+  session, t, hasCheck, busy, confirming, setConfirming, onCreateCheck, onAddOrder, onClose,
 }: {
   session: NonNullable<AdminTableDetail["currentSession"]>;
   t: T;
@@ -180,6 +211,7 @@ function SessionCard({
   confirming: "close" | "settle" | "void" | null;
   setConfirming: (v: "close" | "settle" | "void" | null) => void;
   onCreateCheck: () => void;
+  onAddOrder: () => void;
   onClose: () => void;
 }) {
   const closable = !hasCheck && session.orders.every((o) => o.status === "served" || o.status === "rejected");
@@ -214,6 +246,19 @@ function SessionCard({
         </div>
       )}
       <div className="mt-4 flex flex-wrap gap-2">
+        {!hasCheck ? (
+          <button
+            type="button"
+            onClick={onAddOrder}
+            disabled={busy}
+            data-testid="add-order"
+            className="px-3 py-1.5 rounded-lg border border-primary text-primary text-xs font-semibold disabled:opacity-50"
+          >
+            {t("tableDetail.addOrder")}
+          </button>
+        ) : (
+          <span className="text-xs text-amber-700 bg-amber-50 rounded-lg px-3 py-1.5">{t("tableDetail.checkOpenOrderBlocked")}</span>
+        )}
         {!hasCheck && (
           <button
             type="button"
@@ -237,6 +282,54 @@ function SessionCard({
         )}
       </div>
     </section>
+  );
+}
+
+
+function AdminAddOrderModal({ t, onClose, onSubmit }: { t: T; onClose: () => void; onSubmit: (lines: SubmitOrderLine[]) => void }) {
+  const [catalog, setCatalog] = useState<CatalogResponse | null>(null);
+  const [cart, setCart] = useState<Record<string, number>>({});
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    getAdminCatalog().then(setCatalog).catch((err) => setError(err instanceof Error ? err.message : String(err)));
+  }, []);
+
+  const entries = catalog?.categories.flatMap((category) => category.entries).filter((e) => !e.hidden && !e.outOfStock).sort((a, b) => a.sortOrder - b.sortOrder) ?? [];
+  const lines = Object.entries(cart).filter(([, quantity]) => quantity > 0).map(([entryId, quantity]) => ({ entryId, quantity }));
+  const inc = (id: string, delta: number) => setCart((prev) => ({ ...prev, [id]: Math.max(0, (prev[id] ?? 0) + delta) }));
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center print-hide" role="dialog" aria-modal="true">
+      <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
+        <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+          <h2 className="text-lg font-bold text-gray-900">{t("tableDetail.addOrder")}</h2>
+          <button type="button" onClick={onClose} className="text-sm text-gray-500">{t("common.close")}</button>
+        </div>
+        {error && <div className="m-4 rounded-lg bg-red-50 text-red-700 px-4 py-3 text-sm">{error}</div>}
+        <div className="p-4 overflow-y-auto space-y-2">
+          {!catalog ? <p className="text-sm text-gray-500">{t("common.loading")}</p> : entries.map((entry) => (
+            <div key={entry.id} className="rounded-xl border border-gray-200 p-3 flex items-center justify-between gap-3">
+              <div>
+                <div className="font-semibold text-gray-900">{entry.name}</div>
+                <div className="text-sm text-gray-500">{euros(Math.round(entry.price * 100))}</div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button type="button" onClick={() => inc(entry.id, -1)} className="w-8 h-8 rounded-full border border-gray-200">−</button>
+                <span className="w-6 text-center text-sm font-semibold">{cart[entry.id] ?? 0}</span>
+                <button type="button" onClick={() => inc(entry.id, 1)} className="w-8 h-8 rounded-full bg-primary text-white">+</button>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="p-4 border-t border-gray-100 flex justify-end gap-2">
+          <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border border-gray-200 text-gray-600 text-sm font-semibold">{t("common.cancel")}</button>
+          <button type="button" disabled={lines.length === 0} onClick={() => onSubmit(lines)} data-testid="submit-admin-order" className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold disabled:opacity-50">
+            {t("tableDetail.submitOrder")}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 

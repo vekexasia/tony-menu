@@ -653,7 +653,11 @@
     "tableDetail.reprint": "Réimprimer",
     "tableDetail.checkStatus.settled": "Payé",
     "tableDetail.checkStatus.voided": "Annulé",
-    "orderReview.checkOpen": "Cette table a une addition ouverte"
+    "orderReview.checkOpen": "Cette table a une addition ouverte",
+    "tableDetail.startOrder": "Démarrer une commande",
+    "tableDetail.addOrder": "Ajouter une commande",
+    "tableDetail.submitOrder": "Envoyer la commande",
+    "tableDetail.checkOpenOrderBlocked": "Addition ouverte : encaissez ou annulez avant d’ajouter des commandes"
   },
   "outOfStock": "ÉPUISÉ",
   "staff": {

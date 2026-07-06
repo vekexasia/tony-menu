@@ -653,7 +653,11 @@
     "tableDetail.reprint": "Ristanpa",
     "tableDetail.checkStatus.settled": "Pagà",
     "tableDetail.checkStatus.voided": "Anułà",
-    "orderReview.checkOpen": "Sta tòła ła ga un conto verto"
+    "orderReview.checkOpen": "Sta tòła ła ga un conto verto",
+    "tableDetail.startOrder": "Scominsia ordine",
+    "tableDetail.addOrder": "Zonta ordine",
+    "tableDetail.submitOrder": "Manda ordine",
+    "tableDetail.checkOpenOrderBlocked": "Conto verto: paga o anula prima de zontar ordini"
   },
   "outOfStock": "FINIO",
   "staff": {

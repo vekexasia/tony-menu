@@ -46,6 +46,7 @@ type Props = {
   editable: boolean;
   now?: number; // staff: current time for the minutes label
   busyId?: string | null; // staff: tile whose session is opening
+  pannable?: boolean; // admin: keep the plan at real size on small screens
   onTap?: (tile: FloorTile) => void; // staff: open session; admin: open action panel
   onMove?: (id: string, x: number, y: number) => void; // admin: drag end
 };
@@ -53,10 +54,11 @@ type Props = {
 const TAP_PX = 5; // pointer travel under this (client px) is a tap, not a drag
 
 /** Shared floor plan (#15): read-only for staff, pointer-drag editable for admin. */
-export function FloorCanvas({ tiles, editable, now = Date.now(), busyId, onTap, onMove }: Props) {
+export function FloorCanvas({ tiles, editable, now = Date.now(), busyId, pannable = false, onTap, onMove }: Props) {
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const [drag, setDrag] = useState<{ id: string; x: number; y: number; startCX: number; startCY: number } | null>(null);
-
+  const [pan, setPan] = useState<{ x: number; y: number; left: number; top: number } | null>(null);
   const toCanvas = (clientX: number, clientY: number) => {
     const rect = canvasRef.current!.getBoundingClientRect();
     return {
@@ -66,7 +68,7 @@ export function FloorCanvas({ tiles, editable, now = Date.now(), busyId, onTap, 
   };
 
   const onPointerDown = (e: React.PointerEvent, tile: FloorTile) => {
-    if (!editable) return;
+    if (!editable || e.button !== 0) return;
     e.currentTarget.setPointerCapture?.(e.pointerId);
     const p = toCanvas(e.clientX, e.clientY);
     setDrag({ id: tile.id, x: p.x, y: p.y, startCX: e.clientX, startCY: e.clientY });
@@ -89,14 +91,28 @@ export function FloorCanvas({ tiles, editable, now = Date.now(), busyId, onTap, 
     setDrag(null);
   };
 
-  return (
+  const onPanDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!pannable || e.button !== 1) return;
+    e.preventDefault();
+    const el = wrapperRef.current!;
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+    setPan({ x: e.clientX, y: e.clientY, left: el.scrollLeft, top: el.scrollTop });
+  };
+  const onPanMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!pan) return;
+    const el = wrapperRef.current!;
+    el.scrollLeft = pan.left - (e.clientX - pan.x);
+    el.scrollTop = pan.top - (e.clientY - pan.y);
+  };
+  const stopPan = () => setPan(null);
+  const canvas = (
     <div
       ref={canvasRef}
       data-testid="floor-canvas"
       onPointerMove={editable ? onPointerMove : undefined}
       onPointerUp={editable ? onPointerUp : undefined}
-      className="relative w-full rounded-2xl border border-gray-200 bg-white overflow-hidden select-none touch-none"
-      style={{ aspectRatio: `${CANVAS_W} / ${CANVAS_H}` }}
+      className="relative w-full rounded-2xl border border-gray-200 bg-white overflow-hidden select-none"
+      style={{ aspectRatio: `${CANVAS_W} / ${CANVAS_H}`, minWidth: pannable ? CANVAS_W : undefined }}
     >
       {tiles.map((tile) => {
         const pos = drag && drag.id === tile.id ? drag : tile;
@@ -114,7 +130,7 @@ export function FloorCanvas({ tiles, editable, now = Date.now(), busyId, onTap, 
             disabled={busyId === tile.id}
             onPointerDown={editable ? (e) => onPointerDown(e, tile) : undefined}
             onClick={editable ? undefined : () => onTap?.(tile)}
-            className={`${common} ${colorClass} ${isCircle ? "rounded-full" : "rounded-lg"} ${dimmed ? "opacity-40" : ""} ${editable ? "cursor-grab active:cursor-grabbing" : "disabled:opacity-50"}`}
+            className={`${common} ${colorClass} ${isCircle ? "rounded-full" : "rounded-lg"} ${dimmed ? "opacity-40" : ""} ${editable ? "cursor-grab active:cursor-grabbing touch-none" : "disabled:opacity-50"}`}
             style={{
               left: `${(pos.x / CANVAS_W) * 100}%`,
               top: `${(pos.y / CANVAS_H) * 100}%`,
@@ -129,6 +145,22 @@ export function FloorCanvas({ tiles, editable, now = Date.now(), busyId, onTap, 
           </button>
         );
       })}
+    </div>
+  );
+
+  if (!pannable) return canvas;
+
+  return (
+    <div
+      ref={wrapperRef}
+      onPointerDown={onPanDown}
+      onPointerMove={onPanMove}
+      onPointerUp={stopPan}
+      onPointerCancel={stopPan}
+      className="w-full overflow-auto rounded-2xl touch-pan-x touch-pan-y"
+      style={{ cursor: pan ? "grabbing" : undefined }}
+    >
+      {canvas}
     </div>
   );
 }

@@ -321,3 +321,44 @@ describe('admin table detail', () => {
     expect(res.status).toBe(404);
   });
 });
+
+describe('admin table orders', () => {
+  it('opens a session and appends an admin order through the shared order path', async () => {
+    const db = checksDb();
+    const now = Date.now();
+    db.raw.prepare("INSERT INTO order_destinations (id, name, sort_order, created_at, updated_at) VALUES ('dest-k', 'Cucina', 0, ?, ?), ('dest-b', 'Bar', 1, ?, ?)").run(now, now, now, now);
+    db.raw.prepare("INSERT INTO entry_destinations (entry_id, destination_id) VALUES ('entry-1', 'dest-k'), ('entry-2', 'dest-b')").run();
+
+    const open = await testRequest('/admin/tables/table-1/session', { method: 'POST', headers: await adminHeaders(), env: adminEnv(db) });
+    expect(open.status).toBe(201);
+    const sessionId = ((await open.json()) as { sessionId: string }).sessionId;
+
+    const res = await testRequest(`/admin/sessions/${sessionId}/orders`, {
+      method: 'POST',
+      body: { lines: [{ entryId: 'entry-1', quantity: 1 }, { entryId: 'entry-2', quantity: 2 }] },
+      headers: await adminHeaders(),
+      env: adminEnv(db),
+    });
+    expect(res.status).toBe(201);
+    const order = await res.json() as { ok: true; dailyNumber: number };
+    expect(order.ok).toBe(true);
+    expect(db.raw.prepare("SELECT actor FROM order_events").get()).toEqual({ actor: 'admin' });
+    const dests = db.raw.prepare('SELECT destination_name FROM order_item_destinations ORDER BY destination_name').all() as { destination_name: string }[];
+    expect(dests.map((d) => d.destination_name)).toEqual(['Bar', 'Cucina']);
+  });
+
+  it('refuses admin orders while an open check exists', async () => {
+    const db = checksDb();
+    const sessionId = openSession(db);
+    seedOrder(db, sessionId, 'Bruschetta', 750, 1);
+    await createCheck(db, sessionId);
+    const res = await testRequest(`/admin/sessions/${sessionId}/orders`, {
+      method: 'POST',
+      body: { lines: [{ entryId: 'entry-1', quantity: 1 }] },
+      headers: await adminHeaders(),
+      env: adminEnv(db),
+    });
+    expect(res.status).toBe(409);
+    expect(((await res.json()) as { error: string }).error).toBe('check_open');
+  });
+});

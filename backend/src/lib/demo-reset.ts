@@ -189,7 +189,7 @@ function seedShowcase(env: Env, statements: D1PreparedStatement[]): void {
 
   // B. HISTORY — every other table gets 4 closed sessions with a settled check,
   // spread over the past 1..8 days (never today, so daily numbering can't clash).
-  const historyTables = tables.filter((t) => t.id !== 'demo-table-sala-2');
+  const historyTables = tables;
   let g = 0;
   historyTables.forEach((t, ti) => {
     for (let s = 1; s <= 4; s++) {
@@ -199,7 +199,7 @@ function seedShowcase(env: Env, statements: D1PreparedStatement[]): void {
       const orderCreated = opened + 5 * MIN;
       const served = closed - 30 * MIN;
       const sessionId = `demo-session-${suffix(t.id)}-${s}`;
-      const orderId = `demo-order-${suffix(t.id)}-${s}`;
+      const orderId = `demo-order-hist-${suffix(t.id)}-${s}`;
       const waiter = g % 2 === 0 ? 'Marco Demo' : 'Giulia Demo';
       const items: Item[] = [];
       for (let i = 0; i < (g % 3) + 1; i++) items.push(item(entries[(g + i) % entries.length], (i % 2) + 1));
@@ -207,7 +207,7 @@ function seedShowcase(env: Env, statements: D1PreparedStatement[]): void {
       orders.push({
         id: orderId, tableSessionId: sessionId,
         orderDay: dayOf(orderCreated), createdAt: orderCreated, updatedAt: served,
-        status: 'served', idempotencyKey: `demo-ik-${suffix(t.id)}-${s}`,
+        status: 'served', idempotencyKey: `demo-ik-hist-${suffix(t.id)}-${s}`,
         items,
         events: [
           { status: 'submitted', actor: 'staff', actorName: waiter, createdAt: orderCreated },
