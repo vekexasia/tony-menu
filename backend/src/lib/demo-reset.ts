@@ -10,6 +10,7 @@ import {
   orderDestinations,
   entryDestinations,
   tables,
+  areas,
   demoStaffLinks,
   drinkCategoryIds,
   FOOD_MENU_ID,
@@ -28,6 +29,7 @@ export async function resetDemoData(env: Env): Promise<void> {
     env.DB.prepare('DELETE FROM table_sessions'),
     env.DB.prepare('DELETE FROM staff_links'),
     env.DB.prepare('DELETE FROM tables'),
+    env.DB.prepare('DELETE FROM areas'),
     env.DB.prepare('DELETE FROM entry_destinations'),
     env.DB.prepare('DELETE FROM order_destinations'),
     env.DB.prepare('DELETE FROM catalog_views'),
@@ -84,8 +86,11 @@ export async function resetDemoData(env: Env): Promise<void> {
   for (const ed of entryDestinations) {
     statements.push(env.DB.prepare('INSERT INTO entry_destinations (entry_id, destination_id) VALUES (?, ?)').bind(ed.entryId, ed.destinationId));
   }
+  for (const area of areas) {
+    statements.push(env.DB.prepare('INSERT INTO areas (id, name, sort_order, created_at, updated_at) VALUES (?, ?, ?, ?, ?)').bind(area.id, area.name, area.sortOrder, now, now));
+  }
   for (const table of tables) {
-    statements.push(env.DB.prepare('INSERT INTO tables (id, name, active, sort_order, created_at, updated_at) VALUES (?, ?, 1, ?, ?, ?)').bind(table.id, table.name, table.sortOrder, now, now));
+    statements.push(env.DB.prepare('INSERT INTO tables (id, name, active, sort_order, area_id, x, y, shape, created_at, updated_at) VALUES (?, ?, 1, ?, ?, ?, ?, ?, ?, ?)').bind(table.id, table.name, table.sortOrder, table.areaId, table.x, table.y, table.shape, now, now));
   }
   for (const staff of demoStaffLinks) {
     statements.push(env.DB.prepare('INSERT INTO staff_links (id, name, token, created_at, updated_at) VALUES (?, ?, ?, ?, ?)').bind(staff.id, staff.name, staff.token, now, now));

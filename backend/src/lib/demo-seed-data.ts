@@ -278,18 +278,25 @@ export const entryDestinations = entries.map((entry) => ({
   destinationId: drinkCategoryIds.has(entry.categoryId) ? BAR_ID : CUCINA_ID,
 }));
 
-// 10 tables across two areas — the area is encoded in the flat name (no area entity).
+// Two floor-plan areas; tables carry short numeric names + baked-in positions
+// on the 1000x700 canvas (snap-25 aligned). Sala tables are rect, Terrazza circle
+// so the demo shows both shapes.
+export const areas = [
+  { id: 'demo-area-sala', name: 'Sala', sortOrder: 0 },
+  { id: 'demo-area-terrazza', name: 'Terrazza', sortOrder: 1 },
+];
+
 export const tables = [
-  { id: 'demo-table-sala-1', name: 'Sala 1', sortOrder: 0 },
-  { id: 'demo-table-sala-2', name: 'Sala 2', sortOrder: 1 },
-  { id: 'demo-table-sala-3', name: 'Sala 3', sortOrder: 2 },
-  { id: 'demo-table-sala-4', name: 'Sala 4', sortOrder: 3 },
-  { id: 'demo-table-sala-5', name: 'Sala 5', sortOrder: 4 },
-  { id: 'demo-table-sala-6', name: 'Sala 6', sortOrder: 5 },
-  { id: 'demo-table-terrazza-1', name: 'Terrazza 1', sortOrder: 6 },
-  { id: 'demo-table-terrazza-2', name: 'Terrazza 2', sortOrder: 7 },
-  { id: 'demo-table-terrazza-3', name: 'Terrazza 3', sortOrder: 8 },
-  { id: 'demo-table-terrazza-4', name: 'Terrazza 4', sortOrder: 9 },
+  { id: 'demo-table-sala-1', name: '1', sortOrder: 0, areaId: 'demo-area-sala', shape: 'rect', x: 50, y: 50 },
+  { id: 'demo-table-sala-2', name: '2', sortOrder: 1, areaId: 'demo-area-sala', shape: 'rect', x: 200, y: 50 },
+  { id: 'demo-table-sala-3', name: '3', sortOrder: 2, areaId: 'demo-area-sala', shape: 'rect', x: 350, y: 50 },
+  { id: 'demo-table-sala-4', name: '4', sortOrder: 3, areaId: 'demo-area-sala', shape: 'rect', x: 50, y: 200 },
+  { id: 'demo-table-sala-5', name: '5', sortOrder: 4, areaId: 'demo-area-sala', shape: 'rect', x: 200, y: 200 },
+  { id: 'demo-table-sala-6', name: '6', sortOrder: 5, areaId: 'demo-area-sala', shape: 'rect', x: 350, y: 200 },
+  { id: 'demo-table-terrazza-1', name: '1', sortOrder: 6, areaId: 'demo-area-terrazza', shape: 'circle', x: 50, y: 50 },
+  { id: 'demo-table-terrazza-2', name: '2', sortOrder: 7, areaId: 'demo-area-terrazza', shape: 'circle', x: 225, y: 50 },
+  { id: 'demo-table-terrazza-3', name: '3', sortOrder: 8, areaId: 'demo-area-terrazza', shape: 'circle', x: 50, y: 225 },
+  { id: 'demo-table-terrazza-4', name: '4', sortOrder: 9, areaId: 'demo-area-terrazza', shape: 'circle', x: 225, y: 225 },
 ];
 
 // Stable demo waiter links. QR: /staff?token=demo-staff-link-marco

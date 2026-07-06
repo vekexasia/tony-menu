@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { eq, asc, desc } from 'drizzle-orm';
+import { eq, asc, desc, sql } from 'drizzle-orm';
 import { requireAuth } from '../middleware/auth';
 import { requireAdmin } from '../middleware/admin-guard';
 import { requireDb } from '../middleware/db';
@@ -8,6 +8,9 @@ import {
   CreateStaffLinkBodySchema,
   CreateTableBodySchema,
   UpdateTableBodySchema,
+  CreateAreaBodySchema,
+  UpdateAreaBodySchema,
+  UpdateTablePositionBodySchema,
 } from '@menu/schemas';
 import * as schema from '../db/schema';
 import type { AppBindings } from '../types';
@@ -61,20 +64,73 @@ admin.post('/staff-links/:id/revoke', ...base, async (c) => {
   return c.json({ ok: true });
 });
 
-// ── Tables CRUD ──────────────────────────────────────────────────────
+// ── Areas CRUD ────────────────────────────────────────────
+
+admin.get('/areas', ...base, async (c) => {
+  const rows = await c.get('db')
+    .select({ id: schema.areas.id, name: schema.areas.name, sortOrder: schema.areas.sortOrder })
+    .from(schema.areas)
+    .orderBy(asc(schema.areas.sortOrder), asc(schema.areas.createdAt));
+  return c.json({ areas: rows });
+});
+
+admin.post('/areas', ...base, async (c) => {
+  const body = await parseBody(c, CreateAreaBodySchema);
+  if (body instanceof Response) return body;
+  const db = c.get('db');
+  const [last] = await db
+    .select({ maxOrder: schema.areas.sortOrder })
+    .from(schema.areas)
+    .orderBy(desc(schema.areas.sortOrder))
+    .limit(1) as Array<{ maxOrder: number | null }>;
+  const id = crypto.randomUUID();
+  await db.insert(schema.areas).values({ id, name: body.name, sortOrder: (last?.maxOrder ?? -1) + 1 });
+  return c.json({ ok: true, id }, 201);
+});
+
+admin.put('/areas/:id', ...base, async (c) => {
+  const id = c.req.param('id');
+  const body = await parseBody(c, UpdateAreaBodySchema);
+  if (body instanceof Response) return body;
+  const updates: Record<string, unknown> = { updatedAt: Date.now() };
+  if (body.name !== undefined) updates.name = body.name;
+  if (body.sortOrder !== undefined) updates.sortOrder = body.sortOrder;
+  await c.get('db').update(schema.areas).set(updates).where(eq(schema.areas.id, id));
+  return c.json({ ok: true });
+});
+
+admin.delete('/areas/:id', ...base, async (c) => {
+  const id = c.req.param('id');
+  const db = c.get('db');
+  const [{ n }] = await db
+    .select({ n: sql<number>`count(*)` })
+    .from(schema.tables)
+    .where(eq(schema.tables.areaId, id));
+  if (n > 0) return c.json({ error: 'has_tables' }, 409);
+  await db.delete(schema.areas).where(eq(schema.areas.id, id));
+  return c.json({ ok: true });
+});
+
+// ── Tables CRUD ────────────────────────────────────────────
 
 admin.get('/tables', ...base, async (c) => {
   const rows = await c.get('db')
     .select()
     .from(schema.tables)
     .orderBy(asc(schema.tables.sortOrder), asc(schema.tables.createdAt));
-  return c.json({ tables: rows.map((r) => ({ id: r.id, name: r.name, active: r.active, sortOrder: r.sortOrder })) });
+  return c.json({ tables: rows.map((r) => ({ id: r.id, name: r.name, active: r.active, sortOrder: r.sortOrder, areaId: r.areaId, x: r.x, y: r.y, shape: r.shape })) });
 });
 
 admin.post('/tables', ...base, async (c) => {
   const body = await parseBody(c, CreateTableBodySchema);
   if (body instanceof Response) return body;
   const db = c.get('db');
+  const [area] = await db
+    .select({ id: schema.areas.id })
+    .from(schema.areas)
+    .where(eq(schema.areas.id, body.areaId))
+    .limit(1);
+  if (!area) return c.json({ error: 'invalid_area' }, 400);
   const [last] = await db
     .select({ maxOrder: schema.tables.sortOrder })
     .from(schema.tables)
@@ -86,6 +142,8 @@ admin.post('/tables', ...base, async (c) => {
     name: body.name,
     active: body.active ?? true,
     sortOrder: (last?.maxOrder ?? -1) + 1,
+    areaId: body.areaId,
+    shape: body.shape,
   });
   return c.json({ ok: true, id }, 201);
 });
@@ -98,6 +156,17 @@ admin.patch('/tables/:id', ...base, async (c) => {
   if (body.name !== undefined) updates.name = body.name;
   if (body.active !== undefined) updates.active = body.active;
   await c.get('db').update(schema.tables).set(updates).where(eq(schema.tables.id, id));
+  return c.json({ ok: true });
+});
+
+admin.patch('/tables/:id/position', ...base, async (c) => {
+  const id = c.req.param('id');
+  const body = await parseBody(c, UpdateTablePositionBodySchema);
+  if (body instanceof Response) return body;
+  await c.get('db')
+    .update(schema.tables)
+    .set({ x: body.x, y: body.y, updatedAt: Date.now() })
+    .where(eq(schema.tables.id, id));
   return c.json({ ok: true });
 });
 

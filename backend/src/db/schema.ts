@@ -398,7 +398,25 @@ export const staffLinks = sqliteTable(
   }),
 );
 
-/** Physical tables. Flat list, no floor-plan layout. */
+/** Floor-plan areas (#15 follow-up): named zones tables are grouped under. */
+export const areas = sqliteTable(
+  'areas',
+  {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    sortOrder: integer('sort_order').notNull().default(0),
+    ...timestamps,
+  },
+  (table) => ({
+    sortIdx: index('areas_sort_idx').on(table.sortOrder),
+  }),
+);
+
+/**
+ * Physical tables placed on the floor plan (#15 follow-up).
+ * x/y are virtual-canvas coordinates (1000x700); shape is 'rect' | 'circle'.
+ * areaId has no cascade delete: an area can't be dropped while tables reference it.
+ */
 export const tables = sqliteTable(
   'tables',
   {
@@ -406,6 +424,10 @@ export const tables = sqliteTable(
     name: text('name').notNull(),
     active: integer('active', { mode: 'boolean' }).notNull().default(true),
     sortOrder: integer('sort_order').notNull().default(0),
+    areaId: text('area_id').references(() => areas.id),
+    x: integer('x').notNull().default(25),
+    y: integer('y').notNull().default(25),
+    shape: text('shape').notNull().default('rect'),
     ...timestamps,
   },
   (table) => ({

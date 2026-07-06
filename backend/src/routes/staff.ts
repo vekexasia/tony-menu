@@ -78,6 +78,11 @@ staff.get('/floor', ...staffBase, async (c) => {
     .where(eq(schema.tables.active, true))
     .orderBy(asc(schema.tables.sortOrder), asc(schema.tables.createdAt));
 
+  const areaRows = await db
+    .select({ id: schema.areas.id, name: schema.areas.name, sortOrder: schema.areas.sortOrder })
+    .from(schema.areas)
+    .orderBy(asc(schema.areas.sortOrder), asc(schema.areas.createdAt));
+
   const openSessions = await db
     .select()
     .from(schema.tableSessions)
@@ -87,22 +92,26 @@ staff.get('/floor', ...staffBase, async (c) => {
   const sessionIds = openSessions.map((s) => s.id);
   const orderRows = sessionIds.length > 0
     ? await db
-        .select({ tableSessionId: schema.orders.tableSessionId, status: schema.orders.status })
+        .select({ tableSessionId: schema.orders.tableSessionId, status: schema.orders.status, createdAt: schema.orders.createdAt })
         .from(schema.orders)
         .where(inArray(schema.orders.tableSessionId, sessionIds))
     : [];
 
-  const counts = new Map<string, { orderCount: number; readyCount: number }>();
+  const counts = new Map<string, { orderCount: number; readyCount: number; oldestSubmittedAt: number | null }>();
   for (const o of orderRows) {
     if (!o.tableSessionId) continue;
-    const c = counts.get(o.tableSessionId) ?? { orderCount: 0, readyCount: 0 };
+    const c = counts.get(o.tableSessionId) ?? { orderCount: 0, readyCount: 0, oldestSubmittedAt: null };
     // "Open orders" = anything not served/rejected; "ready" = ready to serve.
     if (o.status === 'submitted' || o.status === 'ready') c.orderCount++;
     if (o.status === 'ready') c.readyCount++;
+    if (o.status === 'submitted' && (c.oldestSubmittedAt === null || o.createdAt < c.oldestSubmittedAt)) {
+      c.oldestSubmittedAt = o.createdAt;
+    }
     counts.set(o.tableSessionId, c);
   }
 
   return c.json({
+    areas: areaRows,
     tables: tableRows.map((t) => {
       const session = sessionByTable.get(t.id);
       const count = session ? counts.get(session.id) : undefined;
@@ -113,6 +122,11 @@ staff.get('/floor', ...staffBase, async (c) => {
         openedAt: session?.openedAt ?? null,
         orderCount: count?.orderCount ?? 0,
         readyCount: count?.readyCount ?? 0,
+        areaId: t.areaId,
+        x: t.x,
+        y: t.y,
+        shape: t.shape,
+        oldestSubmittedAt: count?.oldestSubmittedAt ?? null,
       };
     }),
   });
@@ -190,9 +204,11 @@ staff.get('/sessions/:id', ...staffBase, async (c) => {
       openedAt: schema.tableSessions.openedAt,
       tableId: schema.tables.id,
       tableName: schema.tables.name,
+      areaName: schema.areas.name,
     })
     .from(schema.tableSessions)
     .innerJoin(schema.tables, eq(schema.tableSessions.tableId, schema.tables.id))
+    .leftJoin(schema.areas, eq(schema.tables.areaId, schema.areas.id))
     .where(eq(schema.tableSessions.id, sessionId))
     .limit(1);
   if (!session) return c.json({ error: 'Not Found' }, 404);
@@ -229,7 +245,7 @@ staff.get('/sessions/:id', ...staffBase, async (c) => {
   return c.json({
     sessionId: session.id,
     tableId: session.tableId,
-    tableName: session.tableName,
+    tableName: session.areaName ? `${session.areaName} · ${session.tableName}` : session.tableName,
     openedAt: session.openedAt,
     orders: orderRows.map((o) => ({
       id: o.id,

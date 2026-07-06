@@ -35,11 +35,34 @@ export interface ConsumeStaffLinkResponse {
   name: string;
 }
 
+// ── Areas (admin) ───────────────────────────────────────────────────
+
+export const CreateAreaBodySchema = z.object({
+  name: z.string().trim().min(1).max(50),
+});
+export type CreateAreaBody = z.infer<typeof CreateAreaBodySchema>;
+
+export const UpdateAreaBodySchema = z.object({
+  name: z.string().trim().min(1).max(50).optional(),
+  sortOrder: z.number().int().optional(),
+});
+export type UpdateAreaBody = z.infer<typeof UpdateAreaBodySchema>;
+
+export interface Area {
+  id: string;
+  name: string;
+  sortOrder: number;
+}
+
 // ── Tables (admin CRUD) ─────────────────────────────────────────────
+
+export type TableShape = 'rect' | 'circle';
 
 export const CreateTableBodySchema = z.object({
   name: z.string().trim().min(1).max(50),
   active: z.boolean().optional(),
+  areaId: z.string().min(1),
+  shape: z.enum(['rect', 'circle']),
 });
 export type CreateTableBody = z.infer<typeof CreateTableBodySchema>;
 
@@ -49,11 +72,22 @@ export const UpdateTableBodySchema = z.object({
 });
 export type UpdateTableBody = z.infer<typeof UpdateTableBodySchema>;
 
+/** Drag-end position update; coordinates clamped to the 1000x700 virtual canvas. */
+export const UpdateTablePositionBodySchema = z.object({
+  x: z.number().int().min(0).max(1000),
+  y: z.number().int().min(0).max(700),
+});
+export type UpdateTablePositionBody = z.infer<typeof UpdateTablePositionBodySchema>;
+
 export interface AdminTable {
   id: string;
   name: string;
   active: boolean;
   sortOrder: number;
+  areaId: string | null;
+  x: number;
+  y: number;
+  shape: TableShape;
 }
 
 // ── Table sessions + floor view (staff) ─────────────────────────────
@@ -66,6 +100,12 @@ export interface FloorTable {
   openedAt: number | null;
   orderCount: number;
   readyCount: number;
+  areaId: string | null;
+  x: number;
+  y: number;
+  shape: TableShape;
+  /** createdAt of the oldest 'submitted' order in the open session; null if none. */
+  oldestSubmittedAt: number | null;
 }
 
 export interface StaffOrderItem {

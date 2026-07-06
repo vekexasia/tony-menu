@@ -67,9 +67,14 @@ function staffHeaders(sessionToken: string) {
   return { 'X-Staff-Session': sessionToken };
 }
 
-async function seedTable(db: TestDb, id = 'table-1', name = 'Table 1') {
+async function seedArea(db: TestDb, id = 'area-1', name = 'Sala', sortOrder = 0) {
   const now = Date.now();
-  db.raw.prepare('INSERT INTO tables (id, name, active, sort_order, created_at, updated_at) VALUES (?, ?, 1, 0, ?, ?)').run(id, name, now, now);
+  db.raw.prepare('INSERT INTO areas (id, name, sort_order, created_at, updated_at) VALUES (?, ?, ?, ?, ?)').run(id, name, sortOrder, now, now);
+}
+
+async function seedTable(db: TestDb, id = 'table-1', name = 'Table 1', areaId: string | null = null) {
+  const now = Date.now();
+  db.raw.prepare('INSERT INTO tables (id, name, active, sort_order, area_id, x, y, shape, created_at, updated_at) VALUES (?, ?, 1, 0, ?, 25, 25, ?, ?, ?)').run(id, name, areaId, 'rect', now, now);
 }
 
 describe('one-use staff link exchange', () => {
@@ -437,5 +442,101 @@ describe('staff order-intents gating', () => {
       env: makeDbEnv(db),
     });
     expect(consume.status).toBe(400);
+  });
+});
+
+describe('areas CRUD (admin, #15)', () => {
+  it('creates, lists, renames, and deletes an area', async () => {
+    const db = staffDb();
+    const create = await testRequest('/admin/areas', { method: 'POST', body: { name: 'Terrazza' }, headers: await adminHeaders(), env: adminEnv(db) });
+    expect(create.status).toBe(201);
+    const id = ((await create.json()) as { id: string }).id;
+
+    const list = await testRequest('/admin/areas', { headers: await adminHeaders(), env: adminEnv(db) });
+    expect(((await list.json()) as { areas: Array<{ id: string; name: string }> }).areas).toEqual([{ id, name: 'Terrazza', sortOrder: 0 }]);
+
+    const rename = await testRequest(`/admin/areas/${id}`, { method: 'PUT', body: { name: 'Sala' }, headers: await adminHeaders(), env: adminEnv(db) });
+    expect(rename.status).toBe(200);
+    expect((db.raw.prepare('SELECT name FROM areas WHERE id = ?').get(id) as { name: string }).name).toBe('Sala');
+
+    const del = await testRequest(`/admin/areas/${id}`, { method: 'DELETE', headers: await adminHeaders(), env: adminEnv(db) });
+    expect(del.status).toBe(200);
+    expect(db.raw.prepare('SELECT id FROM areas WHERE id = ?').get(id)).toBeUndefined();
+  });
+
+  it('blocks deleting an area that still has tables (409 has_tables)', async () => {
+    const db = staffDb();
+    await seedArea(db, 'area-1');
+    await seedTable(db, 'table-1', 'Table 1', 'area-1');
+    const del = await testRequest('/admin/areas/area-1', { method: 'DELETE', headers: await adminHeaders(), env: adminEnv(db) });
+    expect(del.status).toBe(409);
+    expect(((await del.json()) as { error: string }).error).toBe('has_tables');
+    expect(db.raw.prepare('SELECT id FROM areas WHERE id = ?').get('area-1')).toBeDefined();
+  });
+});
+
+describe('tables area + position (admin, #15)', () => {
+  it('requires a valid area on create (400 invalid_area)', async () => {
+    const db = staffDb();
+    const res = await testRequest('/admin/tables', { method: 'POST', body: { name: '1', areaId: 'nope', shape: 'rect' }, headers: await adminHeaders(), env: adminEnv(db) });
+    expect(res.status).toBe(400);
+    expect(((await res.json()) as { error: string }).error).toBe('invalid_area');
+  });
+
+  it('stores area + shape on create and exposes them on list', async () => {
+    const db = staffDb();
+    await seedArea(db, 'area-1');
+    const create = await testRequest('/admin/tables', { method: 'POST', body: { name: '1', areaId: 'area-1', shape: 'circle' }, headers: await adminHeaders(), env: adminEnv(db) });
+    expect(create.status).toBe(201);
+    const id = ((await create.json()) as { id: string }).id;
+    const list = await testRequest('/admin/tables', { headers: await adminHeaders(), env: adminEnv(db) });
+    const row = ((await list.json()) as { tables: Array<{ id: string; areaId: string; shape: string; x: number; y: number }> }).tables.find((r) => r.id === id)!;
+    expect(row).toMatchObject({ areaId: 'area-1', shape: 'circle', x: 25, y: 25 });
+  });
+
+  it('updates a table position via PATCH', async () => {
+    const db = staffDb();
+    await seedArea(db, 'area-1');
+    await seedTable(db, 'table-1', '1', 'area-1');
+    const res = await testRequest('/admin/tables/table-1/position', { method: 'PATCH', body: { x: 500, y: 300 }, headers: await adminHeaders(), env: adminEnv(db) });
+    expect(res.status).toBe(200);
+    expect(db.raw.prepare('SELECT x, y FROM tables WHERE id = ?').get('table-1')).toEqual({ x: 500, y: 300 });
+  });
+});
+
+describe('/staff/floor payload (#15)', () => {
+  it('returns areas plus tables with x/y/shape and the submitted-order lifecycle', async () => {
+    const db = staffDb();
+    await seedArea(db, 'area-1', 'Sala', 0);
+    await seedTable(db, 'table-1', '1', 'area-1');
+    const session = await openSession(db, await createLink(db));
+
+    // No open session yet: gray, no oldestSubmittedAt.
+    let res = await testRequest('/staff/floor', { headers: staffHeaders(session), env: makeDbEnv(db) });
+    let body = (await res.json()) as { areas: Array<{ id: string; name: string }>; tables: Array<{ id: string; x: number; y: number; shape: string; oldestSubmittedAt: number | null; sessionId: string | null }> };
+    expect(body.areas).toEqual([{ id: 'area-1', name: 'Sala', sortOrder: 0 }]);
+    const t0 = body.tables.find((t) => t.id === 'table-1')!;
+    expect(t0).toMatchObject({ shape: 'rect', x: 25, y: 25, sessionId: null, oldestSubmittedAt: null });
+
+    // Open a session and submit an order: oldestSubmittedAt is set.
+    const open = await testRequest('/staff/tables/table-1/session', { method: 'POST', headers: staffHeaders(session), env: makeDbEnv(db) });
+    const sessionId = ((await open.json()) as { sessionId: string }).sessionId;
+    const submit = await testRequest('/orders', {
+      method: 'POST',
+      body: { idempotencyKey: `idem-floor-${++ipCounter}`, lines: [{ entryId: 'entry-1', quantity: 1 }], tableSessionId: sessionId },
+      headers: { ...staffHeaders(session), 'cf-connecting-ip': `10.7.0.${++ipCounter}` },
+      env: makeDbEnv(db),
+    });
+    const orderId = ((await submit.json()) as { orderId: string }).orderId;
+
+    res = await testRequest('/staff/floor', { headers: staffHeaders(session), env: makeDbEnv(db) });
+    body = (await res.json()) as typeof body;
+    expect(body.tables.find((t) => t.id === 'table-1')!.oldestSubmittedAt).toEqual(expect.any(Number));
+
+    // Mark ready: no longer 'submitted', so oldestSubmittedAt drops back to null.
+    db.raw.prepare("UPDATE orders SET status = 'ready' WHERE id = ?").run(orderId);
+    res = await testRequest('/staff/floor', { headers: staffHeaders(session), env: makeDbEnv(db) });
+    body = (await res.json()) as typeof body;
+    expect(body.tables.find((t) => t.id === 'table-1')!.oldestSubmittedAt).toBeNull();
   });
 });

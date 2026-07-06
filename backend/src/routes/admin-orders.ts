@@ -40,11 +40,13 @@ admin.get('/orders', ...base, async (c) => {
       rejectReason: schema.orders.rejectReason,
       createdAt: schema.orders.createdAt,
       tableName: schema.tables.name,
+      areaName: schema.areas.name,
       updatedAt: schema.orders.updatedAt,
     })
     .from(schema.orders)
     .leftJoin(schema.tableSessions, eq(schema.orders.tableSessionId, schema.tableSessions.id))
     .leftJoin(schema.tables, eq(schema.tableSessions.tableId, schema.tables.id))
+    .leftJoin(schema.areas, eq(schema.tables.areaId, schema.areas.id))
     .where(eq(schema.orders.orderDay, day))
     .orderBy(desc(schema.orders.dailyNumber));
 
@@ -86,7 +88,7 @@ admin.get('/orders', ...base, async (c) => {
       rejectReason: o.rejectReason,
       createdAt: o.createdAt,
       updatedAt: o.updatedAt,
-      tableName: o.tableName ?? null,
+      tableName: o.tableName ? (o.areaName ? `${o.areaName} · ${o.tableName}` : o.tableName) : null,
       submittedBy: submittedBy.get(o.id) ?? null,
       items: (itemsByOrder.get(o.id) ?? []).map((i) => ({
         id: i.id,
