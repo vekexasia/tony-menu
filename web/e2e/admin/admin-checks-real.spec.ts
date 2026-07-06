@@ -72,7 +72,7 @@ test.describe.serial("Checks (conto) — real backend", () => {
     await expect(page.getByTestId("table-free")).toBeVisible();
     await expect(page.getByText("Pagato").first()).toBeVisible();
   });
-  test("admin adds an order from the table page", async ({ page, request }) => {
+  test("admin adds searchable items from the table page", async ({ page, request }) => {
     await seedSessionWithOrder(request);
 
     await page.goto(`/admin/tables/detail?tableId=${SEEDED_TABLE.id}`);
@@ -80,8 +80,12 @@ test.describe.serial("Checks (conto) — real backend", () => {
     const before = await page.locator('[data-testid^="order-"]').count();
     expect(before).toBeGreaterThan(0);
     await page.getByTestId("add-order").click();
-    await expect(page.getByText(/bruschetta/i).first()).toBeVisible({ timeout: 10000 });
-    await page.locator("button").filter({ hasText: "+" }).first().click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByRole("heading", { name: /aggiungi articoli|add items/i })).toBeVisible({ timeout: 10000 });
+    await page.getByTestId("admin-item-search").fill("prosecco");
+    await expect(dialog.getByText(/prosecco/i).first()).toBeVisible();
+    await expect(dialog.getByText(/bruschetta/i).first()).not.toBeVisible();
+    await page.getByTestId("admin-item-plus-demo-entry-prosecco").click();
 
     const submitRes = page.waitForResponse((res) => res.url().includes("/admin/sessions/") && res.url().includes("/orders") && res.request().method() === "POST" && res.status() < 300);
     await page.getByTestId("submit-admin-order").click();

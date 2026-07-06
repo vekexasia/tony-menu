@@ -13,6 +13,9 @@ const apiMocks = vi.hoisted(() => ({
   settleCheck: vi.fn(),
   voidCheck: vi.fn(),
   adminCloseSession: vi.fn(),
+  openAdminTableSession: vi.fn(),
+  createAdminSessionOrder: vi.fn(),
+  getAdminCatalog: vi.fn(),
 }));
 vi.mock("@/lib/api", () => apiMocks);
 
@@ -88,5 +91,35 @@ describe("AdminTableDetailPage", () => {
     apiMocks.fetchAdminTableDetail.mockResolvedValue({ ...sessionNoCheck, currentSession: null });
     render(<AdminTableDetailPage tableId="t1" />);
     expect(await screen.findByTestId("table-free")).toBeInTheDocument();
+  });
+
+  it("adds items with searchable sellable inventory only", async () => {
+    apiMocks.getAdminCatalog.mockResolvedValue({
+      categories: [
+        { id: "c1", name: "Antipasti", sortOrder: 0, i18n: null, entries: [
+          { id: "bruschetta", name: "Bruschetta", description: null, internalCode: null, price: 7.5, priceUnit: null, imageUrl: null, outOfStock: false, frozen: false, sortOrder: 0, hidden: false, menuIds: [], labelIds: [], destinationIds: [], allergens: null, i18n: null, metadata: null },
+          { id: "hidden", name: "Hidden wine", description: null, internalCode: null, price: 9, priceUnit: null, imageUrl: null, outOfStock: false, frozen: false, sortOrder: 1, hidden: true, menuIds: [], labelIds: [], destinationIds: [], allergens: null, i18n: null, metadata: null },
+        ] },
+        { id: "c2", name: "Bar", sortOrder: 1, i18n: null, entries: [
+          { id: "prosecco", name: "Prosecco", description: null, internalCode: null, price: 6, priceUnit: null, imageUrl: null, outOfStock: false, frozen: false, sortOrder: 0, hidden: false, menuIds: [], labelIds: [], destinationIds: [], allergens: null, i18n: null, metadata: null },
+          { id: "sold", name: "Sold out beer", description: null, internalCode: null, price: 5, priceUnit: null, imageUrl: null, outOfStock: true, frozen: false, sortOrder: 1, hidden: false, menuIds: [], labelIds: [], destinationIds: [], allergens: null, i18n: null, metadata: null },
+        ] },
+      ],
+    });
+    render(<AdminTableDetailPage tableId="t1" />);
+    fireEvent.click(await screen.findByTestId("add-order"));
+    expect(await screen.findByRole("heading", { name: "tableDetail.addItems" })).toBeInTheDocument();
+    expect(screen.queryByText("Hidden wine")).toBeNull();
+    expect(screen.queryByText("Sold out beer")).toBeNull();
+
+    fireEvent.click(screen.getByTestId("admin-item-plus-bruschetta"));
+    fireEvent.change(screen.getByTestId("admin-item-search"), { target: { value: "bar" } });
+    expect(screen.queryByText("Bruschetta")).toBeNull();
+    expect(screen.getByText("Prosecco")).toBeInTheDocument();
+    fireEvent.change(screen.getByTestId("admin-item-search"), { target: { value: "brus" } });
+    expect(screen.getByTestId("admin-item-qty-bruschetta")).toHaveTextContent("1");
+
+    fireEvent.click(screen.getByTestId("submit-admin-order"));
+    await waitFor(() => expect(apiMocks.createAdminSessionOrder).toHaveBeenCalledWith("s1", [{ entryId: "bruschetta", quantity: 1 }]));
   });
 });

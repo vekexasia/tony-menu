@@ -657,7 +657,11 @@
     "tableDetail.startOrder": "Начать заказ",
     "tableDetail.addOrder": "Добавить заказ",
     "tableDetail.submitOrder": "Отправить заказ",
-    "tableDetail.checkOpenOrderBlocked": "Счёт открыт: сначала оплатите или отмените его"
+    "tableDetail.checkOpenOrderBlocked": "Счёт открыт: сначала оплатите или отмените его",
+    "tableDetail.addItems": "Добавить позиции",
+    "tableDetail.searchItems": "Поиск доступных позиций",
+    "tableDetail.noAvailableItems": "Доступные позиции не найдены.",
+    "tableDetail.submitItems": "Добавить позиции"
   },
   "outOfStock": "НЕТ В НАЛИЧИИ",
   "staff": {

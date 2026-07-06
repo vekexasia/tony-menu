@@ -657,7 +657,11 @@
     "tableDetail.startOrder": "Scominsia ordine",
     "tableDetail.addOrder": "Zonta ordine",
     "tableDetail.submitOrder": "Manda ordine",
-    "tableDetail.checkOpenOrderBlocked": "Conto verto: paga o anula prima de zontar ordini"
+    "tableDetail.checkOpenOrderBlocked": "Conto verto: paga o anula prima de zontar ordini",
+    "tableDetail.addItems": "Zonta voci",
+    "tableDetail.searchItems": "Serca tute łe voci disponìbiłi",
+    "tableDetail.noAvailableItems": "Nisuna vose disponìbiłe catada.",
+    "tableDetail.submitItems": "Zonta voci"
   },
   "outOfStock": "FINIO",
   "staff": {
