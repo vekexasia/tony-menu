@@ -5,7 +5,7 @@ import { requireAdmin } from '../middleware/admin-guard';
 import { requireDb } from '../middleware/db';
 import { parseBody } from '../lib/validate';
 import { z } from 'zod';
-import { UpdateCheckBodySchema, computeCheckTotals, type CheckDTO, type CheckLine } from '@menu/schemas';
+import { UpdateCheckBodySchema, SettleCheckBodySchema, computeCheckTotals, type CheckDTO, type CheckLine } from '@menu/schemas';
 import * as schema from '../db/schema';
 import type { AppBindings } from '../types';
 import type { DbInstance } from '../db';
@@ -41,6 +41,8 @@ function toCheckDTO(row: CheckRow): CheckDTO {
     total,
     createdAt: row.createdAt,
     settledAt: row.settledAt,
+    paymentMethod: row.paymentMethod as CheckDTO['paymentMethod'],
+    note: row.note,
     voidedAt: row.voidedAt,
   };
 }
@@ -262,9 +264,11 @@ admin.post('/checks/:id/settle', ...base, async (c) => {
   if (!row) return c.json({ error: 'Not Found' }, 404);
   if (row.status !== 'open') return c.json({ error: 'not_open' }, 409);
 
+  const body = await parseBody(c, SettleCheckBodySchema);
+  if (body instanceof Response) return body;
   const now = Date.now();
   await db.batch([
-    db.update(schema.checks).set({ status: 'settled', settledAt: now }).where(eq(schema.checks.id, id)),
+    db.update(schema.checks).set({ status: 'settled', settledAt: now, paymentMethod: body.paymentMethod, note: body.note ?? null }).where(eq(schema.checks.id, id)),
     db.update(schema.tableSessions).set({ closedAt: now }).where(eq(schema.tableSessions.id, row.tableSessionId)),
   ]);
   const [updated] = await db.select().from(schema.checks).where(eq(schema.checks.id, id)).limit(1);

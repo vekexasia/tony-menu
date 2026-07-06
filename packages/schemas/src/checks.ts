@@ -9,6 +9,7 @@ import type { StaffOrder, TableShape } from './staff.js';
 // the client and server agree.
 
 export type CheckStatus = 'open' | 'settled' | 'voided';
+export type PaymentMethod = 'cash' | 'card' | 'other';
 
 export interface CheckLine {
   name: string;
@@ -39,6 +40,8 @@ export interface CheckDTO {
   total: number;
   createdAt: number;
   settledAt: number | null;
+  paymentMethod: PaymentMethod | null;
+  note: string | null;
   voidedAt: number | null;
 }
 
@@ -80,6 +83,12 @@ export const UpdateCheckBodySchema = z.object({
   adjustments: z.array(AdjustmentSchema).max(20).optional(),
 });
 export type UpdateCheckBody = z.infer<typeof UpdateCheckBodySchema>;
+
+export const SettleCheckBodySchema = z.object({
+  paymentMethod: z.enum(['cash', 'card', 'other']),
+  note: z.string().trim().max(120).optional(),
+});
+export type SettleCheckBody = z.infer<typeof SettleCheckBodySchema>;
 
 // ── Admin table detail (#15 follow-up) ──────────────────────────────
 

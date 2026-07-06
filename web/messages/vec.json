@@ -662,7 +662,12 @@
     "tableDetail.noAvailableItems": "Nisuna vose disponìbiłe catada.",
     "tableDetail.submitItems": "Zonta voci",
     "tableDetail.checkOpenAddItemsBlocked": "Paga o anuła el conto verto prima de zontar altre voci.",
-    "tables.checkOpen": "Conto"
+    "tables.checkOpen": "Conto",
+    "tableDetail.settlementTitle": "Pagamento",
+    "tableDetail.paymentMethod.cash": "Contanti",
+    "tableDetail.paymentMethod.card": "Carta",
+    "tableDetail.paymentMethod.other": "Altro",
+    "tableDetail.paymentNote": "Nota pagamento (opsional)"
   },
   "outOfStock": "FINIO",
   "staff": {

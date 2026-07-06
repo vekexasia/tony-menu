@@ -56,6 +56,7 @@ import type {
   AdminTableDetail,
   CheckDTO,
   UpdateCheckBody,
+  SettleCheckBody,
 } from '@menu/schemas';
 
 export type { CatalogResponse, MeResponse, AnalyticsResponse, ViewedItemRanked, MenuViewBreakdown, HourlyTotal, SubmitOrderLine };
@@ -315,8 +316,8 @@ export function updateCheck(checkId: string, data: UpdateCheckBody) {
   return apiFetch<CheckDTO>(`/admin/checks/${encodeURIComponent(checkId)}`, { method: 'PATCH', body: data, auth: true });
 }
 
-export function settleCheck(checkId: string) {
-  return apiFetch<CheckDTO>(`/admin/checks/${encodeURIComponent(checkId)}/settle`, { method: 'POST', auth: true });
+export function settleCheck(checkId: string, data: SettleCheckBody) {
+  return apiFetch<CheckDTO>(`/admin/checks/${encodeURIComponent(checkId)}/settle`, { method: 'POST', body: data, auth: true });
 }
 
 export function voidCheck(checkId: string) {

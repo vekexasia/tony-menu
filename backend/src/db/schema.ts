@@ -466,6 +466,8 @@ export const checks = sqliteTable(
     adjustments: jsonColumn<{ label: string; amount: number }[]>('adjustments').notNull().default([]),
     createdAt: integer('created_at').notNull().$defaultFn(() => Date.now()),
     settledAt: integer('settled_at'),
+    paymentMethod: text('payment_method'),
+    note: text('note'),
     voidedAt: integer('voided_at'),
   },
   (table) => ({

@@ -662,7 +662,12 @@
     "tableDetail.noAvailableItems": "Nessun articolo disponibile trovato.",
     "tableDetail.submitItems": "Aggiungi articoli",
     "tableDetail.checkOpenAddItemsBlocked": "Paga o annulla il conto aperto prima di aggiungere altri articoli.",
-    "tables.checkOpen": "Conto"
+    "tables.checkOpen": "Conto",
+    "tableDetail.settlementTitle": "Pagamento",
+    "tableDetail.paymentMethod.cash": "Contanti",
+    "tableDetail.paymentMethod.card": "Carta",
+    "tableDetail.paymentMethod.other": "Altro",
+    "tableDetail.paymentNote": "Nota pagamento (opzionale)"
   },
   "outOfStock": "ESAURITO",
   "staff": {

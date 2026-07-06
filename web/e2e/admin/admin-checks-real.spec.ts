@@ -74,12 +74,15 @@ test.describe.serial("Checks (conto) — real backend", () => {
 
     // Settle (confirm) → session closes, table free, settled in history.
     await page.getByTestId("settle").click();
+    await expect(page.getByTestId("settle-confirm")).toBeDisabled();
+    await page.getByTestId("payment-method-card").click();
     const settleRes = page.waitForResponse((res) => res.url().includes("/settle") && res.request().method() === "POST" && res.status() < 300);
     await page.getByTestId("settle-confirm").click();
     await settleRes;
 
     await expect(page.getByTestId("table-free")).toBeVisible();
     await expect(page.getByText(/Pagato|Paid/).first()).toBeVisible();
+    await expect(page.getByText(/Carta|Card/).first()).toBeVisible();
   });
   test("admin adds searchable items from the table page", async ({ page, request }) => {
     await seedSessionWithOrder(request);

@@ -8,7 +8,7 @@ import {
   ApiError, type AdminTableDetail, type CheckDTO, type CatalogResponse, type SubmitOrderLine,
 } from "@/lib/api";
 import { useTranslations } from "@/lib/i18n";
-import type { CheckAdjustment, CheckDiscount } from "@menu/schemas";
+import type { CheckAdjustment, CheckDiscount, PaymentMethod } from "@menu/schemas";
 
 const POLL_MS = 10_000;
 
@@ -138,7 +138,7 @@ export default function AdminTableDetailPage({ tableId }: { tableId: string }) {
           confirming={confirming}
           setConfirming={setConfirming}
           onUpdate={(patch) => run(() => updateCheck(check.id, patch))}
-          onSettle={() => run(() => settleCheck(check.id))}
+          onSettle={(body) => run(() => settleCheck(check.id, body))}
           onVoid={() => run(() => voidCheck(check.id))}
         />
       )}
@@ -163,6 +163,7 @@ export default function AdminTableDetailPage({ tableId }: { tableId: string }) {
                       <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${h.check.status === "settled" ? "bg-green-100 text-green-800" : "bg-gray-200 text-gray-600"}`}>
                         {t(`tableDetail.checkStatus.${h.check.status}`)}
                       </span>
+                      {h.check.paymentMethod && <span data-testid={`history-payment-${h.sessionId}`} className="text-xs text-gray-500">{t(`tableDetail.paymentMethod.${h.check.paymentMethod}`)}</span>}
                       <span className="text-sm font-bold text-gray-900">{euros(h.check.total)}</span>
                     </span>
                   )}
@@ -365,7 +366,7 @@ function CheckCard({
   confirming: "close" | "settle" | "void" | null;
   setConfirming: (v: "close" | "settle" | "void" | null) => void;
   onUpdate: (patch: { discount?: CheckDiscount | null; adjustments?: CheckAdjustment[] }) => void;
-  onSettle: () => void;
+  onSettle: (body: { paymentMethod: PaymentMethod; note?: string }) => void;
   onVoid: () => void;
 }) {
   const [discountType, setDiscountType] = useState<"percent" | "amount">(check.discount?.type ?? "percent");
@@ -374,6 +375,8 @@ function CheckCard({
   );
   const [adjLabel, setAdjLabel] = useState("");
   const [adjAmount, setAdjAmount] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
+  const [paymentNote, setPaymentNote] = useState("");
 
   const saveDiscount = () => {
     const raw = discountValue.trim();
@@ -453,10 +456,37 @@ function CheckCard({
       <div className="mt-4 flex flex-wrap gap-2 print-hide">
         <button type="button" onClick={() => window.print()} className="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 text-xs font-semibold">{t("tableDetail.print")}</button>
         {confirming === "settle" ? (
-          <>
-            <button type="button" onClick={onSettle} disabled={busy} data-testid="settle-confirm" className="px-3 py-1.5 rounded-lg bg-green-600 text-white text-xs font-semibold disabled:opacity-50">{t("tableDetail.confirmPaid")}</button>
-            <button type="button" onClick={() => setConfirming(null)} className="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 text-xs font-semibold">{t("common.cancel")}</button>
-          </>
+          <div data-testid="settlement-sheet" className="w-full rounded-xl border border-green-100 bg-green-50 p-3 space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-sm font-semibold text-green-900">{t("tableDetail.settlementTitle")}</span>
+              <span className="text-lg font-bold text-green-900">{euros(check.total)}</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {(["cash", "card", "other"] as PaymentMethod[]).map((method) => (
+                <button
+                  key={method}
+                  type="button"
+                  onClick={() => setPaymentMethod(method)}
+                  data-testid={`payment-method-${method}`}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold border ${paymentMethod === method ? "bg-green-600 text-white border-green-600" : "bg-white text-gray-700 border-gray-200"}`}
+                >
+                  {t(`tableDetail.paymentMethod.${method}`)}
+                </button>
+              ))}
+            </div>
+            <input
+              value={paymentNote}
+              onChange={(e) => setPaymentNote(e.target.value)}
+              data-testid="payment-note"
+              maxLength={120}
+              placeholder={t("tableDetail.paymentNote")}
+              className="h-9 w-full rounded-lg border border-gray-200 px-3 text-sm bg-white"
+            />
+            <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={() => paymentMethod && onSettle({ paymentMethod, note: paymentNote.trim() || undefined })} disabled={busy || !paymentMethod} data-testid="settle-confirm" className="px-3 py-1.5 rounded-lg bg-green-600 text-white text-xs font-semibold disabled:opacity-50">{t("tableDetail.confirmPaid")}</button>
+              <button type="button" onClick={() => setConfirming(null)} className="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 text-xs font-semibold bg-white">{t("common.cancel")}</button>
+            </div>
+          </div>
         ) : (
           <button type="button" onClick={() => setConfirming("settle")} data-testid="settle" className="px-3 py-1.5 rounded-lg bg-green-600 text-white text-xs font-semibold">{t("tableDetail.paid")}</button>
         )}
