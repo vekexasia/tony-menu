@@ -662,7 +662,12 @@
     "tableDetail.noAvailableItems": "No available items found.",
     "tableDetail.submitItems": "Add items",
     "tableDetail.checkOpenAddItemsBlocked": "Settle or void the open check before adding more items.",
-    "tables.checkOpen": "Check"
+    "tables.checkOpen": "Check",
+    "tableDetail.settlementTitle": "Payment",
+    "tableDetail.paymentMethod.cash": "Cash",
+    "tableDetail.paymentMethod.card": "Card",
+    "tableDetail.paymentMethod.other": "Other",
+    "tableDetail.paymentNote": "Payment note (optional)"
   },
   "outOfStock": "OUT OF STOCK",
   "staff": {

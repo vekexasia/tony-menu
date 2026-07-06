@@ -173,15 +173,23 @@ describe('check patch (discount/adjustments)', () => {
 });
 
 describe('check settle / void', () => {
-  it('settle closes the session and marks the check settled', async () => {
+  it('settle requires and stores payment metadata, then closes the session', async () => {
     const db = checksDb();
     const sessionId = openSession(db);
     seedOrder(db, sessionId, 'Bruschetta', 750, 1);
     const id = ((await (await createCheck(db, sessionId)).json()) as { id: string }).id;
-    const res = await testRequest(`/admin/checks/${id}/settle`, { method: 'POST', headers: await adminHeaders(), env: adminEnv(db) });
+
+    const missing = await testRequest(`/admin/checks/${id}/settle`, { method: 'POST', headers: await adminHeaders(), env: adminEnv(db) });
+    expect(missing.status).toBe(400);
+
+    const res = await testRequest(`/admin/checks/${id}/settle`, { method: 'POST', body: { paymentMethod: 'card', note: 'Visa ending 42' }, headers: await adminHeaders(), env: adminEnv(db) });
     expect(res.status).toBe(200);
-    expect((await res.json() as { status: string; settledAt: number | null }).status).toBe('settled');
+    const body = await res.json() as { status: string; settledAt: number | null; paymentMethod: string; note: string | null };
+    expect(body.status).toBe('settled');
+    expect(body.paymentMethod).toBe('card');
+    expect(body.note).toBe('Visa ending 42');
     expect((db.raw.prepare('SELECT closed_at FROM table_sessions WHERE id = ?').get(sessionId) as { closed_at: number | null }).closed_at).not.toBeNull();
+    expect((db.raw.prepare('SELECT payment_method, note FROM checks WHERE id = ?').get(id) as { payment_method: string; note: string })).toEqual({ payment_method: 'card', note: 'Visa ending 42' });
   });
 
   it('refuses settling a non-open check (409)', async () => {
@@ -189,8 +197,8 @@ describe('check settle / void', () => {
     const sessionId = openSession(db);
     seedOrder(db, sessionId, 'Bruschetta', 750, 1);
     const id = ((await (await createCheck(db, sessionId)).json()) as { id: string }).id;
-    await testRequest(`/admin/checks/${id}/settle`, { method: 'POST', headers: await adminHeaders(), env: adminEnv(db) });
-    const again = await testRequest(`/admin/checks/${id}/settle`, { method: 'POST', headers: await adminHeaders(), env: adminEnv(db) });
+    await testRequest(`/admin/checks/${id}/settle`, { method: 'POST', body: { paymentMethod: 'cash' }, headers: await adminHeaders(), env: adminEnv(db) });
+    const again = await testRequest(`/admin/checks/${id}/settle`, { method: 'POST', body: { paymentMethod: 'cash' }, headers: await adminHeaders(), env: adminEnv(db) });
     expect(again.status).toBe(409);
   });
 

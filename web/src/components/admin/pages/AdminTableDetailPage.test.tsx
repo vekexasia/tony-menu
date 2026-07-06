@@ -37,7 +37,7 @@ const openCheck = {
   id: "c1", status: "open" as const,
   lines: [{ name: "Bruschetta", quantity: 2, unitPrice: 750 }],
   discount: null, adjustments: [],
-  subtotal: 1500, total: 1500, createdAt: 1, settledAt: null, voidedAt: null,
+  subtotal: 1500, total: 1500, createdAt: 1, settledAt: null, paymentMethod: null, note: null, voidedAt: null,
 };
 
 beforeEach(() => {
@@ -78,13 +78,18 @@ describe("AdminTableDetailPage", () => {
     await waitFor(() => expect(screen.getByTestId("check-total")).toHaveTextContent("13,50"));
   });
 
-  it("settles the check behind an inline confirm", async () => {
+  it("requires payment method in a settlement sheet before settling", async () => {
     apiMocks.fetchAdminTableDetail.mockResolvedValue({ ...sessionNoCheck, currentSession: { ...sessionNoCheck.currentSession, check: openCheck } });
-    apiMocks.settleCheck.mockResolvedValue({ ...openCheck, status: "settled", settledAt: 2 });
+    apiMocks.settleCheck.mockResolvedValue({ ...openCheck, status: "settled", settledAt: 2, paymentMethod: "card", note: "Visa" });
     render(<AdminTableDetailPage tableId="t1" />);
     fireEvent.click(await screen.findByTestId("settle"));
-    fireEvent.click(await screen.findByTestId("settle-confirm"));
-    await waitFor(() => expect(apiMocks.settleCheck).toHaveBeenCalledWith("c1"));
+    const confirm = await screen.findByTestId("settle-confirm");
+    expect(confirm).toBeDisabled();
+    fireEvent.click(screen.getByTestId("payment-method-card"));
+    fireEvent.change(screen.getByTestId("payment-note"), { target: { value: "Visa" } });
+    expect(confirm).not.toBeDisabled();
+    fireEvent.click(confirm);
+    await waitFor(() => expect(apiMocks.settleCheck).toHaveBeenCalledWith("c1", { paymentMethod: "card", note: "Visa" }));
   });
 
   it("shows the free empty state when there is no open session", async () => {
@@ -130,8 +135,18 @@ describe("AdminTableDetailPage", () => {
     expect(screen.queryByTestId("add-order")).toBeNull();
     expect(screen.getByTestId("add-items-blocked")).toHaveTextContent("tableDetail.checkOpenAddItemsBlocked");
     fireEvent.click(screen.getByTestId("blocked-settle"));
-    expect(await screen.findByTestId("settle-confirm")).toBeInTheDocument();
+    expect(await screen.findByTestId("settlement-sheet")).toBeInTheDocument();
     fireEvent.click(screen.getByTestId("blocked-void"));
     expect(await screen.findByTestId("void-confirm")).toBeInTheDocument();
+  });
+
+  it("shows payment method in settled history", async () => {
+    apiMocks.fetchAdminTableDetail.mockResolvedValue({
+      ...sessionNoCheck,
+      currentSession: null,
+      history: [{ sessionId: "h1", openedAt: 1, closedAt: 2, check: { ...openCheck, status: "settled", settledAt: 2, paymentMethod: "cash" } }],
+    });
+    render(<AdminTableDetailPage tableId="t1" />);
+    expect(await screen.findByTestId("history-payment-h1")).toHaveTextContent("tableDetail.paymentMethod.cash");
   });
 });

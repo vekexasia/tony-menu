@@ -662,7 +662,12 @@
     "tableDetail.noAvailableItems": "Aucun article disponible trouvé.",
     "tableDetail.submitItems": "Ajouter des articles",
     "tableDetail.checkOpenAddItemsBlocked": "Encaissez ou annulez l’addition ouverte avant d’ajouter d’autres articles.",
-    "tables.checkOpen": "Note"
+    "tables.checkOpen": "Note",
+    "tableDetail.settlementTitle": "Paiement",
+    "tableDetail.paymentMethod.cash": "Espèces",
+    "tableDetail.paymentMethod.card": "Carte",
+    "tableDetail.paymentMethod.other": "Autre",
+    "tableDetail.paymentNote": "Note de paiement (facultatif)"
   },
   "outOfStock": "ÉPUISÉ",
   "staff": {

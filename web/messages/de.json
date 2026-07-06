@@ -662,7 +662,12 @@
     "tableDetail.noAvailableItems": "Keine verfügbaren Artikel gefunden.",
     "tableDetail.submitItems": "Artikel hinzufügen",
     "tableDetail.checkOpenAddItemsBlocked": "Begleiche oder storniere die offene Rechnung, bevor du weitere Artikel hinzufügst.",
-    "tables.checkOpen": "Rechnung"
+    "tables.checkOpen": "Rechnung",
+    "tableDetail.settlementTitle": "Zahlung",
+    "tableDetail.paymentMethod.cash": "Bar",
+    "tableDetail.paymentMethod.card": "Karte",
+    "tableDetail.paymentMethod.other": "Andere",
+    "tableDetail.paymentNote": "Zahlungsnotiz (optional)"
   },
   "outOfStock": "AUSVERKAUFT",
   "staff": {

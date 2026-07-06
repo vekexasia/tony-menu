@@ -662,7 +662,12 @@
     "tableDetail.noAvailableItems": "Nem található elérhető tétel.",
     "tableDetail.submitItems": "Tételek hozzáadása",
     "tableDetail.checkOpenAddItemsBlocked": "Rendezze vagy érvénytelenítse a nyitott számlát, mielőtt új tételeket ad hozzá.",
-    "tables.checkOpen": "Számla"
+    "tables.checkOpen": "Számla",
+    "tableDetail.settlementTitle": "Fizetés",
+    "tableDetail.paymentMethod.cash": "Készpénz",
+    "tableDetail.paymentMethod.card": "Kártya",
+    "tableDetail.paymentMethod.other": "Egyéb",
+    "tableDetail.paymentNote": "Fizetési megjegyzés (opcionális)"
   },
   "outOfStock": "OUT OF STOCK",
   "staff": {

@@ -662,7 +662,12 @@
     "tableDetail.noAvailableItems": "Доступные позиции не найдены.",
     "tableDetail.submitItems": "Добавить позиции",
     "tableDetail.checkOpenAddItemsBlocked": "Оплатите или аннулируйте открытый счёт перед добавлением новых позиций.",
-    "tables.checkOpen": "Счет"
+    "tables.checkOpen": "Счет",
+    "tableDetail.settlementTitle": "Оплата",
+    "tableDetail.paymentMethod.cash": "Наличные",
+    "tableDetail.paymentMethod.card": "Карта",
+    "tableDetail.paymentMethod.other": "Другое",
+    "tableDetail.paymentNote": "Примечание к оплате (необязательно)"
   },
   "outOfStock": "НЕТ В НАЛИЧИИ",
   "staff": {
