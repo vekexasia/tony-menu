@@ -18,9 +18,12 @@ vi.mock('@/lib/i18n', () => ({
 
 vi.mock('@/lib/api', () => ({
   recordView: vi.fn(),
+  ApiError: class ApiError extends Error { constructor(public status: number, message: string, public body?: unknown) { super(message); } },
+}));
+
+vi.mock('@/orders/api', () => ({
   createOrderIntent: vi.fn(),
   submitOrder: vi.fn(),
-  ApiError: class ApiError extends Error { constructor(public status: number, message: string, public body?: unknown) { super(message); } },
 }));
 
 vi.mock('next/image', () => ({

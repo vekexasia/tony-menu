@@ -10,7 +10,7 @@ const updateOrderStatusMock = vi.fn();
 const setDestinationPrintedMock = vi.fn();
 const fetchOrderDestinationsMock = vi.fn();
 
-vi.mock("@/lib/api", () => ({
+vi.mock("@/orders/api", () => ({
   fetchAdminOrders: (...args: unknown[]) => fetchAdminOrdersMock(...args),
   updateOrderStatus: (...args: unknown[]) => updateOrderStatusMock(...args),
   setDestinationPrinted: (...args: unknown[]) => setDestinationPrintedMock(...args),

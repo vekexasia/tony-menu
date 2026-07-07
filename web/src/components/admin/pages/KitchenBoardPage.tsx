@@ -11,7 +11,7 @@ import {
   deleteOrderDestination,
   type AdminOrder,
   type AdminOrderDestination,
-} from "@/lib/api";
+} from "@/orders/api";
 import { useRestaurantStore } from "@/stores/restaurantStore";
 import { useTranslations } from "@/lib/i18n";
 

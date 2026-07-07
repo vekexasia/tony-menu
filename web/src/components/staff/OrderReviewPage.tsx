@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ApiError, consumeOrderIntent, fetchFloor, fetchOrderIntent, getCatalog, openTableSession } from "@/lib/api";
+import { ApiError, fetchFloor, getCatalog, openTableSession } from "@/lib/api";
+import { consumeOrderIntent, fetchOrderIntent } from "@/orders/api";
 import type { CatalogResponse, FloorTable, OrderIntentReviewResponse } from "@menu/schemas";
 import { getLocalizedContentValue } from "@/lib/content-presentation";
 import { useLocale, useTranslations } from "@/lib/i18n";

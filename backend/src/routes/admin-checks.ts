@@ -9,7 +9,7 @@ import { UpdateCheckBodySchema, SettleCheckBodySchema, computeCheckTotals, type 
 import * as schema from '../db/schema';
 import type { AppBindings } from '../types';
 import type { DbInstance } from '../db';
-import { createOrder } from './orders';
+import { createOrder } from '../orders';
 
 /**
  * Checks (conto, #15 follow-up): create/settle/void a table session's bill, plus

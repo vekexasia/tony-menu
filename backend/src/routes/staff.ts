@@ -1,16 +1,14 @@
 import { Hono } from 'hono';
-import { eq, and, asc, inArray, isNull } from 'drizzle-orm';
+import { eq, and, inArray, isNull } from 'drizzle-orm';
 import { requireDb } from '../middleware/db';
 import { requireStaff } from '../middleware/staff-guard';
 import { parseBody } from '../lib/validate';
 import {
   ConsumeStaffLinkBodySchema,
   ConsumeOrderIntentBodySchema,
-  ORDER_STATUS_TRANSITIONS,
-  type OrderStatus,
 } from '@menu/schemas';
 import * as schema from '../db/schema';
-import { createOrder } from './orders';
+import { buildStaffSessionDetail, createOrder, transitionOrderStatus } from '../orders';
 import { buildFloorState } from '../lib/floor';
 import { checkRateLimit } from '../lib/rate-limit';
 import type { AppBindings } from '../types';
@@ -106,77 +104,9 @@ staff.post('/tables/:id/session', ...staffBase, async (c) => {
 
 /** GET /staff/sessions/:id — the session's orders with status. */
 staff.get('/sessions/:id', ...staffBase, async (c) => {
-  const db = c.get('db');
-  const sessionId = c.req.param('id');
-
-  const [session] = await db
-    .select({
-      id: schema.tableSessions.id,
-      openedAt: schema.tableSessions.openedAt,
-      tableId: schema.tables.id,
-      tableName: schema.tables.name,
-      areaName: schema.areas.name,
-    })
-    .from(schema.tableSessions)
-    .innerJoin(schema.tables, eq(schema.tableSessions.tableId, schema.tables.id))
-    .leftJoin(schema.areas, eq(schema.tables.areaId, schema.areas.id))
-    .where(eq(schema.tableSessions.id, sessionId))
-    .limit(1);
-  if (!session) return c.json({ error: 'Not Found' }, 404);
-
-  const orderRows = await db
-    .select()
-    .from(schema.orders)
-    .where(eq(schema.orders.tableSessionId, sessionId))
-    .orderBy(asc(schema.orders.createdAt));
-  const orderIds = orderRows.map((o) => o.id);
-  const itemRows = orderIds.length > 0
-    ? await db.select().from(schema.orderItems).where(inArray(schema.orderItems.orderId, orderIds))
-    : [];
-  const eventRows = orderIds.length > 0
-    ? await db
-        .select()
-        .from(schema.orderEvents)
-        .where(inArray(schema.orderEvents.orderId, orderIds))
-        .orderBy(asc(schema.orderEvents.createdAt))
-    : [];
-  const eventsByOrder = new Map<string, typeof eventRows>();
-  for (const e of eventRows) {
-    const list = eventsByOrder.get(e.orderId) ?? [];
-    list.push(e);
-    eventsByOrder.set(e.orderId, list);
-  }
-  const itemsByOrder = new Map<string, typeof itemRows>();
-  for (const i of itemRows) {
-    const list = itemsByOrder.get(i.orderId) ?? [];
-    list.push(i);
-    itemsByOrder.set(i.orderId, list);
-  }
-
-  return c.json({
-    sessionId: session.id,
-    tableId: session.tableId,
-    tableName: session.areaName ? `${session.areaName} · ${session.tableName}` : session.tableName,
-    openedAt: session.openedAt,
-    orders: orderRows.map((o) => ({
-      id: o.id,
-      dailyNumber: o.dailyNumber,
-      status: o.status,
-      createdAt: o.createdAt,
-      items: (itemsByOrder.get(o.id) ?? []).map((i) => ({
-        id: i.id,
-        name: i.name,
-        price: i.price,
-        quantity: i.quantity,
-      })),
-      events: (eventsByOrder.get(o.id) ?? []).map((e) => ({
-        status: e.status,
-        actor: e.actor,
-        actorName: e.actorName,
-        at: e.createdAt,
-      })),
-    })),
-  });
+  const detail = await buildStaffSessionDetail(c.get('db'), c.req.param('id'));
+  if (!detail) return c.json({ error: 'Not Found' }, 404);
+  return c.json(detail);
 });
 
 // ── Mark served (staff) ──────────────────────────────────────────────
@@ -187,34 +117,12 @@ staff.get('/sessions/:id', ...staffBase, async (c) => {
  * or reset an order, only confirm delivery.
  */
 staff.patch('/orders/:orderId/serve', ...staffBase, async (c) => {
-  const db = c.get('db');
   const orderId = c.req.param('orderId');
-
-  const [order] = await db
-    .select({ status: schema.orders.status })
-    .from(schema.orders)
-    .where(eq(schema.orders.id, orderId))
-    .limit(1);
-  if (!order) return c.json({ error: 'Not Found' }, 404);
-
-  const allowed = ORDER_STATUS_TRANSITIONS[order.status as OrderStatus] ?? [];
-  if (order.status !== 'ready' || !allowed.includes('served')) {
-    return c.json({ error: 'illegal_transition', from: order.status, to: 'served' }, 409);
+  const result = await transitionOrderStatus(c.get('db'), orderId, 'served', 'staff', c.get('staff').name);
+  if (result.error === 'not_found') return c.json({ error: 'Not Found' }, 404);
+  if (result.error === 'illegal_transition') {
+    return c.json({ error: 'illegal_transition', from: result.from, to: 'served' }, 409);
   }
-
-  await db.batch([
-    db
-      .update(schema.orders)
-      .set({ status: 'served', updatedAt: Date.now() })
-      .where(eq(schema.orders.id, orderId)),
-    db.insert(schema.orderEvents).values({
-      id: crypto.randomUUID(),
-      orderId,
-      status: 'served',
-      actor: 'staff',
-      actorName: c.get('staff').name,
-    }),
-  ]);
   return c.json({ ok: true, status: 'served' });
 });
 

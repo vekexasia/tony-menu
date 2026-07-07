@@ -1,20 +1,18 @@
 import { Hono, type Context } from 'hono';
-import { eq, desc, asc, inArray } from 'drizzle-orm';
+import { eq, desc, asc } from 'drizzle-orm';
 import { requireAuth } from '../middleware/auth';
 import { requireAdmin } from '../middleware/admin-guard';
 import { requireDb } from '../middleware/db';
 import { parseBody } from '../lib/validate';
 import {
-  ORDER_STATUS_TRANSITIONS,
   UpdateOrderStatusBodySchema,
   SetDestinationPrintedBodySchema,
   CreateOrderDestinationBodySchema,
   UpdateOrderDestinationBodySchema,
-  type OrderStatus,
 } from '@menu/schemas';
 import * as schema from '../db/schema';
 import { refreshCatalogArtifacts } from './catalog';
-import { currentOrderDay } from './orders';
+import { buildAdminOrdersForDay, currentOrderDay, transitionOrderStatus } from '../orders';
 import type { AppBindings } from '../types';
 
 /**
@@ -31,79 +29,7 @@ const base = [requireAuth, requireDb, requireAdmin] as const;
 admin.get('/orders', ...base, async (c) => {
   const db = c.get('db');
   const day = Number(c.req.query('day')) || currentOrderDay(new Date(), c.get('config').orderTimeZone);
-
-  const orderRows = await db
-    .select({
-      id: schema.orders.id,
-      dailyNumber: schema.orders.dailyNumber,
-      status: schema.orders.status,
-      rejectReason: schema.orders.rejectReason,
-      createdAt: schema.orders.createdAt,
-      tableName: schema.tables.name,
-      areaName: schema.areas.name,
-      updatedAt: schema.orders.updatedAt,
-    })
-    .from(schema.orders)
-    .leftJoin(schema.tableSessions, eq(schema.orders.tableSessionId, schema.tableSessions.id))
-    .leftJoin(schema.tables, eq(schema.tableSessions.tableId, schema.tables.id))
-    .leftJoin(schema.areas, eq(schema.tables.areaId, schema.areas.id))
-    .where(eq(schema.orders.orderDay, day))
-    .orderBy(desc(schema.orders.dailyNumber));
-
-  const orderIds = orderRows.map((o) => o.id);
-  const itemRows = orderIds.length > 0
-    ? await db.select().from(schema.orderItems).where(inArray(schema.orderItems.orderId, orderIds))
-    : [];
-  const itemIds = itemRows.map((i) => i.id);
-  const destRows = itemIds.length > 0
-    ? await db.select().from(schema.orderItemDestinations).where(inArray(schema.orderItemDestinations.orderItemId, itemIds))
-    : [];
-  const eventRows = orderIds.length > 0
-    ? await db.select().from(schema.orderEvents).where(inArray(schema.orderEvents.orderId, orderIds))
-    : [];
-  const submittedBy = new Map<string, string>();
-  for (const e of eventRows) {
-    if (e.status === 'submitted' && e.actorName) submittedBy.set(e.orderId, e.actorName);
-  }
-
-  const destsByItem = new Map<string, typeof destRows>();
-  for (const d of destRows) {
-    const list = destsByItem.get(d.orderItemId) ?? [];
-    list.push(d);
-    destsByItem.set(d.orderItemId, list);
-  }
-  const itemsByOrder = new Map<string, typeof itemRows>();
-  for (const i of itemRows) {
-    const list = itemsByOrder.get(i.orderId) ?? [];
-    list.push(i);
-    itemsByOrder.set(i.orderId, list);
-  }
-
-  return c.json({
-    day,
-    orders: orderRows.map((o) => ({
-      id: o.id,
-      dailyNumber: o.dailyNumber,
-      status: o.status,
-      rejectReason: o.rejectReason,
-      createdAt: o.createdAt,
-      updatedAt: o.updatedAt,
-      tableName: o.tableName ? (o.areaName ? `${o.areaName} · ${o.tableName}` : o.tableName) : null,
-      submittedBy: submittedBy.get(o.id) ?? null,
-      items: (itemsByOrder.get(o.id) ?? []).map((i) => ({
-        id: i.id,
-        name: i.name,
-        price: i.price,
-        quantity: i.quantity,
-        destinations: (destsByItem.get(i.id) ?? []).map((d) => ({
-          id: d.id,
-          destinationId: d.destinationId,
-          destinationName: d.destinationName,
-          printedAt: d.printedAt,
-        })),
-      })),
-    })),
-  });
+  return c.json({ day, orders: await buildAdminOrdersForDay(db, day) });
 });
 
 /** Whole-order status transition: submitted → ready → served, or reject with reason. */
@@ -112,38 +38,12 @@ admin.patch('/orders/:orderId/status', ...base, async (c) => {
   const body = await parseBody(c, UpdateOrderStatusBodySchema);
   if (body instanceof Response) return body;
 
-  const db = c.get('db');
-  const [order] = await db
-    .select({ status: schema.orders.status })
-    .from(schema.orders)
-    .where(eq(schema.orders.id, orderId))
-    .limit(1);
-  if (!order) return c.json({ error: 'Not Found' }, 404);
-
-  const allowed = ORDER_STATUS_TRANSITIONS[order.status as OrderStatus] ?? [];
-  if (!allowed.includes(body.status)) {
-    return c.json({ error: 'illegal_transition', from: order.status, to: body.status }, 409);
+  const result = await transitionOrderStatus(c.get('db'), orderId, body.status, 'admin', null, body.rejectReason);
+  if (result.error === 'not_found') return c.json({ error: 'Not Found' }, 404);
+  if (result.error === 'illegal_transition') {
+    return c.json({ error: 'illegal_transition', from: result.from, to: result.to }, 409);
   }
-
-  await db.batch([
-    db
-      .update(schema.orders)
-      .set({
-        status: body.status,
-        rejectReason: body.status === 'rejected' ? body.rejectReason : null,
-        updatedAt: Date.now(),
-      })
-      .where(eq(schema.orders.id, orderId)),
-    db.insert(schema.orderEvents).values({
-      id: crypto.randomUUID(),
-      orderId,
-      status: body.status,
-      actor: 'admin',
-      actorName: null,
-    }),
-  ]);
-
-  return c.json({ ok: true, status: body.status });
+  return c.json({ ok: true, status: result.status });
 });
 
 /** Per-department printed/done toggle — independent per destination row. */

@@ -9,14 +9,10 @@ const loadRestaurantMock = vi.fn();
 const submitOrderMock = vi.fn();
 const createOrderIntentMock = vi.fn();
 
-vi.mock('@/lib/api', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/lib/api')>();
-  return {
-    ...actual,
-    submitOrder: (...args: unknown[]) => submitOrderMock(...args),
-    createOrderIntent: (...args: unknown[]) => createOrderIntentMock(...args),
-  };
-});
+vi.mock('@/orders/api', () => ({
+  submitOrder: (...args: unknown[]) => submitOrderMock(...args),
+  createOrderIntent: (...args: unknown[]) => createOrderIntentMock(...args),
+}));
 
 vi.mock('next/navigation', () => ({
   useParams: () => ({ locale: 'it' }),

@@ -11,8 +11,13 @@ const apiMocks = vi.hoisted(() => ({
 }));
 vi.mock("@/lib/api", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/api")>();
-  return { ...actual, ...apiMocks };
+  return { ...actual, fetchFloor: apiMocks.fetchFloor, openTableSession: apiMocks.openTableSession, getCatalog: apiMocks.getCatalog };
 });
+
+vi.mock("@/orders/api", () => ({
+  fetchOrderIntent: apiMocks.fetchOrderIntent,
+  consumeOrderIntent: apiMocks.consumeOrderIntent,
+}));
 
 vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams("token=tok-123"),
