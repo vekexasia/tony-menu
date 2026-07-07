@@ -45,6 +45,11 @@ describe('getRuntimeConfig', () => {
     expect(config.auth.configured).toBe(false);
   });
 
+  it('reads ORDER_TIME_ZONE', () => {
+    const config = getRuntimeConfig({ ORDER_TIME_ZONE: 'Europe/Rome' } as Env);
+    expect(config.orderTimeZone).toBe('Europe/Rome');
+  });
+
   it('throws on invalid APP_ENV value', () => {
     expect(() =>
       getRuntimeConfig({ APP_ENV: 'invalid' as 'development' } as Env),

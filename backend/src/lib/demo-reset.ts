@@ -140,10 +140,16 @@ function seedShowcase(env: Env, statements: D1PreparedStatement[]): void {
   const MIN = 60_000;
   const DAY = 86_400_000;
   const nowMs = Date.now();
-  // UTC YYYYMMDD bucket — mirrors currentOrderDay() in routes/orders.ts.
+  // YYYYMMDD bucket mirrors currentOrderDay() in routes/orders.ts.
   const dayOf = (ms: number) => {
-    const d = new Date(ms);
-    return d.getUTCFullYear() * 10000 + (d.getUTCMonth() + 1) * 100 + d.getUTCDate();
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: env.ORDER_TIME_ZONE || 'UTC',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).formatToParts(new Date(ms));
+    const value = (type: string) => Number(parts.find((part) => part.type === type)!.value);
+    return value('year') * 10000 + value('month') * 100 + value('day');
   };
   const destOf = (e: (typeof entries)[number]) =>
     drinkCategoryIds.has(e.categoryId) ? { id: BAR_ID, name: 'Bar' } : { id: CUCINA_ID, name: 'Cucina' };

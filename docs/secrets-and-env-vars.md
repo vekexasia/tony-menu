@@ -26,6 +26,7 @@ wrangler secret put OPENAI_API_KEY
 | `ACCESS_AUD` | `1a2b3c…` | The `AUD` tag shown on the Access application's Overview tab. Required. |
 | `ADMIN_EMAILS` | `you@example.com,partner@example.com` | Comma-separated admin emails (case-insensitive). The Access JWT's `email` claim must match. |
 | `R2_PUBLIC_URL` | `https://pub-xxx.r2.dev` | Public CDN URL for uploaded images |
+| `ORDER_TIME_ZONE` | `UTC` | IANA timezone used for order day and daily numbering buckets. |
 | `ALLOWED_ORIGINS` | `https://your-domain.example` | Comma-separated CORS origins |
 | `ALLOWED_HOST_SUFFIXES` | `.your-pages-project.pages.dev` | Optional. Hostname suffixes allowed over HTTPS (Pages preview deploys). |
 

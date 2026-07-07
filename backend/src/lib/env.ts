@@ -6,9 +6,19 @@ const envSchema = z.object({
   API_VERSION: z.string().min(1).default('v1'),
   SERVICE_NAME: z.string().min(1).default('menu-backend'),
   COMMIT_SHA: z.string().min(1).default('dev'),
+  ORDER_TIME_ZONE: z.string().min(1).default('UTC').refine(isTimeZone, 'Invalid time zone'),
   ACCESS_TEAM_DOMAIN: z.string().min(1).optional(),
   ACCESS_AUD: z.string().min(1).optional(),
 });
+
+function isTimeZone(value: string): boolean {
+  try {
+    new Intl.DateTimeFormat('en-US', { timeZone: value });
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export function getRuntimeConfig(env: Env): RuntimeConfig {
   const parsed = envSchema.parse(env);
@@ -18,6 +28,7 @@ export function getRuntimeConfig(env: Env): RuntimeConfig {
     apiVersion: parsed.API_VERSION,
     serviceName: parsed.SERVICE_NAME,
     commitSha: parsed.COMMIT_SHA,
+    orderTimeZone: parsed.ORDER_TIME_ZONE,
     databaseMode: env.DB ? 'd1' : 'unconfigured',
     hasPublicMenuBucket: Boolean(env.PUBLIC_MENU_BUCKET),
     auth: {

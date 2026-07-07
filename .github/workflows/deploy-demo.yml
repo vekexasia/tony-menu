@@ -80,6 +80,7 @@ jobs:
           API_VERSION = "v1"
           SERVICE_NAME = "risto-menu-demo-api"
           COMMIT_SHA = "${GITHUB_SHA}"
+          ORDER_TIME_ZONE = "UTC"
           DEMO_MODE = "true"
           ALLOWED_ORIGINS = "${DEMO_WEB_DOMAIN}"
           ALLOWED_HOST_SUFFIXES = ".pages.dev"

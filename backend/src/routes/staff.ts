@@ -303,7 +303,7 @@ staff.post('/order-intents/:token/consume', ...staffBase, async (c) => {
 
   let result;
   try {
-    result = await createOrder(db, `intent:${token}`, overrideLines ?? intent.lines ?? [], tableSessionId, 'staff', c.get('staff').name);
+    result = await createOrder(db, `intent:${token}`, overrideLines ?? intent.lines ?? [], tableSessionId, 'staff', c.get('staff').name, c.get('config').orderTimeZone);
   } catch (error) {
     await releaseClaim(db, token);
     throw error;

@@ -8,9 +8,16 @@ import { STAFF_SESSION_HEADER, validateStaffSession } from '../lib/staff';
 import type { DbInstance } from '../db';
 import type { AppBindings } from '../types';
 
-/** YYYYMMDD integer bucket (UTC) — same pattern as catalogViews.dateBucket. */
-export function currentOrderDay(now = new Date()): number {
-  return now.getUTCFullYear() * 10000 + (now.getUTCMonth() + 1) * 100 + now.getUTCDate();
+/** YYYYMMDD integer bucket in the restaurant timezone. */
+export function currentOrderDay(now = new Date(), timeZone = 'UTC'): number {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(now);
+  const value = (type: string) => Number(parts.find((part) => part.type === type)!.value);
+  return value('year') * 10000 + value('month') * 100 + value('day');
 }
 
 /** Intents expire 30 minutes after creation (#19). */
@@ -37,6 +44,7 @@ export async function createOrder(
   tableSessionId?: string | null,
   actor: 'diner' | 'staff' | 'admin' = tableSessionId ? 'staff' : 'diner',
   actorName?: string | null,
+  orderTimeZone = 'UTC',
 ): Promise<CreateOrderResult> {
   // Idempotency first: a retried submit returns the already-created order even
   // if the table session has since closed (no false invalid_table_session).
@@ -109,7 +117,7 @@ export async function createOrder(
   }
 
   const orderId = crypto.randomUUID();
-  const orderDay = currentOrderDay();
+  const orderDay = currentOrderDay(new Date(), orderTimeZone);
 
   const itemValues = entryIds.map((entryId) => {
     const entry = entryById.get(entryId)!;
@@ -227,7 +235,7 @@ export const orderRoutes = new Hono<AppBindings>()
       return c.json({ error: 'Not Found' }, 404);
     }
 
-    const result = await createOrder(db, body.idempotencyKey, body.lines, body.tableSessionId, body.tableSessionId ? 'staff' : 'diner', staffName);
+    const result = await createOrder(db, body.idempotencyKey, body.lines, body.tableSessionId, body.tableSessionId ? 'staff' : 'diner', staffName, c.get('config').orderTimeZone);
     if ('error' in result) return c.json(result, 409);
     return c.json(result);
   })

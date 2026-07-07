@@ -8,6 +8,7 @@ OPENAI_API_KEY=
 
 # Optional dev overrides. The deployed values live in wrangler.toml [vars].
 # APP_ENV=development
+# ORDER_TIME_ZONE=UTC
 # AUTH_ISSUER=https://securetoken.google.com/your-firebase-project-id
 # AUTH_AUDIENCE=your-firebase-project-id
 # ALLOWED_ORIGINS=http://localhost:3000

@@ -22,6 +22,7 @@ function makeConfig(overrides = {}) {
       accessAud: 'aud',
       adminEmails: 'you@example.com',
       openAiApiKey: '',
+      orderTimeZone: 'UTC',
       ...overrides.backend,
     },
     chat: {
@@ -55,6 +56,7 @@ test('config:generate includes PUBLIC_MENU_BUCKET binding when r2BucketName is c
 
   const wranglerToml = readFileSync(join(dir, 'backend/wrangler.toml'), 'utf8');
   assert.match(wranglerToml, /\[\[r2_buckets\]\]/);
+  assert.match(wranglerToml, /ORDER_TIME_ZONE = "UTC"/);
   assert.match(wranglerToml, /binding = "PUBLIC_MENU_BUCKET"/);
   assert.match(wranglerToml, /bucket_name = "menu-public"/);
   assert.match(wranglerToml, /preview_bucket_name = "menu-public"/);

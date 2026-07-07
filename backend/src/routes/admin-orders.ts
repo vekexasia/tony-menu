@@ -30,7 +30,7 @@ const base = [requireAuth, requireDb, requireAdmin] as const;
 /** Orders for one day (default today) with items and per-destination rows. */
 admin.get('/orders', ...base, async (c) => {
   const db = c.get('db');
-  const day = Number(c.req.query('day')) || currentOrderDay();
+  const day = Number(c.req.query('day')) || currentOrderDay(new Date(), c.get('config').orderTimeZone);
 
   const orderRows = await db
     .select({

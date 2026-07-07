@@ -198,7 +198,7 @@ admin.post('/sessions/:id/orders', ...base, async (c) => {
   const body = await parseBody(c, AdminOrderBodySchema);
   if (body instanceof Response) return body;
 
-  const result = await createOrder(db, `admin:${sessionId}:${crypto.randomUUID()}`, body.lines, sessionId, 'admin');
+  const result = await createOrder(db, `admin:${sessionId}:${crypto.randomUUID()}`, body.lines, sessionId, 'admin', null, c.get('config').orderTimeZone);
   if ('error' in result) {
     const status = result.error === 'stale_items' ? 409 : 409;
     return c.json(result, status);

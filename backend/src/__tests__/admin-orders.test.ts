@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, vi } from 'vitest';
 import { testRequest } from './helpers';
 import {
   createTestDb,
@@ -25,11 +25,11 @@ async function setup() {
   return { db, env, headers };
 }
 
-function seedOrder(db: TestDb, orderId: string, status = 'submitted', dailyNumber = 1) {
+function seedOrder(db: TestDb, orderId: string, status = 'submitted', dailyNumber = 1, orderDay = currentOrderDay()) {
   const now = Date.now();
   db.raw.prepare(
     'INSERT INTO orders (id, order_day, daily_number, status, idempotency_key, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
-  ).run(orderId, currentOrderDay(), dailyNumber, status, crypto.randomUUID(), now, now);
+  ).run(orderId, orderDay, dailyNumber, status, crypto.randomUUID(), now, now);
 }
 
 function seedOrderItem(db: TestDb, itemId: string, orderId: string, name = 'Pizza') {
@@ -172,6 +172,24 @@ describe('GET /admin/orders', () => {
     expect(order1.items[0].destinations).toEqual([
       { id: 'oid-1', destinationId: null, destinationName: 'Pizza', printedAt: null },
     ]);
+  });
+
+  it('defaults the board day in ORDER_TIME_ZONE', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-01-01T00:30:00Z'));
+    try {
+      const { db, env, headers } = await setup();
+      seedOrder(db, 'order-ny', 'submitted', 1);
+      db.raw.prepare('UPDATE orders SET order_day = ? WHERE id = ?').run(20251231, 'order-ny');
+
+      const res = await testRequest('/admin/orders', { headers, env: { ...env, ORDER_TIME_ZONE: 'America/New_York' } });
+      expect(res.status).toBe(200);
+      const body = await res.json() as { day: number; orders: Array<{ id: string }> };
+      expect(body.day).toBe(20251231);
+      expect(body.orders.map((o) => o.id)).toEqual(['order-ny']);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('requires admin auth', async () => {

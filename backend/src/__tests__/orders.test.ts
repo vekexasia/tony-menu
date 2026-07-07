@@ -38,6 +38,17 @@ function validBody(overrides: Record<string, unknown> = {}) {
   };
 }
 
+describe('currentOrderDay', () => {
+  it('defaults to UTC', () => {
+    expect(currentOrderDay(new Date('2026-01-01T00:30:00Z'))).toBe(20260101);
+  });
+
+  it('buckets by configured time zone', () => {
+    expect(currentOrderDay(new Date('2026-01-01T00:30:00Z'), 'America/New_York')).toBe(20251231);
+    expect(currentOrderDay(new Date('2026-07-06T22:30:00.000Z'), 'Europe/Rome')).toBe(20260707);
+  });
+});
+
 describe('POST /orders', () => {
   it('creates an order with frozen snapshots and daily number 1', async () => {
     const db = orderingDb();
@@ -56,6 +67,20 @@ describe('POST /orders', () => {
       { name: 'Bruschetta', price: 750, quantity: 2 },
       { name: 'Pasta', price: 1200, quantity: 1 },
     ]);
+  });
+
+  it('uses ORDER_TIME_ZONE for order_day', async () => {
+    const db = orderingDb();
+    const res = await testRequest('/orders', {
+      method: 'POST',
+      body: validBody(),
+      headers: { 'cf-connecting-ip': `10.0.0.${++ipCounter}` },
+      env: makeDbEnv(db, { ORDER_TIME_ZONE: 'Pacific/Kiritimati' }),
+    });
+    expect(res.status).toBe(200);
+    const body = await res.json() as { orderId: string };
+    const order = db.raw.prepare('SELECT order_day FROM orders WHERE id = ?').get(body.orderId) as { order_day: number };
+    expect(order.order_day).toBe(currentOrderDay(new Date(), 'Pacific/Kiritimati'));
   });
 
   it('creates real orders in demo mode', async () => {

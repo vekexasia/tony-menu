@@ -19,6 +19,7 @@ export interface Env {
   BASE_DOMAIN?: string;
   DEMO_MODE?: string;
   E2E_MODE?: string;
+  ORDER_TIME_ZONE?: string;
 }
 
 export type AppEnvironment = 'development' | 'staging' | 'production';
@@ -28,6 +29,7 @@ export interface RuntimeConfig {
   apiVersion: string;
   serviceName: string;
   commitSha: string;
+  orderTimeZone: string;
   databaseMode: 'd1' | 'unconfigured';
   hasPublicMenuBucket: boolean;
   auth: {

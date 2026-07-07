@@ -11,6 +11,8 @@ compatibility_date = "2025-04-11"
 APP_ENV = "development"
 API_VERSION = "v1"
 SERVICE_NAME = "menu-backend"
+# IANA time zone used for order daily numbers and kitchen-board default day.
+ORDER_TIME_ZONE = "UTC"
 
 # Demo deployments only: bypasses Cloudflare Access admin auth and resets data on cron.
 # Never enable this on production.

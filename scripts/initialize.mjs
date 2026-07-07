@@ -24,11 +24,11 @@ const DEFAULT_CONFIG = {
     d1DatabaseId: '00000000-0000-0000-0000-000000000000',
     r2BucketName: '',
     r2PublicUrl: 'https://pub-XXXXXXXX.r2.dev',
-    r2BucketName: '',
     accessTeamDomain: 'https://your-team.cloudflareaccess.com',
     accessAud: 'your-access-aud-tag',
     adminEmails: 'you@example.com',
     openAiApiKey: '',
+    orderTimeZone: 'UTC',
     allowedOrigins: '',
     allowedHostSuffixes: '',
   },
@@ -148,6 +148,7 @@ async function collectConfig(existing) {
   config.chat.kvNamespaceId = await ask('Chat KV namespace id', config.chat.kvNamespaceId);
   config.backend.r2PublicUrl = await ask('R2 public URL for images/catalog snapshots', config.backend.r2PublicUrl);
   config.backend.r2BucketName = await ask('R2 bucket name for images/catalog snapshots (blank disables R2 binding)', config.backend.r2BucketName);
+  config.backend.orderTimeZone = await ask('Order time zone for daily numbers', config.backend.orderTimeZone || 'UTC');
 
   if (!isDemo) {
     config.backend.adminEmails = await ask('Admin email(s), comma-separated', config.backend.adminEmails);
@@ -194,6 +195,7 @@ compatibility_date = "2025-04-11"
 APP_ENV = "${isProdLike ? 'production' : 'development'}"
 API_VERSION = "v1"
 SERVICE_NAME = "menu-backend"
+ORDER_TIME_ZONE = "${config.backend.orderTimeZone || 'UTC'}"
 DEMO_MODE = "${isDemo ? 'true' : 'false'}"
 R2_PUBLIC_URL = "${config.backend.r2PublicUrl}"
 ACCESS_TEAM_DOMAIN = "${config.backend.accessTeamDomain}"
