@@ -1,6 +1,6 @@
 # TonyMenu backend
 
-Cloudflare Worker REST API for TonyMenu.
+REST API for TonyMenu. Runs on Cloudflare Workers/D1 or the self-host Node + SQLite entrypoint.
 
 ## Stack
 
@@ -25,6 +25,7 @@ Cloudflare Worker REST API for TonyMenu.
 cd backend
 npm install
 npm run dev          # wrangler dev
+npm run start:self-host # Node + SQLite + filesystem bucket
 npm run check        # tsc --noEmit
 npm run test:run     # Vitest
 npm run deploy       # wrangler deploy
@@ -57,6 +58,7 @@ Important bindings/vars:
   routes fall back or return a clear 503 where R2 is required.
 - `R2_PUBLIC_URL` — public base URL for R2 images.
 - `ACCESS_TEAM_DOMAIN`, `ACCESS_AUD` — Cloudflare Access JWT verification.
+- `SELF_HOST_AUTH_HEADER` — trusted reverse-proxy email header for Node self-host.
 - `ALLOWED_ORIGINS` — comma-separated CORS allowlist.
 - `OPENAI_API_KEY` — secret used by translation and OpenAI chat flows.
 

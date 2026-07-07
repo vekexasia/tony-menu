@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev --persist-to .wrangler/state",
+    "dev:self-host": "tsx src/self-host/server.ts",
+    "start:self-host": "tsx src/self-host/server.ts",
     "deploy": "wrangler deploy --var COMMIT_SHA:${COMMIT_SHA:-$(git rev-parse HEAD)} --var ORDER_TIME_ZONE:${ORDER_TIME_ZONE:-$(node -e \"console.log(require('../.tony-menu.local.json').backend.orderTimeZone || 'UTC')\")}",
     "check": "tsc --noEmit",
     "typegen": "wrangler types",
@@ -20,6 +22,7 @@
     "test:migration-sql": "grep -E 'CREATE TYPE|jsonb|timestamp with time|numeric\\(' drizzle/*.sql 2>/dev/null && echo 'FAIL: postgres-isms found' && exit 1 || echo 'PASS: SQLite-only SQL'"
   },
   "dependencies": {
+    "@hono/node-server": "^1.19.14",
     "@menu/schemas": "*",
     "@types/better-sqlite3": "^7.6.13",
     "better-sqlite3": "^12.9.0",

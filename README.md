@@ -1,6 +1,6 @@
 # TonyMenu
 
-Self-hostable digital restaurant menu, built on Next.js and Cloudflare. Diners scan a QR code, browse a localized menu, and can ask an optional AI assistant for recommendations.
+Self-hostable digital restaurant menu, built on Next.js. Cloudflare is the recommended hosted target; Docker + SQLite is available when you do not want a Cloudflare account. Diners scan a QR code, browse a localized menu, and can ask an optional AI assistant for recommendations.
 
 Restaurant owners manage the menu from `/admin`. QR codes should point to `/`; the app detects the locale and redirects diners to the localized menu.
 
@@ -46,18 +46,29 @@ service, embedding it in a paid product) requires a separate license. See
 
 | Component | What |
 |---|---|
-| `web/` | Next.js 16 (App Router), deployed to Cloudflare Pages |
-| `backend/` | Hono API on Cloudflare Workers, Drizzle ORM over Cloudflare D1 |
-| `web/workers/chat/` | Separate Cloudflare Worker for the AI chat assistant with SSE streaming and tool calls |
+| `web/` | Next.js 16 (App Router), deployed to Cloudflare Pages or static Docker |
+| `backend/` | Hono API on Cloudflare Workers/D1 or Node/SQLite |
+| `web/workers/chat/` | Chat service on Cloudflare Workers or Node, with SSE streaming and tool calls |
 | `packages/schemas/` | Shared Zod schemas (`@menu/schemas`) |
-| Auth | Cloudflare Access with backend JWT verification |
-| Storage | Cloudflare R2 for images and catalog snapshots, Cloudflare KV for the chat menu cache |
+| Auth | Cloudflare Access, or trusted reverse-proxy header in Docker |
+| Storage | R2/KV on Cloudflare, or filesystem uploads + in-memory chat cache in Docker |
 
 ## Self-hosting
 
-Full walkthrough: **[docs/self-hosting.md](docs/self-hosting.md)**.
+- Cloudflare walkthrough: **[docs/self-hosting.md](docs/self-hosting.md)**.
+- No-Cloudflare Docker walkthrough: **[docs/self-hosting-without-cloudflare.md](docs/self-hosting-without-cloudflare.md)**.
 
-Prerequisites: Node 22+, npm 10+, Git, and a Cloudflare account with Zero Trust enabled.
+Cloudflare prerequisites: Node 22+, npm 10+, Git, and a Cloudflare account with Zero Trust enabled.
+
+No-Cloudflare quick start:
+
+```bash
+cp .env.self-host.example .env
+# set ADMIN_PASSWORD_HASH; see docs/self-hosting-without-cloudflare.md
+docker compose up --build
+```
+
+Then open the proxy on port 8080.
 
 Quick local setup:
 ```bash
@@ -147,7 +158,8 @@ admin UI changes that require operator action) live in [CHANGELOG.md](CHANGELOG.
 ## Documentation
 
 - [Changelog](CHANGELOG.md) — per-release notes including upgrade hints
-- [Self-hosting guide](docs/self-hosting.md) — deploy your own copy
+- [Cloudflare self-hosting guide](docs/self-hosting.md) — deploy your own copy on Cloudflare
+- [Docker self-hosting guide](docs/self-hosting-without-cloudflare.md) — deploy without Cloudflare
 - [Secrets & env vars](docs/secrets-and-env-vars.md) — full reference
 - [Architecture & coding conventions](CLAUDE.md)
 - [Contributing](CONTRIBUTING.md)

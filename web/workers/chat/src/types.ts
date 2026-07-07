@@ -1,6 +1,15 @@
+export type WaitUntilContext = Pick<ExecutionContext, 'waitUntil'>;
+export type D1DatabaseLike = Pick<D1Database, 'prepare'>;
+export interface KVNamespaceLike {
+  get(key: string, type?: 'text'): Promise<string | null>;
+  get<T = unknown>(key: string, type: 'json'): Promise<T | null>;
+  put(key: string, value: string, options?: { expirationTtl?: number }): Promise<void>;
+  delete(key: string): Promise<void>;
+}
+
 export interface Env {
-  MENU_CACHE: KVNamespace;
-  DB: D1Database;
+  MENU_CACHE: KVNamespaceLike;
+  DB: D1DatabaseLike;
   CHAT_SESSION_SECRET: string;
   LLM_PROVIDER: string;
   LLM_MODEL: string;

@@ -11,7 +11,7 @@ function makeEnv(limit?: string): Env {
       put: vi.fn(async (key: string, value: string) => { store.set(key, value); }),
       delete: vi.fn(async (key: string) => { store.delete(key); }),
     } as unknown as KVNamespace,
-  } as Env;
+  } as unknown as Env;
 }
 
 beforeEach(() => vi.restoreAllMocks());

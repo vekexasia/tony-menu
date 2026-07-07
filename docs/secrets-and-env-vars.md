@@ -69,6 +69,20 @@ session tokens (`POST /session`) gated by Cloudflare IP rate-limit.
 
 ---
 
+## Docker self-host (no Cloudflare)
+
+Copy `.env.self-host.example` to `.env` and set:
+
+| Variable | Required | Notes |
+|---|---:|---|
+| `PUBLIC_URL` | Yes | Public URL for CORS and uploaded image links. |
+| `ADMIN_PASSWORD_HASH` | Yes | Caddy basic-auth hash. Generate with `docker run --rm caddy:2-alpine caddy hash-password --plaintext 'your-password'`. |
+| `ADMIN_EMAIL`, `ADMIN_EMAILS` | Yes | Caddy forwards `ADMIN_EMAIL`; backend allows emails in `ADMIN_EMAILS`. |
+| `CHAT_SESSION_SECRET`, `REFRESH_SECRET` | Yes | Change before public deploy. |
+| `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` | Optional | Required only for AI chat/translation. |
+
+See [Self-host without Cloudflare](self-hosting-without-cloudflare.md).
+
 ## Frontend — Cloudflare Pages (`menu` by default)
 
 Set in Pages dashboard → Settings → Environment variables (production) and

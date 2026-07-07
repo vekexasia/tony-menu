@@ -1,7 +1,9 @@
-# Self-hosting TonyMenu
+# Self-hosting TonyMenu on Cloudflare
 
 This guide walks through deploying your own copy on Cloudflare. Everything
 here is free-tier-friendly; you only pay if traffic or AI chat usage grows.
+
+Want to run without a Cloudflare account? Use [Self-host without Cloudflare](self-hosting-without-cloudflare.md).
 
 ---
 

@@ -14,22 +14,34 @@ export async function getMenuData(env: Env): Promise<MenuDataCache> {
   // 1. In-memory (fastest, ~0ms)
   if (memCache) return memCache;
 
-  // 2. KV (~10ms)
-  const cached = await env.MENU_CACHE.get(CACHE_KEY, 'json');
-  if (cached) {
-    memCache = cached as MenuDataCache;
-    return memCache;
+  // 2. KV (~10ms); if KV is down, fall through to D1 instead of crashing chat.
+  try {
+    const cached = await env.MENU_CACHE.get(CACHE_KEY, 'json');
+    if (cached) {
+      memCache = cached as MenuDataCache;
+      return memCache;
+    }
+  } catch (error) {
+    console.warn('[MENU CACHE] get failed:', error);
   }
 
   // 3. D1 (~20ms) — only on cold start or after invalidation
   const data = await fetchMenuFromD1(env);
   memCache = data;
-  await env.MENU_CACHE.put(CACHE_KEY, JSON.stringify(data), { expirationTtl: CACHE_TTL });
+  try {
+    await env.MENU_CACHE.put(CACHE_KEY, JSON.stringify(data), { expirationTtl: CACHE_TTL });
+  } catch (error) {
+    console.warn('[MENU CACHE] put failed:', error);
+  }
 
   return data;
 }
 
 export async function invalidateCache(env: Env): Promise<void> {
   memCache = null;
-  await env.MENU_CACHE.delete(CACHE_KEY);
+  try {
+    await env.MENU_CACHE.delete(CACHE_KEY);
+  } catch (error) {
+    console.warn('[MENU CACHE] delete failed:', error);
+  }
 }

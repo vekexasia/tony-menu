@@ -29,7 +29,7 @@ staff.post('/consume', requireDb, async (c) => {
   if (body instanceof Response) return body;
 
   // Public endpoint — throttle brute-force token guessing per IP.
-  const ip = c.req.header('cf-connecting-ip') ?? 'unknown';
+  const ip = c.req.header('cf-connecting-ip') || c.req.header('x-forwarded-for') || 'unknown';
   const limited = checkRateLimit(`staff-consume:${ip}`, 20, 60_000);
   if (limited) return limited;
 
@@ -53,7 +53,7 @@ staff.post('/consume', requireDb, async (c) => {
     .update(schema.staffLinks)
     .set({ consumedAt: Date.now(), sessionToken, lastSeenAt: Date.now() })
     .where(and(eq(schema.staffLinks.id, link.id), isNull(schema.staffLinks.consumedAt)));
-  if (claim.meta.changes === 0) return c.json({ error: 'consumed' }, 409);
+  if (changedRows(claim) === 0) return c.json({ error: 'consumed' }, 409);
 
   return c.json({ ok: true, sessionToken, name: link.name });
 });
@@ -207,7 +207,7 @@ staff.post('/order-intents/:token/consume', ...staffBase, async (c) => {
     .update(schema.orderIntents)
     .set({ consumedAt: Date.now() })
     .where(and(eq(schema.orderIntents.id, token), isNull(schema.orderIntents.consumedAt)));
-  if (claim.meta.changes === 0) return c.json({ error: 'consumed' }, 409);
+  if (changedRows(claim) === 0) return c.json({ error: 'consumed' }, 409);
 
   let result;
   try {
@@ -222,6 +222,11 @@ staff.post('/order-intents/:token/consume', ...staffBase, async (c) => {
   }
   return c.json(result);
 });
+
+function changedRows(result: unknown): number {
+  const r = result as { changes?: number; meta?: { changes?: number } };
+  return r.meta?.changes ?? r.changes ?? 0;
+}
 
 async function releaseClaim(db: DbInstance, token: string): Promise<void> {
   await db

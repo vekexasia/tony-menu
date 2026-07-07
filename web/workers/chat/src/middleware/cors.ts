@@ -1,3 +1,5 @@
+import type { D1DatabaseLike } from '../types';
+
 const DEV_ALLOWED_ORIGINS = [
   'http://localhost:3000',
   'http://localhost:3001',
@@ -6,7 +8,7 @@ const DEV_ALLOWED_ORIGINS = [
 ];
 
 type CorsEnv = {
-  DB?: D1Database;
+  DB?: D1DatabaseLike;
   ALLOWED_ORIGINS?: string;
   ALLOWED_HOST_SUFFIXES?: string;
 };
@@ -38,7 +40,7 @@ function isStandardAllowedOrigin(origin: string, parsed: URL, env: CorsEnv): boo
  * Querying by hostname keeps CORS in sync with the same association used by
  * /catalog/resolve-domain, and avoids hard-coding every tenant domain here.
  */
-async function isVerifiedRestaurantDomain(db: D1Database | undefined, hostname: string): Promise<boolean> {
+async function isVerifiedRestaurantDomain(db: D1DatabaseLike | undefined, hostname: string): Promise<boolean> {
   if (!db) return false;
   const row = await db
     .prepare('SELECT restaurant_id FROM restaurant_domains WHERE domain = ? AND verified = 1 LIMIT 1')

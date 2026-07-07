@@ -1,0 +1,10 @@
+**/node_modules
+**/.next
+**/out
+**/.wrangler
+.worktrees
+.self-host
+data
+.git
+.env*
+.tony-menu.local.json

@@ -1,4 +1,4 @@
-import type { Env, ChatRequest, ChatToolCall, MenuDataCache } from '../types';
+import type { Env, ChatRequest, ChatToolCall, MenuDataCache, WaitUntilContext } from '../types';
 import { getMenuData } from '../menu/cache';
 import { buildSystemPrompt } from './system-prompt';
 import { TOOLS } from './tools';
@@ -21,10 +21,10 @@ function summarizeToolsForLog(toolCalls: string[]): string {
   return toolCalls.map(tc => tc.split('(')[0]).join(', ');
 }
 
-export async function handleChat(request: Request, env: Env, corsHeaders: Record<string, string>, session: ChatSession, ctx: ExecutionContext): Promise<Response> {
+export async function handleChat(request: Request, env: Env, corsHeaders: Record<string, string>, session: ChatSession, ctx: WaitUntilContext): Promise<Response> {
   const startTime = Date.now();
   const sessionId = crypto.randomUUID();
-  const ip = request.headers.get('cf-connecting-ip') || 'local';
+  const ip = request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'local';
 
   let body: ChatRequest;
   try {

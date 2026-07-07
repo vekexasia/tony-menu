@@ -1,0 +1,61 @@
+services:
+  web:
+    build: .
+    command: node scripts/serve-static.mjs web/out 3000
+    restart: unless-stopped
+
+  backend:
+    build: .
+    command: npm --workspace backend run start:self-host
+    environment:
+      PORT: 8787
+      DATA_DIR: /data
+      SQLITE_PATH: /data/tony-menu.sqlite
+      BUCKET_DIR: /data/bucket
+      R2_PUBLIC_URL: ${PUBLIC_URL:?Set PUBLIC_URL}/assets
+      SELF_HOST_AUTH_HEADER: x-forwarded-email
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-admin@example.com}
+      ORDER_TIME_ZONE: ${ORDER_TIME_ZONE:-UTC}
+      ALLOWED_ORIGINS: ${PUBLIC_URL:?Set PUBLIC_URL}
+      ALLOWED_HOST_SUFFIXES: ${ALLOWED_HOST_SUFFIXES:-localhost}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    volumes:
+      - tony-data:/data
+    restart: unless-stopped
+
+  chat:
+    build: .
+    command: sh -c "cd web/workers/chat && npm run start:self-host"
+    environment:
+      PORT: 8788
+      DATA_DIR: /data
+      SQLITE_PATH: /data/tony-menu.sqlite
+      CHAT_SESSION_SECRET: ${CHAT_SESSION_SECRET:-change-me}
+      REFRESH_SECRET: ${REFRESH_SECRET:-change-me}
+      LLM_PROVIDER: ${LLM_PROVIDER:-openai}
+      LLM_MODEL: ${LLM_MODEL:-gpt-4o-mini}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      DAILY_AI_REQUEST_LIMIT: ${DAILY_AI_REQUEST_LIMIT:-}
+    volumes:
+      - tony-data:/data
+    restart: unless-stopped
+
+  proxy:
+    image: caddy:2-alpine
+    ports:
+      - "8080:80"
+    environment:
+      ADMIN_USER: ${ADMIN_USER:-admin}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
+      ADMIN_PASSWORD_HASH: "${ADMIN_PASSWORD_HASH:?Set ADMIN_PASSWORD_HASH. Generate with docker run --rm caddy:2-alpine caddy hash-password --plaintext 'your-password'}"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on:
+      - web
+      - backend
+      - chat
+    restart: unless-stopped
+
+volumes:
+  tony-data:

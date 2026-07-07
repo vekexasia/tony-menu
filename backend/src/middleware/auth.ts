@@ -155,14 +155,10 @@ async function verifyJwt(
 }
 
 /**
- * Auth middleware: requires a valid Cloudflare Access JWT.
+ * Auth middleware: Cloudflare Access in Workers, trusted proxy header in self-host.
  *
- * Cloudflare Access sits in front of the worker and adds the
- * `Cf-Access-Jwt-Assertion` header on every authenticated request. We verify
- * the signature against the team's public keys and use the `email` claim as
- * the stable user identifier.
- *
- * Sets `c.get('user')` with the authenticated user info.
+ * Self-host deployments must block direct backend access. Otherwise clients can spoof
+ * the trusted email header.
  */
 export const requireAuth = createMiddleware<AuthBindings>(async (c, next) => {
   const config = c.get('config');
@@ -182,6 +178,20 @@ export const requireAuth = createMiddleware<AuthBindings>(async (c, next) => {
     return c.json({ error: 'Auth not configured on this backend instance' }, 503);
   }
 
+  if (config.auth.mode === 'trusted-header') {
+    const headerName = config.auth.trustedHeader || 'x-forwarded-email';
+    const email = c.req.header(headerName);
+    if (!email) return c.json({ error: `Missing ${headerName} header` }, 401);
+    c.set('user', {
+      uid: email,
+      email,
+      name: c.req.header('x-forwarded-name') || undefined,
+      claims: { trustedHeader: headerName },
+    });
+    await next();
+    return;
+  }
+
   const token = c.req.header('Cf-Access-Jwt-Assertion');
   if (!token) {
     return c.json({ error: 'Missing Cf-Access-Jwt-Assertion header' }, 401);
@@ -197,7 +207,6 @@ export const requireAuth = createMiddleware<AuthBindings>(async (c, next) => {
       name: payload.name as string | undefined,
       claims: payload,
     };
-
     c.set('user', user);
     await next();
   } catch (err) {

@@ -1,4 +1,4 @@
-import type { Env } from './types';
+import type { Env, WaitUntilContext } from './types';
 import { handleChat } from './chat/handler';
 import { getCorsHeaders, handleCorsPreFlight } from './middleware/cors';
 import { invalidateCache, getMenuData } from './menu/cache';
@@ -14,7 +14,7 @@ function json(data: unknown, status: number, corsHeaders: Record<string, string>
 }
 
 const worker = {
-  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: WaitUntilContext): Promise<Response> {
     const url = new URL(request.url);
 
     const corsResponse = await handleCorsPreFlight(request, env);
@@ -26,7 +26,7 @@ const worker = {
     // Issuance is gated by Cloudflare IP so opening the modal is cheap but
     // token churn still has friction.
     if (url.pathname === '/session' && request.method === 'POST') {
-      const ip = request.headers.get('cf-connecting-ip') || 'local';
+      const ip = request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'local';
       const rateLimitResp = checkSessionIssueRateLimit(ip);
       if (rateLimitResp) {
         return new Response(rateLimitResp.body, {

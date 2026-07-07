@@ -27,19 +27,19 @@ export async function consumeDailyAiRequest(env: Env, now = new Date()): Promise
   if (!limit) return { allowed: true, limit: null, used: 0 };
 
   const key = todayUtcKey(now);
-  const currentRaw = await env.MENU_CACHE.get(key);
-  const current = currentRaw ? Number(currentRaw) || 0 : 0;
-  if (current >= limit) return { allowed: false, limit, used: current };
+  try {
+    const currentRaw = await env.MENU_CACHE.get(key);
+    const current = currentRaw ? Number(currentRaw) || 0 : 0;
+    if (current >= limit) return { allowed: false, limit, used: current };
 
-  const next = current + 1;
-  await env.MENU_CACHE.put(key, String(next), {
-    expirationTtl: secondsUntilTomorrow(now) + 86_400,
-  });
-
-  // ponytail: this read-modify-write is NOT atomic. KV offers no atomic increment, so
-  // concurrent requests can read the same `current` and both write `current+1`, letting a
-  // burst slightly exceed `limit` (and under-count the stored total). Ceiling: over-admission
-  // bounded by concurrency, which is acceptable for a soft daily cap. Upgrade path: move the
-  // counter into a Durable Object (single-threaded, true atomic increment) if the cap must be hard.
-  return { allowed: true, limit, used: next };
+    const next = current + 1;
+    // ponytail: this read-modify-write is a soft cap; use Redis/DB atomic increment if it must be hard.
+    await env.MENU_CACHE.put(key, String(next), {
+      expirationTtl: secondsUntilTomorrow(now) + 86_400,
+    });
+    return { allowed: true, limit, used: next };
+  } catch (error) {
+    console.warn('[DAILY CAP] unavailable:', error);
+    return { allowed: true, limit, used: 0 };
+  }
 }

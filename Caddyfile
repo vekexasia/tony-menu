@@ -1,0 +1,40 @@
+:80 {
+  @admin path /admin* /api/admin* /api/catalog/publish
+  basicauth @admin {
+    {$ADMIN_USER} {$ADMIN_PASSWORD_HASH}
+  }
+
+  handle /api/admin* {
+    uri strip_prefix /api
+    reverse_proxy backend:8787 {
+      header_up X-Forwarded-Email {$ADMIN_EMAIL}
+      header_up X-Forwarded-Name {$ADMIN_USER}
+    }
+  }
+
+  handle /api/catalog/publish {
+    uri strip_prefix /api
+    reverse_proxy backend:8787 {
+      header_up X-Forwarded-Email {$ADMIN_EMAIL}
+      header_up X-Forwarded-Name {$ADMIN_USER}
+    }
+  }
+
+  handle /api/* {
+    uri strip_prefix /api
+    reverse_proxy backend:8787
+  }
+
+  handle /chat/* {
+    uri strip_prefix /chat
+    reverse_proxy chat:8788
+  }
+
+  handle /assets/* {
+    reverse_proxy backend:8787
+  }
+
+  handle {
+    reverse_proxy web:3000
+  }
+}

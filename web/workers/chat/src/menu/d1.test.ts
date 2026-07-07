@@ -62,7 +62,7 @@ function makeEnv() {
   const prepare = vi.fn((sql: string) => ({ first, all, sql }));
 
   return {
-    env: { DB: { prepare } as unknown as D1Database } as Env,
+    env: { DB: { prepare } as unknown as D1Database } as unknown as Env,
     prepare,
   };
 }
