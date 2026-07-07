@@ -1,7 +1,6 @@
 import type { AuthUser } from './middleware/auth';
 import type { StaffSession } from './lib/staff';
 import type { createDb } from './db/index';
-import type { SqliteDatabase } from './self-host/sqlite';
 
 export interface Env {
   APP_ENV?: string;
@@ -11,7 +10,6 @@ export interface Env {
   ALLOWED_ORIGINS?: string;
   ALLOWED_HOST_SUFFIXES?: string;
   DB?: D1Database;
-  SQLITE_DB?: SqliteDatabase;
   PUBLIC_MENU_BUCKET?: R2Bucket;
   R2_PUBLIC_URL?: string;
   ACCESS_TEAM_DOMAIN?: string;

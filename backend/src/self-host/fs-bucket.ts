@@ -60,7 +60,9 @@ export function createFsBucket(root: string): R2Bucket {
     async get(key: string) {
       try {
         const data = await readFile(safePath(root, key));
-        return object(root, key, data);
+        const ext = key.slice(key.lastIndexOf('.')).toLowerCase();
+        const contentType = ({ '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.gif': 'image/gif', '.svg': 'image/svg+xml', '.json': 'application/json', '.pdf': 'application/pdf' } as Record<string, string>)[ext];
+        return object(root, key, data, contentType);
       } catch {
         return null;
       }

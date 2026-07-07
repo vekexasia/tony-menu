@@ -22,19 +22,31 @@
 
   handle /api/* {
     uri strip_prefix /api
-    reverse_proxy backend:8787
+    reverse_proxy backend:8787 {
+      header_up X-Forwarded-Email ""
+      header_up X-Forwarded-Name ""
+    }
   }
 
   handle /chat/* {
     uri strip_prefix /chat
-    reverse_proxy chat:8788
+    reverse_proxy chat:8788 {
+      header_up X-Forwarded-Email ""
+      header_up X-Forwarded-Name ""
+    }
   }
 
   handle /assets/* {
-    reverse_proxy backend:8787
+    reverse_proxy backend:8787 {
+      header_up X-Forwarded-Email ""
+      header_up X-Forwarded-Name ""
+    }
   }
 
   handle {
-    reverse_proxy web:3000
+    reverse_proxy web:3000 {
+      header_up X-Forwarded-Email ""
+      header_up X-Forwarded-Name ""
+    }
   }
 }

@@ -30,7 +30,7 @@ export function getRuntimeConfig(env: Env): RuntimeConfig {
     serviceName: parsed.SERVICE_NAME,
     commitSha: parsed.COMMIT_SHA,
     orderTimeZone: parsed.ORDER_TIME_ZONE,
-    databaseMode: env.SQLITE_DB ? 'sqlite' : env.DB ? 'd1' : 'unconfigured',
+    databaseMode: env.DB ? 'd1' : 'unconfigured',
     hasPublicMenuBucket: Boolean(env.PUBLIC_MENU_BUCKET),
     auth: {
       issuer: parsed.ACCESS_TEAM_DOMAIN,

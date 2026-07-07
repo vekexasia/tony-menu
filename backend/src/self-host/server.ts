@@ -22,7 +22,6 @@ const env: Env = {
   COMMIT_SHA: process.env.COMMIT_SHA || 'self-host',
   ORDER_TIME_ZONE: process.env.ORDER_TIME_ZONE || 'UTC',
   SELF_HOST_AUTH_HEADER: process.env.SELF_HOST_AUTH_HEADER || 'x-forwarded-email',
-  SQLITE_DB: sqlite,
   DB: createD1Compat(sqlite),
   PUBLIC_MENU_BUCKET: createFsBucket(bucketDir),
   R2_PUBLIC_URL: process.env.R2_PUBLIC_URL || (process.env.PUBLIC_URL ? `${process.env.PUBLIC_URL.replace(/\/$/, '')}/assets` : ''),
