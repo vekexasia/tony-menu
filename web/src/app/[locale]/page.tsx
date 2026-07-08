@@ -55,7 +55,7 @@ export default function HomePage() {
     // Convert JS day (0=Sunday) to schedule index (0=Monday)
     const dayIndex = today === 0 ? 6 : today - 1;
     const todaySchedule = data.openingSchedule.schedule[dayIndex];
-    if (!todaySchedule || todaySchedule.length === 0) return null;
+    if (!todaySchedule || todaySchedule.length === 0) return t("closedToday");
     return todaySchedule.map((slot) => `${slot.start} - ${slot.end}`).join("  ");
   };
 
