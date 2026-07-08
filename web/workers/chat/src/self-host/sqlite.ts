@@ -25,10 +25,17 @@ export function applyMigrations(db: SqliteDatabase, migrationsDir: string): void
       .map((statement) => statement.trim())
       .filter(Boolean)
       .join(';\n');
-    db.transaction(() => {
+    const apply = () => {
       db.exec(sql);
       db.prepare('INSERT INTO __tony_migrations (name, applied_at) VALUES (?, ?)').run(file, Date.now());
-    })();
+    };
+    if (/PRAGMA\s+foreign_keys\s*=\s*OFF/i.test(sql)) {
+      try {
+        apply();
+      } finally {
+        db.pragma('foreign_keys = ON');
+      }
+    } else db.transaction(apply)();
   }
 }
 

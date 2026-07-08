@@ -50,9 +50,9 @@ OPENAI_API_KEY=
 ANTHROPIC_API_KEY=
 DAILY_AI_REQUEST_LIMIT=
 
-# Change these before public deploy.
-CHAT_SESSION_SECRET=change-me
-REFRESH_SECRET=change-me
+# Required. Generate random values before public deploy.
+CHAT_SESSION_SECRET=
+REFRESH_SECRET=
 ```
 
 `PUBLIC_URL` is used for uploaded image URLs (`/assets/...`). Set it to the public origin users open in their browser before uploading images.

@@ -21,7 +21,7 @@ const env: Env = {
   SERVICE_NAME: process.env.SERVICE_NAME || 'menu-backend-self-host',
   COMMIT_SHA: process.env.COMMIT_SHA || 'self-host',
   ORDER_TIME_ZONE: process.env.ORDER_TIME_ZONE || 'UTC',
-  SELF_HOST_AUTH_HEADER: process.env.SELF_HOST_AUTH_HEADER || 'x-forwarded-email',
+  SELF_HOST_AUTH_HEADER: process.env.SELF_HOST_AUTH_HEADER,
   DB: createD1Compat(sqlite),
   PUBLIC_MENU_BUCKET: createFsBucket(bucketDir),
   R2_PUBLIC_URL: process.env.R2_PUBLIC_URL || (process.env.PUBLIC_URL ? `${process.env.PUBLIC_URL.replace(/\/$/, '')}/assets` : ''),

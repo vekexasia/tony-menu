@@ -10,6 +10,11 @@ const port = Number(process.env.CHAT_PORT || process.env.PORT || 8788);
 const dataDir = process.env.DATA_DIR || join(root, '.self-host');
 const dbPath = process.env.SQLITE_PATH || join(dataDir, 'tony-menu.sqlite');
 
+function requiredEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) throw new Error(`${name} is required`);
+  return value;
+}
 const sqlite = openSelfHostSqlite(dbPath);
 applyMigrations(sqlite, join(root, 'backend/drizzle'));
 
@@ -17,8 +22,8 @@ const env: Env = {
   ...process.env,
   DB: createD1Compat(sqlite),
   MENU_CACHE: createMemoryKv(),
-  CHAT_SESSION_SECRET: process.env.CHAT_SESSION_SECRET || 'dev-change-me',
-  REFRESH_SECRET: process.env.REFRESH_SECRET || 'dev-refresh-secret',
+  CHAT_SESSION_SECRET: requiredEnv('CHAT_SESSION_SECRET'),
+  REFRESH_SECRET: requiredEnv('REFRESH_SECRET'),
   LLM_PROVIDER: process.env.LLM_PROVIDER || 'anthropic',
   LLM_MODEL: process.env.LLM_MODEL || '',
   ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY || '',

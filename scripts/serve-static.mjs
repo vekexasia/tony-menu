@@ -18,7 +18,12 @@ const types = new Map([
 ]);
 
 function resolvePath(url) {
-  const pathname = decodeURIComponent(new URL(url, 'http://localhost').pathname);
+  let pathname;
+  try {
+    pathname = decodeURIComponent(new URL(url, 'http://localhost').pathname);
+  } catch {
+    return null;
+  }
   let full = normalize(join(root, pathname));
   if (!full.startsWith(root + sep) && full !== root) return null;
   if (existsSync(full) && statSync(full).isDirectory()) full = join(full, 'index.html');
@@ -26,7 +31,7 @@ function resolvePath(url) {
   return full;
 }
 
-createServer((req, res) => {
+const server = createServer((req, res) => {
   const full = resolvePath(req.url || '/');
   if (!full || !existsSync(full) || !statSync(full).isFile()) {
     res.writeHead(404).end('Not Found');
@@ -35,4 +40,10 @@ createServer((req, res) => {
   res.writeHead(200, { 'content-type': types.get(extname(full)) || 'application/octet-stream' });
   if (req.method === 'HEAD') res.end();
   else createReadStream(full).pipe(res);
-}).listen(port, () => console.log(`TonyMenu web listening on :${port}`));
+});
+
+server.listen(port, () => {
+  const address = server.address();
+  const actualPort = typeof address === 'object' && address ? address.port : port;
+  console.log(`TonyMenu web listening on :${actualPort}`);
+});

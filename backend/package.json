@@ -7,7 +7,7 @@
     "dev": "wrangler dev --persist-to .wrangler/state",
     "dev:self-host": "tsx src/self-host/server.ts",
     "start:self-host": "tsx src/self-host/server.ts",
-    "deploy": "wrangler deploy --var COMMIT_SHA:${COMMIT_SHA:-$(git rev-parse HEAD)} --var ORDER_TIME_ZONE:${ORDER_TIME_ZONE:-$(node -e \"console.log(require('../.tony-menu.local.json').backend.orderTimeZone || 'UTC')\")}",
+    "deploy": "wrangler deploy --var COMMIT_SHA:${COMMIT_SHA:-$(git rev-parse HEAD)}${ORDER_TIME_ZONE:+ --var ORDER_TIME_ZONE:$ORDER_TIME_ZONE}",
     "check": "tsc --noEmit",
     "typegen": "wrangler types",
     "import:backup": "tsx scripts/import-from-backup.ts",

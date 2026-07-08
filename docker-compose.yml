@@ -30,8 +30,8 @@ services:
       PORT: 8788
       DATA_DIR: /data
       SQLITE_PATH: /data/tony-menu.sqlite
-      CHAT_SESSION_SECRET: ${CHAT_SESSION_SECRET:-change-me}
-      REFRESH_SECRET: ${REFRESH_SECRET:-change-me}
+      CHAT_SESSION_SECRET: ${CHAT_SESSION_SECRET:?Set CHAT_SESSION_SECRET}
+      REFRESH_SECRET: ${REFRESH_SECRET:?Set REFRESH_SECRET}
       LLM_PROVIDER: ${LLM_PROVIDER:-openai}
       LLM_MODEL: ${LLM_MODEL:-gpt-4o-mini}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}

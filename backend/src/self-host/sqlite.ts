@@ -4,6 +4,10 @@ import Database from 'better-sqlite3';
 
 export type SqliteDatabase = Database.Database;
 
+type SelfHostD1PreparedStatement = D1PreparedStatement & {
+  runSync(): D1Result;
+};
+
 export function openSelfHostSqlite(path: string): SqliteDatabase {
   mkdirSync(dirname(path), { recursive: true });
   const db = new Database(path);
@@ -24,10 +28,17 @@ export function applyMigrations(db: SqliteDatabase, migrationsDir: string): void
       .map((statement) => statement.trim())
       .filter(Boolean)
       .join(';\n');
-    db.transaction(() => {
+    const apply = () => {
       db.exec(sql);
       db.prepare('INSERT INTO __tony_migrations (name, applied_at) VALUES (?, ?)').run(file, Date.now());
-    })();
+    };
+    if (/PRAGMA\s+foreign_keys\s*=\s*OFF/i.test(sql)) {
+      try {
+        apply();
+      } finally {
+        db.pragma('foreign_keys = ON');
+      }
+    } else db.transaction(apply)();
   }
 }
 
@@ -50,9 +61,12 @@ export function createD1Compat(db: SqliteDatabase): D1Database {
           const results = statement.all(...params) as T[];
           return { results, success: true, meta: {} };
         },
-        async run() {
+        runSync() {
           const result = statement.run(...params);
           return { success: true, meta: { changes: result.changes, last_row_id: result.lastInsertRowid } };
+        },
+        async run() {
+          return this.runSync();
         },
         async raw<T = unknown>() {
           return statement.raw().all(...params) as T[];
@@ -60,7 +74,7 @@ export function createD1Compat(db: SqliteDatabase): D1Database {
       };
     },
     async batch(statements: D1PreparedStatement[]) {
-      return db.transaction(() => statements.map((statement) => statement.run()))();
+      return db.transaction(() => statements.map((statement) => (statement as SelfHostD1PreparedStatement).runSync()))();
     },
     async exec(sql: string) {
       db.exec(sql);
