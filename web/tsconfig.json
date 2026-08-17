@@ -38,6 +38,10 @@
   ],
   "exclude": [
     "node_modules",
-    "workers"
+    "workers",
+    "**/*.test.tsx",
+    "**/*.test.ts",
+    "**/*.spec.tsx",
+    "**/*.spec.ts"
   ]
 }
