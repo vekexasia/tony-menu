@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react'
+import { screen } from '@testing-library/dom';
 
 import { ChatBubble } from './ChatBubble';
 import { useRestaurantStore } from '@/stores/restaurantStore';

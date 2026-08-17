@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react'
+import { fireEvent, screen } from '@testing-library/dom';
 import { MenuItemDetail } from './MenuItemDetail';
 import { useRestaurantStore } from '@/stores/restaurantStore';
 import type { MenuEntry } from '@/lib/types';

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render } from '@testing-library/react'
+import { screen, fireEvent } from '@testing-library/dom';
 
 // ── Mocks must come before the component import ─────────────────────
 

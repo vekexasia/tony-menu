@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { render } from '@testing-library/react'
+import { fireEvent, screen, waitFor } from '@testing-library/dom';
 import { useRestaurantStore } from '@/stores/restaurantStore';
 import { SELECTION_STORAGE_KEY, useSelectionStore } from '@/stores/selectionStore';
 import { ApiError } from '@/lib/api';

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, render, screen, within } from '@testing-library/react';
+import { act, render } from '@testing-library/react'
+import { screen, within } from '@testing-library/dom';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
