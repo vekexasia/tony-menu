@@ -19,7 +19,8 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:migration-sql": "grep -E 'CREATE TYPE|jsonb|timestamp with time|numeric\\(' drizzle/*.sql 2>/dev/null && echo 'FAIL: postgres-isms found' && exit 1 || echo 'PASS: SQLite-only SQL'"
+    "test:migration-sql": "grep -E 'CREATE TYPE|jsonb|timestamp with time|numeric\\(' drizzle/*.sql 2>/dev/null && echo 'FAIL: postgres-isms found' && exit 1 || echo 'PASS: SQLite-only SQL'",
+    "bench": "vitest bench --run --config vitest.bench.config.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.14",

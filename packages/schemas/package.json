@@ -8,7 +8,8 @@
   },
   "scripts": {
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "bench": "vitest bench --run --config vitest.bench.config.ts"
   },
   "dependencies": {
     "zod": "^4.3.5"
