@@ -8,11 +8,15 @@
     "verify:config": "node scripts/verify-config.mjs",
     "backend:self-host": "npm --workspace backend run start:self-host",
     "chat:self-host": "cd web/workers/chat && npm run start:self-host",
-    "web:self-host": "NEXT_IGNORE_INCORRECT_LOCKFILE=1 npm --workspace web run build && node scripts/serve-static.mjs web/out 3000"
+    "web:self-host": "NEXT_IGNORE_INCORRECT_LOCKFILE=1 npm --workspace web run build && node scripts/serve-static.mjs web/out 3000",
+    "bench": "npm --workspace packages/schemas run bench && npm --workspace backend run bench && npm --workspace web run bench"
   },
   "workspaces": [
     "backend",
     "web",
     "packages/*"
-  ]
+  ],
+  "devDependencies": {
+    "@codspeed/vitest-plugin": "^5.7.1"
+  }
 }

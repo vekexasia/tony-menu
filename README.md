@@ -1,5 +1,7 @@
 # TonyMenu
 
+[![CodSpeed](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json)](https://app.codspeed.io/maksimtech/tony-menu?utm_source=badge)
+
 Self-hostable digital restaurant menu, built on Next.js. Cloudflare is the recommended hosted target; Docker + SQLite is available when you do not want a Cloudflare account. Diners scan a QR code, browse a localized menu, and can ask an optional AI assistant for recommendations.
 
 Restaurant owners manage the menu from `/admin`. QR codes should point to `/`; the app detects the locale and redirects diners to the localized menu.
@@ -125,6 +127,12 @@ cd backend && npm run deploy
 cd web/workers/chat && npm run dev
 cd web/workers/chat && npm run test:run
 cd web/workers/chat && npm run deploy
+
+# Performance benchmarks (tracked on CodSpeed)
+npm run bench                             # all workspaces
+npm --workspace backend run bench         # catalog endpoint, analytics, uploads
+npm --workspace web run bench             # menu search, i18n, locale detection
+npm --workspace packages/schemas run bench # zod validation of API payloads
 ```
 
 ## Upgrading
